@@ -401,19 +401,35 @@ if (Test-Path $exePath) {
     }
 
 
+# Download and run Bloatware Removal Utility
+$ProgressPreference = 'SilentlyContinue'
+Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip" -OutFile "c:\temp\BRU.zip" 
+if (Test-Path "c:\temp\BRU.zip" -PathType Leaf) {
+  Expand-Archive -Path "c:\temp\BRU.zip" -DestinationPath "c:\BRU\" -Force *> $null
+  Set-Location c:\bru\
+  Stop-Transcript | Out-Null
+    
+  # Restart Explorer process
+  Start-Job -ScriptBlock {
+    Start-Sleep -Seconds 190
+    Stop-Process -Name explorer -Force
+    Start-Process explorer *> $null
+  } *> $null
+}
+
 # Trigger uninstall of remaining Dell applications
 $Remaining = Get-Package | Where-Object {
-    $_.Name -like 'dell*' -and
-    $_.Name -notlike '*firmware*' -and
-    $_.Name -notlike '*WLAN*' -and
-    $_.Name -notlike '*HID*' -and
-    $_.Name -notlike '*Touch*'
+  $_.Name -like 'dell*' -and
+  $_.Name -notlike '*firmware*' -and
+  $_.Name -notlike '*WLAN*' -and
+  $_.Name -notlike '*HID*' -and
+  $_.Name -notlike '*Touch*'
 }
-    
+  
 foreach ($package in $Remaining) {
-    Write-Host "Triggering uninstall for $package.Name" -NoNewline
-    Uninstall-Package -Name $package.Name -Force *> $null
-    Write-Host " done." -ForegroundColor "Green"
+  Write-Host "Triggering uninstall for $($package.Name)" -NoNewline
+  Uninstall-Package -Name $package.Name -Force *> $null
+  Write-Host " done." -ForegroundColor "Green"
 }
     
 
