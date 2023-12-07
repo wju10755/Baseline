@@ -653,7 +653,7 @@ if ($Acrobat) {
     }
 }
 
-# Install Office 365
+# Install Office 2016
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Microsoft Office Professional Plus 2016*" }
@@ -677,9 +677,9 @@ if ($O365) {
         & $officeNotice
         Expand-Archive -path c:\temp\O2k16pp.zip -DestinationPath 'c:\temp\' -Force
         Write-Host "Installing Microsoft Office 2016..." -NoNewline
-        $OfficeInstaller = "C:\temp\o2k16pp\Office2016_ProPlus\setup.exe"
+        $OfficeInstaller = "C:\temp\Office2016_ProPlus\setup.exe"
         $OfficeArguments = "/adminfile .\SLaddInstallOffice.msp"
-        Set-Location -path 'C:\temp\o2k16pp\Office2016_ProPlus\'
+        Set-Location -path 'C:\temp\Office2016_ProPlus\'
         Start-Process -FilePath $OfficeInstaller -ArgumentList $OfficeArguments -Wait    
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Office 365 Installation Completed Successfully."
@@ -803,6 +803,7 @@ Invoke-Expression -command $NTFY1 *> $null
 Start-Sleep -Seconds 3
 Write-Output " "
 Write-Output "Starting Domain/Azure AD Join Function..."
+Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 Write-Output " "
 # Prompt the user to connect to SSL VPN
 $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? Enter Y or N"
