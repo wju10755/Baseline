@@ -721,7 +721,7 @@ Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector
 sleep -Seconds 15 #This is to give sufficient time for the protectors to fully take effect.
 Write-Output "Enabling Encryption on drive C:\"
 #Enabling Encryption
-Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait
+Start-Process 'manage-bde.exe' -ArgumentList "-on $env:SystemDrive -em aes256" -Verb runas -Wait
  
 #Getting Recovery Key GUID
 $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
@@ -729,7 +729,7 @@ $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotect
 #Backing up the Recovery to AD.
 manage-bde.exe  -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID
 manage-bde -protectors C: -get > C:\temp\$env:computername-BitLocker.txt
-manage-bde c: -on
+#manage-bde c: -on
 $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
 Write-Log "Bitlocker has been enabled on drive C:\."
 Write-Host "Bitlocker Recovery Key: $RecoveryKeyPW"
