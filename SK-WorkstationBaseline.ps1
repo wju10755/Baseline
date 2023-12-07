@@ -386,6 +386,17 @@ if (Test-Path $filePath) {
     Write-Host "Support Assist Remediation Service not found." -foregroundColor "Red"   
 }
 
+# Dell Support Assist OS Recovery Plugin for Dell Update
+$DSARP = "C:\ProgramData\Package Cache\{9d6ba6ac-00ed-41bc-9a72-368346191765}\DellUpdateSupportAssistPlugin.exe"
+if (Test-Path $DSARP) {
+    Write-Host "Removing Dell Support Assist OS Recovery Plugin for Dell Update..." -NoNewline
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/uninstall" -NoNewWindow -Wait *> $null
+    Write-Host " done." -ForegroundColor "Green"
+} else {
+    Write-Host "Dell Support Assist OS Recovery Plugin for Dell Update not found" -ForegroundColor "Yellow"
+}
+
+
 # Remove Dell SupportAssist
 $exePath = "C:\ProgramData\Package Cache\{2600102a-dac2-4b2a-8257-df60c573fc29}\DellUpdateSupportAssistPlugin.exe"
 if (Test-Path $exePath) {
@@ -399,6 +410,24 @@ if (Test-Path $exePath) {
         #Write-Host "DellUpdateSupportAssistPlugin.exe does not exist."
         Write-Host "Dell SupportAssist installation not found." -ForegroundColor "Red"
     }
+
+# Remove Support Assist v2
+$ProgressPreference = 'SilentlyContinue'
+$RevoURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/RevoCMD.zip"
+$RevoFile = "c:\temp\RevoCMD.zip"
+$RevoDestination = "c:\temp\RevoCMD"
+
+# Download RevoCMD.zip
+Invoke-WebRequest -Uri $RevoURL -OutFile $RevoFile -ErrorAction SilentlyContinue
+
+# Check if RevoCMD.zip exists
+if (Test-Path -Path $RevoFile) {
+    # Extract RevoCMD.zip
+    Expand-Archive -Path $RevoFile -DestinationPath $RevoDestination -Force
+    
+    # Run RevoUnPro with specified parameters
+    Start-Process -FilePath "$RevoDestination\RevoUnPro.exe" -ArgumentList "/mu 'Dell SupportAssist' /path 'C:\Program Files\Dell\SupportAssistAgent' /mode Moderate /32"
+}
 
 
 # Download and run Bloatware Removal Utility
@@ -624,27 +653,31 @@ if ($Acrobat) {
 # Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
+Where-Object { $_.DisplayName -like "*Microsoft Office Professional Plus 2016*" }
 
 if ($O365) {
-    Write-Host "Existing Microsoft Office installation found." -ForegroundColor "Yellow"
+    Write-Host "Existing Microsoft Office 2016 installation found." -ForegroundColor "Yellow"
 } else {
-    $FilePath = "c:\temp\OfficeSetup.exe"
+    $FilePath = "C:\temp\O2k16pp.zip"
     if (-not (Test-Path $FilePath)) {
         # If not found, download it from the given URL
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        Write-Host "Downloading Microsoft Office..." -NoNewline
-        Invoke-WebRequest -OutFile c:\temp\OfficeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe" -UseBasicParsing
+        $URL = "https://skgeneralstorage.blob.core.windows.net/o2k16pp/O2k16pp.zip"
+        Write-Host "Downloading Microsoft Office 2016..." -NoNewline
+        Invoke-WebRequest -OutFile c:\temp\O2k16pp.zip -Uri "https://skgeneralstorage.blob.core.windows.net/o2k16pp/O2k16pp.zip" -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
-    $ExpectedSize = 7651616 # in bytes
+    $ExpectedSize = 757921802 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
         & $officeNotice
-        Write-Host "Installing Microsoft Office..." -NoNewline
-        Start-Process -FilePath "C:\temp\Officesetup.exe" -Wait
+        Expand-Archive -path c:\temp\O2k16pp.zip -DestinationPath 'c:\temp\' -Force
+        Write-Host "Installing Microsoft Office 2016..." -NoNewline
+        $OfficeInstaller = "C:\temp\o2k16pp\Office2016_ProPlus\setup.exe"
+        $OfficeArguments = "/adminfile .\SLaddInstallOffice.msp"
+        Set-Location -path 'C:\temp\o2k16pp\Office2016_ProPlus\'
+        Start-Process -FilePath $OfficeInstaller -ArgumentList $OfficeArguments -Wait    
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Office 365 Installation Completed Successfully."
         & $clearPath
@@ -653,12 +686,13 @@ if ($O365) {
         # Report download error
         & $officeFailure
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
-        Write-Log "Office download failed!"
+        Write-Log "Office 2016 download failed!"
         Start-Sleep -Seconds 10
         & $clearPath
         #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
+
 
 # Install NetExtender
 $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
