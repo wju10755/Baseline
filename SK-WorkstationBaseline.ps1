@@ -390,8 +390,11 @@ if (Test-Path $filePath) {
 $DSARP = "C:\ProgramData\Package Cache\{9d6ba6ac-00ed-41bc-9a72-368346191765}\DellUpdateSupportAssistPlugin.exe"
 if (Test-Path $DSARP) {
     Write-Host "Removing Dell Support Assist OS Recovery Plugin for Dell Update..." -NoNewline
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/uninstall" -NoNewWindow -Wait *> $null
+    Start-Process -FilePath "$DSARP" -ArgumentList "/uninstall" -Wait *> $null
     Write-Host " done." -ForegroundColor "Green"
+    Start-Sleep -Seconds 5
+    taskkill /f /im DellUpdateSupportAssistPlugin.exe *> $null
+
 } else {
     Write-Host "Dell Support Assist OS Recovery Plugin for Dell Update not found" -ForegroundColor "Yellow"
 }
