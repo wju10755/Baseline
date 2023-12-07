@@ -559,7 +559,7 @@ if ($Chrome) {
         # Run c:\temp\ChromeSetup.exe to install Google Chrome silently
         & $chromeNotification
         Write-Host "Installing Google Chrome..." -NoNewline
-        Start-Process -FilePath "C:\temp\ChromeSetup.exe" -ArgumentList "/silent /install" -Wait
+        Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
         & $clearPath
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Google Chrome installed successfully."
