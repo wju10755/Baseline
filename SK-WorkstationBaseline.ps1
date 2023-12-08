@@ -892,7 +892,7 @@ Stop-Transcript
 # Baseline temp file cleanup
 Write-Host "Cleaning up temp files..." -NoNewline
 Remove-Item -path c:\BRU -Recurse -Force
-Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
+#Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
 Write-Log "Baseline temp file cleanup completed successfully"
 Start-Sleep -Seconds 1
 Write-Host " done." -ForegroundColor "Green"    
