@@ -25,7 +25,7 @@ Write-Output " "
 Write-Host "Installing required powershell modules..." -NoNewline
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet -Force | Out-Null
+    Install-PackageProvider -Name NuGet -Scope CurrentUser -Force | Out-Null
     Import-PackageProvider -Name NuGet -Force | Out-Null
     Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
     

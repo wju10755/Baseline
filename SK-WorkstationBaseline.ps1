@@ -25,7 +25,7 @@ Write-Output " "
 Write-Host "Installing required powershell modules..." -NoNewline
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet -Force | Out-Null
+    Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
     Import-PackageProvider -Name NuGet -Force | Out-Null
     Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
     
@@ -368,7 +368,7 @@ if (Test-Path $pairPath) {
     Write-Host "Removing Dell Pair Application..." -NoNewline
     $pair = "`"$pairPath`" /S"
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c $pair" *> $null
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 10
     Write-Host " done." -ForegroundColor "Green"
     Write-Log "Removed Dell Pair Application."   
 } else {
@@ -394,7 +394,7 @@ if (Test-Path $DSARP) {
     Start-Process -FilePath "$DSARP" -ArgumentList "/uninstall" -Wait *> $null
     Write-Host " done." -ForegroundColor "Green"
     Write-Log "Dell Support Assist OS Recovery Plugin for Dell Update removed."
-    Start-Sleep -Seconds 5
+    Start-Sleep -Seconds 15
     taskkill /f /im DellUpdateSupportAssistPlugin.exe *> $null
 
 } else {
