@@ -90,7 +90,7 @@ if (Test-Path -Path "c:\temp\PSNotice.zip" -PathType Leaf) {
 
 # Start Baseline Notification
 & $StartBaseline | Out-Null
-
+Write-Log "Automated workstation baseline has started"
 
 # Define the URL and download path
 Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline   
@@ -143,7 +143,7 @@ $deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Deskt
 Write-Host "Identifying device type: " -NoNewline
 Start-Sleep -Seconds 2
 Write-Host $deviceType -ForegroundColor "Yellow"
-Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType"
+Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
 New-BurntToastNotification -Text "Identified device type: $manufacturer $deviceType" -AppLogo "$PSNotice\smallA.png"
 & $clearPath
 Start-Sleep -Seconds 2
@@ -154,7 +154,7 @@ powercfg /S SCHEME_BALANCED
 New-BurntToastNotification -Text "Power profile set to Balanced" -AppLogo "$PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
-#Write-Log "Power profile set to 'Balanced'"
+Write-Log "Power profile set to 'Balanced'."
 Start-Sleep -Seconds 5
 & $clearPath
 
@@ -167,7 +167,7 @@ powercfg /h off
 New-BurntToastNotification -Text "Sleep and hibernation settings disabled" -AppLogo "$PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
-Write-Log "Disabled sleep and hibernation modes"
+Write-Log "Disabled sleep and hibernation modes."
 Start-Sleep -Seconds 5
 & $clearPath
 
@@ -176,7 +176,7 @@ Start-Sleep -Seconds 1
 Write-Host "Disabling Fast Startup..." -NoNewline
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
-Write-Log "Disabled fast startup"
+Write-Log "Disabled fast startup."
 New-BurntToastNotification -Text "Fast startup disabled" -AppLogo "$PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
@@ -198,7 +198,7 @@ powercfg /SETACTIVE SCHEME_CURRENT
 New-BurntToastNotification -Text "Power button action set to 'Shutdown'" -AppLogo "$PSNotice\smallA.png"
 Start-Sleep -Seconds 3
 Write-Host " done." -ForegroundColor "Green"
-Write-Log "Set power button action to 'Shutdown'"
+Write-Log "Set power button action to 'Shutdown'."
 Start-Sleep -Seconds 5
 & $clearPath
 
@@ -208,7 +208,7 @@ if ($deviceType -eq "Laptop") {
     Write-Host "Setting Lid Close Action..." -NoNewline
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
-    Write-Log "Set 'lid close action' to Do Nothing on laptop"
+    Write-Log "Set 'lid close action' to Do Nothing on laptop."
     New-BurntToastNotification -Text "Lid close action set to 'Do Nothing'" -AppLogo "$PSNotice\smallA.png"
     Start-Sleep -Seconds 2
     Write-Host " done." -ForegroundColor "Green"
@@ -220,7 +220,7 @@ Write-Host "Setting EST as default timezone..." -NoNewline
 # Set the time zone to 'Eastern Standard Time'
 Start-Service W32Time
 Set-TimeZone -Id "Eastern Standard Time"
-Write-Log "Time zone set to Eastern Standard Time"
+Write-Log "Time zone set to Eastern Standard Time."
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 2
@@ -241,7 +241,7 @@ Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 
 # Create restore point
 #Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_SETTINGS'
-Write-Log "System restore enabled"
+Write-Log "System restore enabled."
 New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "$PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
@@ -289,7 +289,7 @@ if ($DPMpackage) {
     # Run the script
     Write-Host "Removing Dell Peripheral Manager..."
     & "$DPMdir\Uninstall-DellPeripheralManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
-    Write-Log "Removed Dell Peripheral Manager"
+    Write-Log "Removed Dell Peripheral Manager."
 } else {
     Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
 }
@@ -315,7 +315,7 @@ if ($DDMpackage) {
     Write-Host "Removing Dell Display Manager..." -NoNewline
     & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
     Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell Display Manager"
+    Write-Log "Removed Dell Display Manager."
 } else {
     Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
 }
@@ -329,7 +329,7 @@ if (Test-Path $optimizerPath) {
     $command = "`"$optimizerPath`" -remove -runfromtemp -silent"
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c $command" -NoNewWindow -Wait *> $null
     Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell Optimizer Core"
+    Write-Log "Removed Dell Optimizer Core."
 } else {
     Write-Host "Dell Optimizer Core installation not found." -foregroundColor "Red"
 }
@@ -355,7 +355,7 @@ if ($App) {
         Write-Host "Removing Dell Command Update..." -NoNewline
         Start-Process "msiexec.exe" -ArgumentList $Params -Wait -NoNewWindow
         Write-Host " done." -ForegroundColor "Green"
-        Write-Log "Removed Dell Command Update"
+        Write-Log "Removed Dell Command Update."
 }
 else {
     Write-Host "$Name installation not found." -foregroundColor "Red"
@@ -370,7 +370,7 @@ if (Test-Path $pairPath) {
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c $pair" *> $null
     Start-Sleep -Seconds 3
     Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell Pair Application"   
+    Write-Log "Removed Dell Pair Application."   
 } else {
     #Write-Host "Dell Pair Uninstall.exe file does not exist."
     Write-Host "Dell Pair installation not found." -ForegroundColor "Red"
@@ -382,9 +382,25 @@ if (Test-Path $filePath) {
     Write=Host "Removing Dell Support Assist Remediation Service..." -NoNewline
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$filePath`" /uninstall /quiet" -NoNewWindow -Wait *> $null
     Write-Host " done." -ForegroundColor "Green"
+    Write-Log "Dell Support Assist Remediation Service removed."
 } else {
     Write-Host "Support Assist Remediation Service not found." -foregroundColor "Red"   
 }
+
+# Dell Support Assist OS Recovery Plugin for Dell Update
+$DSARP = "C:\ProgramData\Package Cache\{9d6ba6ac-00ed-41bc-9a72-368346191765}\DellUpdateSupportAssistPlugin.exe"
+if (Test-Path $DSARP) {
+    Write-Host "Removing Dell Support Assist OS Recovery Plugin for Dell Update..." -NoNewline
+    Start-Process -FilePath "$DSARP" -ArgumentList "/uninstall" -Wait *> $null
+    Write-Host " done." -ForegroundColor "Green"
+    Write-Log "Dell Support Assist OS Recovery Plugin for Dell Update removed."
+    Start-Sleep -Seconds 5
+    taskkill /f /im DellUpdateSupportAssistPlugin.exe *> $null
+
+} else {
+    Write-Host "Dell Support Assist OS Recovery Plugin for Dell Update not found" -ForegroundColor "Yellow"
+}
+
 
 # Remove Dell SupportAssist
 $exePath = "C:\ProgramData\Package Cache\{2600102a-dac2-4b2a-8257-df60c573fc29}\DellUpdateSupportAssistPlugin.exe"
@@ -393,12 +409,30 @@ if (Test-Path $exePath) {
     $command = "`"$exePath`" /uninstall /quiet"
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c $command" *> $null
     Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell SupportAssist"
+    Write-Log "Removed Dell SupportAssist."
     Start-Sleep -Seconds 3
         } else {
         #Write-Host "DellUpdateSupportAssistPlugin.exe does not exist."
         Write-Host "Dell SupportAssist installation not found." -ForegroundColor "Red"
     }
+
+# Remove Support Assist v2
+$ProgressPreference = 'SilentlyContinue'
+$RevoURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/RevoCMD.zip"
+$RevoFile = "c:\temp\RevoCMD.zip"
+$RevoDestination = "c:\temp\RevoCMD"
+
+# Download RevoCMD.zip
+Invoke-WebRequest -Uri $RevoURL -OutFile $RevoFile -ErrorAction SilentlyContinue
+
+# Check if RevoCMD.zip exists
+if (Test-Path -Path $RevoFile) {
+    # Extract RevoCMD.zip
+    Expand-Archive -Path $RevoFile -DestinationPath $RevoDestination -Force
+    
+    # Run RevoUnPro with specified parameters
+    Start-Process -FilePath "$RevoDestination\RevoUnPro.exe" -ArgumentList "/mu 'Dell SupportAssist' /path 'C:\Program Files\Dell\SupportAssistAgent' /mode Moderate /32"
+}
 
 
 # Download and run Bloatware Removal Utility
@@ -430,6 +464,7 @@ foreach ($package in $Remaining) {
   Write-Host "Triggering uninstall for $($package.Name)" -NoNewline
   Uninstall-Package -Name $package.Name -Force *> $null
   Write-Host " done." -ForegroundColor "Green"
+  Write-Log "Removed $($package.Name)"
 }
     
 
@@ -497,10 +532,10 @@ try {
         $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
         if (-not $OneDriveProduct) {
             Write-Host " done." -foregroundColor "Green"
-            Write-Log "OneDrive has been successfully uninstalled."
+            Write-Log "OneDrive has been successfully removed."
         } else {
-            Write-Host "Failed to uninstall OneDrive." -foregroundColor "Red"
-            Write-Log "Failed to uninstall OneDrive."
+            Write-Host "Failed to remove OneDrive." -foregroundColor "Red"
+            Write-Log "Failed to remove OneDrive."
         }
     } else {
         Write-Host "OneDrive installation not found." -foregroundColor "Red"
@@ -531,9 +566,6 @@ try {
     Write-Host "An error occurred: $_" -foregroundColor "Red"
 }
 
-#Write-Host "Removing Microsoft Teams Machine-Wide Installer"
-#get-package -name 'Teams Machine*' | uninstall-package *> $null
-#Write-Log "Removed Microsoft Teams Machine-Wide Installer"
 
 # Install Google Chrome
 $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
@@ -559,7 +591,7 @@ if ($Chrome) {
         # Run c:\temp\ChromeSetup.exe to install Google Chrome silently
         & $chromeNotification
         Write-Host "Installing Google Chrome..." -NoNewline
-        Start-Process -FilePath "C:\temp\ChromeSetup.exe" -ArgumentList "/silent /install" -Wait
+        Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
         & $clearPath
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Google Chrome installed successfully."
@@ -608,12 +640,14 @@ if ($Acrobat) {
         Start-Process -FilePath $FilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
         & $acrobatComplete
         Write-Host " done." -ForegroundColor "Green"
+        Write-Log "Adobe Acrobat installed successfully."
         Start-Sleep -Seconds 2
         & $clearPath
     }
     else {
         # Report download error
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
+        Write-Log "Download failed. File size does not match."
         & $acrobatFailure
         Start-Sleep -Seconds 5
         & $clearPath
@@ -690,11 +724,13 @@ if ($SWNE) {
         # Report download error
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Sonicwall NetExtender download failed!"
-        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
     }
 }
 # Stop Procmon
 taskkill /f /im procmon64.exe > $null
+
+# Configure Bitlocker Encryption
 Write-Host "Starting Bitlocker Configuration..."
 # Configure Bitlocker Drive Encryption# Encrypts all drives with bitlocker, enables auto unlock and stores the keys in active directory
 $TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | where {$_.IsEnabled().Isenabled -eq 'True'} -ErrorAction SilentlyContinue
@@ -721,7 +757,7 @@ Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector
 sleep -Seconds 15 #This is to give sufficient time for the protectors to fully take effect.
 Write-Output "Enabling Encryption on drive C:\"
 #Enabling Encryption
-Start-Process 'manage-bde.exe' -ArgumentList "-on $env:SystemDrive -em aes256" -Verb runas -Wait
+Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait
  
 #Getting Recovery Key GUID
 $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
@@ -729,10 +765,10 @@ $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotect
 #Backing up the Recovery to AD.
 manage-bde.exe  -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID
 manage-bde -protectors C: -get > C:\temp\$env:computername-BitLocker.txt
-#manage-bde c: -on
+manage-bde c: -on
 $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
 Write-Log "Bitlocker has been enabled on drive C:\."
-Write-Host "Bitlocker Recovery Key: $RecoveryKeyPW"
+#Write-Host "Bitlocker Recovery Key: $RecoveryKeyPW"
 Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
 Write-Output " "
 Write-Host "A reboot is required to complete encryption process!" 
@@ -766,6 +802,7 @@ Invoke-Expression -command $NTFY1 *> $null
 Start-Sleep -Seconds 3
 Write-Output " "
 Write-Output "Starting Domain/Azure AD Join Function..."
+Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 Write-Output " "
 # Prompt the user to connect to SSL VPN
 $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? Enter Y or N"
@@ -809,12 +846,27 @@ if ($choice -eq "A" -or $choice -eq "S") {
 
         # Join the system to the domain using the credentials
         Add-Computer -DomainName $domain -Credential $cred 
-        Write-Log "$env:COMPUTERNAME joined to $domain successfully"
+        $domainJoinSuccessful = Test-ComputerSecureChannel
+            if ($domainJoinSuccessful) {
+                Write-Host "Domain join completed successfully."
+                Write-Log "$env:COMPUTERNAME joined to $domain successfully"
+            } else {
+                Write-Host "Domain join failed." -ForegroundColor "Red"
+        }
     } else {
         # Join the system to Azure AD using Work or school account
         Write-Output "Starting Azure AD Join using Work or school account..."
         Start-Sleep -Seconds 2
         Start-Process "ms-settings:workplace"
+        # Run dsregcmd /status and capture its output
+        $output = dsregcmd /status | Out-String
+
+        # Extract the AzureAdJoined value
+        $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
+        $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
+
+        # Display the extracted value
+        Write-Host "AzureAdJoined: $azureAdJoinedValue"
         Write-Log "$env:COMPUTERNAME joined to Azure AD."
     }
 } else {
@@ -835,7 +887,7 @@ Stop-Transcript
 # Baseline temp file cleanup
 Write-Host "Cleaning up temp files..." -NoNewline
 Remove-Item -path c:\BRU -Recurse -Force
-Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" } | Remove-Item -Force
+Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
 Write-Log "Baseline temp file cleanup completed successfully"
 Start-Sleep -Seconds 1
 Write-Host " done." -ForegroundColor "Green"    
