@@ -84,9 +84,11 @@ Write-Host "Staging notifications..." -NoNewline
 Invoke-WebRequest -OutFile "c:\temp\psnotice.zip" -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip" -UseBasicParsing
 if (Test-Path -Path "c:\temp\PSNotice.zip" -PathType Leaf) {
     Expand-Archive -Path 'c:\temp\psnotice.zip' -DestinationPath 'c:\temp\PSNotice' -Force
-    Write-Host " done." -ForegroundColor "Green"
+    #Write-Host " done." -ForegroundColor "Green"
 
 }
+
+
 
 # Start Baseline Notification
 & $StartBaseline | Out-Null
