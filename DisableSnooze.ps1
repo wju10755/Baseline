@@ -5,7 +5,7 @@ $DestinationPath = "c:\temp"
 
 try {
     Invoke-WebRequest -Uri $DownloadUrl -OutFile $DownloadPath -ErrorAction Stop
-    Expand-Archive -Path $DownloadPath -DestinationPath $DestinationPath -ErrorAction Stop
+    Expand-Archive -Path $DownloadPath -DestinationPath $DestinationPath -Force -ErrorAction Stop
     Set-Location $DestinationPath
     & $NoSnooze
 } catch {
