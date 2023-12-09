@@ -11,6 +11,7 @@ $config = @{
     NoSnoozeZip          = "c:\temp\nosnooze.zip"
     JDKInstallerPath     = "C:\temp\jdk-11.0.17_windows-x64_bin.exe"
     JDKVersion           = "11.0.17"
+    JDKArguments         = "/s"
     PSNoticePath         = "c:\temp\PSNotice"
     PSNoticeFile         = "c:\temp\psnotice.zip"
     BruSpinner           = "c:\temp\bru-spinner.ps1"
@@ -82,8 +83,8 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 
 [Console]::Write("Staging Anti-Snooze ...")
 try {
-    Invoke-WebRequest -Uri $config.NoSnoozeUrl -OutFile $config.NoSnoozeZip -ErrorAction Stop
-    Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force -ErrorAction Stop
+    #Invoke-WebRequest -Uri $config.NoSnoozeUrl -OutFile $config.NoSnoozeZip -ErrorAction Stop
+    #Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force -ErrorAction Stop
     Set-Location $config.TempFolder
 } catch {
     Write-Error "An error occurred: $($_.Exception.Message)"
@@ -94,5 +95,91 @@ try {
 [Console]::WriteLine() # Move to the next line
 
 
+# Function to check if JDK is installed
+function Is-JdkInstalled {
+    param (
+        [string]$version
+    )
+
+    # Check the registry for JDK installation
+    try {
+        $jdkPath = Get-ChildItem -Path "HKLM:\SOFTWARE\JavaSoft\JDK" -ErrorAction Stop | Get-ItemProperty | Where-Object { $_.JavaHome }
+        return $jdkPath -ne $null
+    } catch {
+        return $false
+    }
+}
+
+# Check if JDK 11.0.17 is already installed
+if (Is-JdkInstalled -version $config.jdkVersion) {
+    Write-Host "JDK $jdkVersion is already installed."
+} else {
+    # Define the path to the JDK installer
+    $installerPath = "C:\temp\jdk-11.0.17_windows-x64_bin.exe"
+
+    # Define the silent installation arguments
+    $arguments = "/s"
+
+    # Create a new process start info object
+    $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
+
+    # Set the filename to the installer and add the silent installation arguments
+    $processStartInfo.FileName = $installerPath
+    $processStartInfo.Arguments = $arguments
+    $processStartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+    $processStartInfo.CreateNoWindow = $true
+    $processStartInfo.UseShellExecute = $false
+
+    # Start the installation process
+    [Console]::Write("Installing Java Development Kit...")
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $processStartInfo
+    $process.Start() | Out-Null
+    $process.WaitForExit()
+
+    # Check the exit code
+    if ($process.ExitCode -eq 0) {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor() # Reset the color to default
+        [Console]::WriteLine() # Move to the next line
+
+        } else {
+            Write-Host "JDK installation failed with exit code: $($process.ExitCode)"
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            [Console]::Write("JDK installation failed with exit code: $($process.ExitCode)")
+            [Console]::ResetColor() # Reset the color to default
+            [Console]::WriteLine() # Move to the next line
+    
+        }
+}
+
+
+    function Disable-NotificationSnooze {
+        param (
+            [string]$JarPath,
+            [string]$Arguments
+        )
+
+        # Create a new process start info object
+        $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
+
+        # Set the filename to cmd.exe and arguments to run the Java command silently
+        $processStartInfo.FileName = 'cmd.exe'
+        $processStartInfo.Arguments = "/c java -jar `"$JarPath`" $Arguments"
+        $processStartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+        $processStartInfo.CreateNoWindow = $true
+        $processStartInfo.UseShellExecute = $false
+        $processStartInfo.RedirectStandardOutput = $true
+
+        # Start the process
+        $process = New-Object System.Diagnostics.Process
+        $process.StartInfo = $processStartInfo
+        $process.Start() | Out-Null
+        $process.WaitForExit()
+    }
+
+    # Call the function with the path to the JAR file and any additional arguments
+    Disable-NotificationSnooze -JarPath "C:\temp\sikulixide-2.0.5.jar" -Arguments "-r C:\temp\NoSnooze.sikuli"
 
 Read-Host -Prompt "Press Enter to exit."
