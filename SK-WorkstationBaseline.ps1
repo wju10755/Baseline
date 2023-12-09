@@ -85,9 +85,110 @@ Invoke-WebRequest -OutFile "c:\temp\psnotice.zip" -Uri "https://advancestuff.hos
 if (Test-Path -Path "c:\temp\PSNotice.zip" -PathType Leaf) {
     Expand-Archive -Path 'c:\temp\psnotice.zip' -DestinationPath 'c:\temp\PSNotice' -Force
     #Write-Host " done." -ForegroundColor "Green"
-
 }
 
+# Disable Notification Snooze
+# Declare variables
+$NoSnooze = "c:\temp\NoSnooze.ps1"
+$DownloadUrl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
+$DownloadPath = "c:\temp\NoSnooze.zip"
+$DestinationPath = "c:\temp"
+
+try {
+    Invoke-WebRequest -Uri $DownloadUrl -OutFile $DownloadPath -ErrorAction Stop
+    Expand-Archive -Path $DownloadPath -DestinationPath $DestinationPath -Force -ErrorAction Stop
+    Set-Location $DestinationPath
+    & $NoSnooze
+} catch {
+    Write-Error "An error occurred: $($_.Exception.Message)"
+}
+
+# Install Java Development Kit 11.0.17
+# Define the JDK version
+$jdkVersion = "11.0.17"
+
+# Define the path to the JDK installer
+$installerPath = "C:\temp\jdk-11.0.17_windows-x64_bin.exe"
+
+# Define the silent installation arguments
+$arguments = "/s"
+
+# Function to check if JDK is installed
+function Is-JdkInstalled {
+    param (
+        [string]$version
+    )
+
+    # Check the registry for JDK installation
+    try {
+        $jdkPath = Get-ChildItem -Path "HKLM:\SOFTWARE\JavaSoft\JDK" -ErrorAction Stop | Get-ItemProperty | Where-Object { $_.JavaHome }
+        return $jdkPath -ne $null
+    } catch {
+        Write-Error "An error occurred while checking for JDK installation: $_"
+        return $false
+    }
+}
+
+# Check if JDK 11.0.17 is already installed
+if (Is-JdkInstalled -version $jdkVersion) {
+    Write-Host "JDK $jdkVersion is already installed."
+} else {
+    # Create a new process start info object
+    $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
+
+    # Set the filename to the installer and add the silent installation arguments
+    $processStartInfo.FileName = $installerPath
+    $processStartInfo.Arguments = $arguments
+    $processStartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+    $processStartInfo.CreateNoWindow = $true
+    $processStartInfo.UseShellExecute = $false
+
+    # Start the installation process
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $processStartInfo
+
+    try {
+        $process.Start() | Out-Null
+        $process.WaitForExit()
+
+        # Check the exit code
+        if ($process.ExitCode -eq 0) {
+            Write-Host "JDK installed successfully."
+        } else {
+            Write-Error "JDK installation failed with exit code: $($process.ExitCode)"
+        }
+    } catch {
+        Write-Error "An error occurred while installing JDK: $_"
+    }
+}
+
+
+function Disable-NotificationSnooze {
+    param (
+        [string]$JarPath,
+        [string]$Arguments
+    )
+
+    # Create a new process start info object
+    $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
+
+    # Set the filename to cmd.exe and arguments to run the Java command silently
+    $processStartInfo.FileName = 'cmd.exe'
+    $processStartInfo.Arguments = "/c java -jar `"$JarPath`" $Arguments"
+    $processStartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+    $processStartInfo.CreateNoWindow = $true
+    $processStartInfo.UseShellExecute = $false
+    $processStartInfo.RedirectStandardOutput = $true
+
+    # Start the process
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $processStartInfo
+    $process.Start() | Out-Null
+    $process.WaitForExit()
+}
+
+# Call the function with the path to the JAR file and any additional arguments
+Disable-NotificationSnooze -JarPath "C:\temp\sikulixide-2.0.5.jar" -Arguments "-r C:\temp\NoSnooze.sikuli"
 
 
 # Start Baseline Notification
