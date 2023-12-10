@@ -83,16 +83,16 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 
 [Console]::Write("Staging Anti-Snooze ...")
 try {
-    #Invoke-WebRequest -Uri $config.NoSnoozeUrl -OutFile $config.NoSnoozeZip -ErrorAction Stop
-    #Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force -ErrorAction Stop
+    Invoke-WebRequest -Uri $config.NoSnoozeUrl -OutFile $config.NoSnoozeZip -ErrorAction Stop
+    Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force -ErrorAction Stop
     Set-Location $config.TempFolder
 } catch {
     Write-Error "An error occurred: $($_.Exception.Message)"
 }
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line
+[Console]::ResetColor() 
+[Console]::WriteLine() 
 
 
 # Function to check if JDK is installed
@@ -141,45 +141,80 @@ if (Is-JdkInstalled -version $config.jdkVersion) {
     if ($process.ExitCode -eq 0) {
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.")
-        [Console]::ResetColor() # Reset the color to default
-        [Console]::WriteLine() # Move to the next line
+        [Console]::ResetColor() 
+        [Console]::WriteLine() 
 
         } else {
             Write-Host "JDK installation failed with exit code: $($process.ExitCode)"
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
             [Console]::Write("JDK installation failed with exit code: $($process.ExitCode)")
-            [Console]::ResetColor() # Reset the color to default
-            [Console]::WriteLine() # Move to the next line
+            [Console]::ResetColor() 
+            [Console]::WriteLine() 
     
         }
 }
 
+# Trigger NoSnooze
+[Console]::Write("Disabling notification snooze...")
+set-location -path C:\temp
+start-process c:\temp\nosnooze_sikuli.jar
+Start-Sleep -Seconds 25
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor() 
+[Console]::WriteLine() 
 
-    function Disable-NotificationSnooze {
-        param (
-            [string]$JarPath,
-            [string]$Arguments
-        )
+# Start Baseline Notification
+& $StartBaseline | Out-Null
+Write-Log "Automated workstation baseline has started"
 
-        # Create a new process start info object
-        $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
+# ConnectWise Automate Agent Installation
 
-        # Set the filename to cmd.exe and arguments to run the Java command silently
-        $processStartInfo.FileName = 'cmd.exe'
-        $processStartInfo.Arguments = "/c java -jar `"$JarPath`" $Arguments"
-        $processStartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
-        $processStartInfo.CreateNoWindow = $true
-        $processStartInfo.UseShellExecute = $false
-        $processStartInfo.RedirectStandardOutput = $true
+# Agent Installer Download Check
+$file = 'c:\temp\Warehouse-Agent_Install.MSI'
 
-        # Start the process
-        $process = New-Object System.Diagnostics.Process
-        $process.StartInfo = $processStartInfo
-        $process.Start() | Out-Null
-        $process.WaitForExit()
+if ([System.IO.File]::Exists($file)) {
+    try {
+        Write-Host " done." -ForegroundColor "Green"
+    } catch {
+        throw $_.Exception.Message
+    }    
+}
+else {
+    Write-Host " failed!" -ForegroundColor "Red"
+    Write-log "The file [$file] download failed."
+}
+
+# Check if the LabTech agent is already installed
+$agentName = "LTService"
+$agentPath = "C:\Windows\LTSvc\"
+
+if (Get-Service $agentName -ErrorAction SilentlyContinue) {
+    Write-Output "The LabTech agent is already installed."
+}
+elseif (Test-Path $agentPath) {
+    Write-Output "The LabTech agent files are present, but the service is not installed."
+}
+else {
+    Write-Host "Installing ConnectWise Automate Agent..." -NoNewline
+    Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline   
+    Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI" -OutFile "c:\temp\Warehouse-Agent_Install.MSI" *> $null
+    Start-Process msiexec.exe -Wait -ArgumentList '/I C:\temp\Warehouse-Agent_Install.MSI /quiet'
+    Start-Sleep -Seconds 45
+    & $clearPath
+
+    # Automate Agent Installation Check
+    $folder = 'C:\Windows\LTSvc\'
+    if ([System.IO.Directory]::Exists($folder)) {
+        try {
+            Write-Host " done." -ForegroundColor "Green"
+            Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
+        } catch {
+            throw $_.Exception.Message
+        }    
     }
-
-    # Call the function with the path to the JAR file and any additional arguments
-    Disable-NotificationSnooze -JarPath "C:\temp\sikulixide-2.0.5.jar" -Arguments "-r C:\temp\NoSnooze.sikuli"
-
-Read-Host -Prompt "Press Enter to exit."
+    else {
+        Write-Host " failed!" -foregroundcolor red
+        Write-Log "ConnectWise Automate Agent installation failed!"
+    }
+}
