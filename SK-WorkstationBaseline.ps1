@@ -318,9 +318,9 @@ if ($deviceType -eq "Laptop") {
     Start-Sleep -Seconds 5
     & $clearPath
 }
-Start-Sleep -Seconds 1
-Write-Host "Setting EST as default timezone..." -NoNewline
+
 # Set the time zone to 'Eastern Standard Time'
+Write-Host "Setting EST as default timezone..." -NoNewline
 Start-Service W32Time
 Set-TimeZone -Id "Eastern Standard Time"
 Write-Log "Time zone set to Eastern Standard Time."
