@@ -864,3 +864,95 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     # Restarting the computer, to begin the encryption process
     # Restart-Computer
 }
+
+# Check for and install all available Windows update
+Start-Sleep -Seconds 4
+Write-Output "Starting Windows Update..."
+& $updateNotice
+Install-Module -Name PSWindowsUpdate -Force -ErrorAction SilentlyContinue
+Import-Module PSWindowsUpdate
+$updates = Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -ErrorAction SilentlyContinue
+$TotalUpdates = $updates.Count
+& $clearPath
+Write-Output "$totalUpdates Windows updates are available."
+if ($updates) {
+    & $updateComplete
+    Write-Log "Installed $($updates.Count) Windows updates"
+    Start-Sleep -Seconds 30
+    & $clearPath
+} else {
+    Write-Log "No additional Windows updates are available."
+}
+
+# Notify device is ready for Domain Join Operation
+$NTFY1 = "& cmd.exe /c curl -d '%ComputerName% is ready to join the domain.' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
+Invoke-Expression -command $NTFY1 *> $null
+
+Start-Sleep -Seconds 3
+Write-Output " "
+Write-Output "Starting Domain/Azure AD Join Function..."
+Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
+Write-Output " "
+
+# Prompt the user to choose between standard domain join or Azure AD join
+$choice = Read-Host -Prompt "Do you want to perform a standard domain join (S) or join Azure AD (A)? Enter S or A"
+
+# Validate the user input
+if ($choice -eq "A" -or $choice -eq "S") {
+
+    # Perform the join operation based on the user choice
+    if ($choice -eq "S") {
+        # Get the domain name from the user
+        $cred = Get-Credential -Message "Enter the credentials for the domain join operation"
+        $domain = Read-Host -Prompt "Enter the domain name to join"
+
+        # Join the system to the domain using the credentials
+        Add-Computer -DomainName $domain -Credential $cred 
+        $domainJoinSuccessful = Test-ComputerSecureChannel
+            if ($domainJoinSuccessful) {
+                Write-Host "Domain join completed successfully."
+                Write-Log "$env:COMPUTERNAME joined to $domain successfully"
+            } else {
+                Write-Host "Domain join failed." -ForegroundColor "Red"
+        }
+    } else {
+        # Join the system to Azure AD using Work or school account
+        Write-Output "Starting Azure AD Join using Work or school account..."
+        Start-Sleep -Seconds 2
+        Start-Process "ms-settings:workplace"
+        # Run dsregcmd /status and capture its output
+        $output = dsregcmd /status | Out-String
+
+        # Extract the AzureAdJoined value
+        $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
+        $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
+
+        # Display the extracted value
+        Write-Host "AzureAdJoined: $azureAdJoinedValue"
+        Write-Log "$env:COMPUTERNAME joined to Azure AD."
+    }
+} else {
+    # Display an error message if the user input is invalid
+    Write-Error "Invalid choice. Please enter A or S."
+    break
+}
+
+# Notify device Baseline is complete
+$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
+Invoke-Expression -command $NTFY2 *> $null
+
+# Final log entry
+& $baselineComplete
+Write-Log "Baseline configuration completed successfully."
+Stop-Transcript
+
+# Baseline temp file cleanup
+Write-Host "Cleaning up temp files..." -NoNewline
+Remove-Item -path c:\BRU -Recurse -Force
+#Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
+Write-Log "Baseline temp file cleanup completed successfully"
+Start-Sleep -Seconds 1
+Write-Host " done." -ForegroundColor "Green"    
+Start-Sleep -seconds 2
+Start-Process "appwiz.cpl"
+Read-Host -Prompt "Press Enter to exit."
