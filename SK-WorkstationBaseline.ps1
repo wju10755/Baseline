@@ -835,8 +835,6 @@ if ($SWNE) {
         Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
     }
 }
-# Stop Procmon
-taskkill /f /im procmon64.exe > $null
 
 # Configure Bitlocker Encryption
 Write-Host "Starting Bitlocker Configuration..."

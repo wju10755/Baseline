@@ -776,3 +776,91 @@ if ($O365) {
         #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
+
+# Install NetExtender
+$SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
+
+if ($SWNE) {
+    Write-Host "Existing NetExtender installation found." -ForegroundColor "Yellow"
+} else {
+    $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
+    if (-not (Test-Path $NEFilePath)) {
+        # If not found, download it from the given URL
+        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
+        Write-Host "Downloading Sonicwall NetExtender..." -NoNewline
+        Invoke-WebRequest -OutFile c:\temp\NXSetupU-x64-10.2.337.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe" -UseBasicParsing
+        Write-Host " done." -ForegroundColor "Green"
+    }
+    # Validate successful download by checking the file size
+    $FileSize = (Get-Item $NEFilePath).Length
+    $ExpectedSize = 4788816 # in bytes 
+    if ($FileSize -eq $ExpectedSize) {
+        # Run c:\temp\NXSetupU-x64-10.2.337.exe /S to install NetExtender silently
+        Write-Host "Installing Sonicwall NetExtender..." -NoNewline
+        start-process -filepath "C:\temp\NXSetupU-x64-10.2.337.exe" /S -Wait
+        Write-Host " done." -ForegroundColor "Green"
+        Write-Log "Sonicwall NetExtender installed successfully."
+    }
+    else {
+        # Report download error
+        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
+        Write-Log "Sonicwall NetExtender download failed!"
+        Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
+    }
+}
+
+# Stop Procmon
+taskkill /f /im procmon64.exe > $null
+
+Write-Host "Starting Bitlocker Configuration..."
+
+# Check if TPM module is enabled
+$TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | where {$_.IsEnabled().Isenabled -eq 'True'} -ErrorAction SilentlyContinue
+
+if ($TPM -eq $null) {
+    Write-Host "TPM module not found on this machine! Terminating Bitlocker Configuration." -ForegroundColor "Red"
+} else {
+    Write-Host "TPM Module found on this machine"
+    Write-Host "TPM Version: $($TPM.SpecVersion)"
+    Write-Host "TPM Manufacturer: $($TPM.Manufacturer)"
+    Write-Host "TPM Status: $($TPM.Status)"
+}
+
+# Check if Windows version and BitLocker-ready drive are present
+$WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
+$BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
+
+if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
+    Write-Output "Generating Bitlocker recovery key"
+
+    # Create the recovery key
+    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector
+
+    # Add TPM key
+    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector
+    sleep -Seconds 15 # This is to give sufficient time for the protectors to fully take effect.
+
+    Write-Output "Enabling Encryption on drive C:\"
+
+    # Enable Encryption
+    Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait
+
+    # Get Recovery Key GUID
+    $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
+
+    # Backup the Recovery to AD
+    manage-bde.exe  -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID
+    manage-bde -protectors C: -get > C:\temp\$env:computername-BitLocker.txt
+    manage-bde c: -on
+
+    $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
+
+    Write-Log "Bitlocker has been enabled on drive C:\."
+    Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
+    Write-Output " "
+    Write-Host "A reboot is required to complete encryption process!" 
+    # Restarting the computer, to begin the encryption process
+    # Restart-Computer
+}
