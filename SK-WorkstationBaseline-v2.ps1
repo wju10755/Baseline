@@ -596,7 +596,7 @@ try {
 } else {
     Write-Output "Download failed. File not found."
     Write-Log "Bloatware Removal Utility Download Failed" 
-}
+
 } else {
     Write-Warning "This script can only be run on a Dell system."
     Write-Log "Only Dell systems are eligible for this bloatware removal script."
