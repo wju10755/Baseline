@@ -930,7 +930,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
 # Check for and install all available Windows update
 Start-Sleep -Seconds 4
-Write-Output "Starting Windows Update..."
+Write-Output "Windows Update Inprogress..."
 & $updateNotice
 Install-Module -Name PSWindowsUpdate -Force -ErrorAction SilentlyContinue
 Import-Module PSWindowsUpdate
