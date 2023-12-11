@@ -1,4 +1,5 @@
 Clear-Host
+$ErrorActionPreference = 'SilentlyContinue'
 function Print-Middle($Message, $Color = "White") {
     Write-Host (" " * [System.Math]::Floor(([System.Console]::BufferWidth / 2) - ($Message.Length / 2))) -NoNewline;
     Write-Host -ForegroundColor $Color $Message;
@@ -91,7 +92,6 @@ function Write-Log {
 }
 
 # Check for required Powershell Modules
-[Console]::Write("Installing Required Powershell Modules...")
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Install-PackageProvider -Name NuGet -Scope CurrentUser -Force -Confirm:$false
     Import-PackageProvider -Name NuGet -Force -Confirm:$false
