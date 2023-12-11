@@ -390,14 +390,16 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Syste
 # Enable system restore
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System restore enabled."
+Write-Host " done." -ForegroundColor "Green"
 
 # Create restore point
+Write-Host "Creating System Restore Checkpoint..." -nonewline
 Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_SETTINGS'
 $restorePoint = Get-ComputerRestorePoint | Sort-Object -Property "CreationTime" -Descending | Select-Object -First 1
 if ($restorePoint -ne $null) {
-    Write-Output "Restore point created successfully"
+    Write-Host " done." -ForegroundColor "Green"
 } else {
-    Write-Output "Failed to create restore point"
+    Write-Host "Failed to create restore point" -ForegroundColor "Red"
 }
 New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 2
@@ -441,31 +443,33 @@ if ($DPMpackage) {
     Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
 }
 
-# Check if Dell Display Manager is installed
-$DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-ddm.zip"
-$DDMzip = "C:\temp\Uninstall-ddm.zip"
-$DDMdir = "C:\temp\Uninstall-DDM"
-$DDMpackageName = 'Dell Display Manager'
+#Remove Dell Display Manager 
+cd 
+.\uninst.exe /S /v/qn
+#$DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-ddm.zip"
+#$DDMzip = "C:\temp\Uninstall-ddm.zip"
+#$DDMdir = "C:\temp\Uninstall-DDM"
+#$DDMpackageName = 'Dell Display Manager'
 
-$DDMpackage = Get-Package -Name $DDMpackageName -ErrorAction SilentlyContinue
+#$DDMpackage = Get-Package -Name $DDMpackageName -ErrorAction SilentlyContinue
 
-if ($DDMpackage) {
-    # Download Dell Peripheral Manager
-    $ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $DDMurl -OutFile $DDMzip *> $null
-
-    # Extract the file
-    Write-Host "Extracting Dell Display Manager package..."
-    Expand-Archive -Path $DDMzip -DestinationPath $DDMdir -Force
-
-    # Run the script
-    Write-Host "Removing Dell Display Manager..." -NoNewline
-    & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
-    Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell Display Manager."
-} else {
-    Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
-}
+#if ($DDMpackage) {
+#    # Download Dell Peripheral Manager
+#    $ProgressPreference = 'SilentlyContinue'
+#    Invoke-WebRequest -Uri $DDMurl -OutFile $DDMzip *> $null
+#
+#    # Extract the file
+#    Write-Host "Extracting Dell Display Manager package..."
+#    Expand-Archive -Path $DDMzip -DestinationPath $DDMdir -Force
+#
+#    # Run the script
+#    Write-Host "Removing Dell Display Manager..." -NoNewline
+#    & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+#    Write-Host " done." -ForegroundColor "Green"
+#    Write-Log "Removed Dell Display Manager."
+#} else {
+#    Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
+#}
 
     
 # Remove Dell Optimizer Core
@@ -550,18 +554,18 @@ if (Test-Path $DSARP) {
 
 
 # Remove Dell SupportAssist
-$exePath = "C:\ProgramData\Package Cache\{2600102a-dac2-4b2a-8257-df60c573fc29}\DellUpdateSupportAssistPlugin.exe"
-if (Test-Path $exePath) {
-    Write-Host "Removing Dell SupportAssist..." -NoNewline
-    $command = "`"$exePath`" /uninstall /quiet"
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $command" *> $null
-    Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell SupportAssist."
-    Start-Sleep -Seconds 3
-        } else {
-        #Write-Host "DellUpdateSupportAssistPlugin.exe does not exist."
-        Write-Host "Dell SupportAssist installation not found." -ForegroundColor "Red"
-    }
+#$exePath = "C:\ProgramData\Package Cache\{2600102a-dac2-4b2a-8257-df60c573fc29}\DellUpdateSupportAssistPlugin.exe"
+#if (Test-Path $exePath) {
+#    Write-Host "Removing Dell SupportAssist..." -NoNewline
+#    $command = "`"$exePath`" /uninstall /quiet"
+#    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $command" *> $null
+#    Write-Host " done." -ForegroundColor "Green"
+#    Write-Log "Removed Dell SupportAssist."
+#    Start-Sleep -Seconds 3
+#        } else {
+#        #Write-Host "DellUpdateSupportAssistPlugin.exe does not exist."
+#        Write-Host "Dell SupportAssist installation not found." -ForegroundColor "Red"
+#    }
 
 # Remove Support Assist v2
 $ProgressPreference = 'SilentlyContinue'
@@ -598,34 +602,12 @@ if (Test-Path "c:\temp\BRU.zip" -PathType Leaf) {
   } *> $null
 }
 
-# Trigger uninstall of remaining Dell applications
-$Remaining = Get-Package | Where-Object {
-  $_.Name -like 'dell*' -and
-  $_.Name -notlike '*firmware*' -and
-  $_.Name -notlike '*WLAN*' -and
-  $_.Name -notlike '*HID*' -and
-  $_.Name -notlike '*Touch*'
-}
-  
-foreach ($package in $Remaining) {
-  Write-Host "Triggering uninstall for $($package.Name)" -NoNewline
-  Uninstall-Package -Name $package.Name -Force *> $null
-  Write-Host " done." -ForegroundColor "Green"
-  Write-Log "Removed $($package.Name)"
-}
-    
-
 # Download and run Bloatware Removal Utility
 #Write-Host "Downloading Bloatware Removal Utility (BRU)..." -NoNewline
 $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip" -OutFile "c:\temp\BRU.zip" 
 if (Test-Path $BRUZip -PathType Leaf) {
-    # Extract the contents of BRU.zip to c:\BRU\
-    #Write-Host " done." -ForegroundColor "Green"    
-    #Write-Output "Download Complete!"
-    #Write-Host "Extracting BRU..." -NoNewline
     Expand-Archive -Path "c:\temp\BRU.zip" -DestinationPath "c:\BRU\" -Force *> $null
-    #Write-Host " done." -ForegroundColor "Green"
     Set-Location c:\bru\
     Stop-Transcript | Out-Null
         
