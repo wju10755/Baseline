@@ -225,7 +225,7 @@ if (Is-JdkInstalled -version $config.jdkVersion) {
 [Console]::Write("Disabling notification snooze...")
 set-location -path C:\temp
 start c:\temp\nosnooze_sikuli.jar
-Start-Sleep -Seconds 30
+Start-Sleep -Seconds 35
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor() 
@@ -384,7 +384,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Syste
 # Enable system restore
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System restore enabled."
-#Write-Host " done." -ForegroundColor "Green"
+Write-Host " done." -ForegroundColor "Green"
 
 # Create restore point
 Write-Host "Creating System Restore Checkpoint..." -nonewline
@@ -416,7 +416,6 @@ Start-Sleep -Seconds 2
 
 # Name of the module
 $moduleName = "CommonStuff"
-$WarningActionPreference = "SilentlyContinue"
 # Check if the module is installed
 if (-not (Get-Module -ListAvailable -Name $moduleName)) {
     #Write-Host "Module '$moduleName' is not installed. Attempting to install..."
@@ -424,7 +423,7 @@ if (-not (Get-Module -ListAvailable -Name $moduleName)) {
     # Attempt to install the module from the PowerShell Gallery
     # This requires administrative privileges
     try {
-        Install-Module -Name $moduleName -Scope CurrentUser -Force -ErrorAction Stop
+        Install-Module -Name $moduleName -Scope CurrentUser -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-null
         #Write-Host "Module '$moduleName' installed successfully."
     } catch {
         Write-Error "Failed to install module '$moduleName': $_"
@@ -436,7 +435,7 @@ if (-not (Get-Module -ListAvailable -Name $moduleName)) {
 
 # Import the module
 try {
-    Import-Module -Name $moduleName -ErrorAction Stop
+    Import-Module -Name $moduleName -ErrorAction Stop | Out-Null
     #Write-Host "Module '$moduleName' imported successfully."
 } catch {
     Write-Error "Failed to import module '$moduleName': $_"
