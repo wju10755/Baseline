@@ -242,12 +242,6 @@ $agentName = "LTService"
 $agentPath = "C:\Windows\LTSvc\"
 $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
 
-# Function to write logs
-function Write-Log {
-    param ([string]$message)
-    # Implement logging logic here, e.g., appending to a log file
-}
-
 # Check if the installer file exists
 if (-not (Test-Path $file)) {
     Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline
@@ -292,7 +286,7 @@ $manufacturer = $computerSystem.Manufacturer
 $deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
 Write-Host "Identifying device type: " -NoNewline
 Start-Sleep -Seconds 2
-Write-Host $deviceType -ForegroundColor "Yellow"
+Write-Host $deviceType -ForegroundColor "Cyan"
 Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
 New-BurntToastNotification -Text "Identified device type: $manufacturer $deviceType" -AppLogo C:\temp\PSNotice\smallA.png
 & $clearPath
@@ -390,7 +384,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Syste
 # Enable system restore
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System restore enabled."
-Write-Host " done." -ForegroundColor "Green"
+#Write-Host " done." -ForegroundColor "Green"
 
 # Create restore point
 Write-Host "Creating System Restore Checkpoint..." -nonewline
@@ -463,6 +457,7 @@ if (Test-Path $pairPath) {
     Write-Host "Dell Pair installation not found." -ForegroundColor "Red"
 }
 
+# Remove Dell Peripheral Manager
 $DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm.zip"
 $DPMzip = "C:\temp\Uninstall-dpm.zip"
 $DPMdir = "C:\temp\Uninstall-DPM"
@@ -509,13 +504,15 @@ if ($DDMpackage) {
 
     # Run the script
     Write-Host "Removing Dell Display Manager..." -NoNewline
-    & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+    #& "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+    & "C:\Program Files\Dell\Dell Display Manager 2\uninst.exe" /S /v/qn
     Write-Host " done." -ForegroundColor "Green"
     Write-Log "Removed Dell Display Manager."
 } else {
     Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
 }
 
+# Remove Dell Optimizer Core
 $softwarePaths = @(
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
     "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
@@ -745,6 +742,7 @@ if ($Acrobat) {
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
+
 
 # Install Office 2016
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
