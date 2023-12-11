@@ -11,7 +11,7 @@ Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
-Set-ExecutionPolicy -Scope Process RemoteSigned -Force
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -force -ErrorAction SilentlyContinue
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningActionPreference = 'SilentlyContinue'
 Start-Transcript -path c:\temp\baseline_transcript.txt
@@ -120,9 +120,23 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 [Console]::Write("Staging Anti-Snooze function...")
 try {
     Invoke-WebRequest -Uri $config.NoSnoozeUrl -OutFile $config.NoSnoozeZip -ErrorAction Stop
-    Invoke-WebRequest -Uri $config.Sikulixide -Outfile $config.SikuliFile -ErrorAction Stop
-    Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force -ErrorAction Stop
-    Set-Location $config.TempFolder
+    Start-Sleep -seconds 2
+    if (Test-Path -Path $config.NoSnoozeZip -PathType Leaf) {
+    Write-Output "Download of NoSnooze was successful."
+} else {
+    Write-Output "Download of NoSnooze failed."
+}
+Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force -ErrorAction Stop
+Start-Sleep -Seconds 2
+Invoke-WebRequest -Uri $config.Sikulixide -Outfile $config.SikuliFile -ErrorAction Stop
+Start-Sleep -Seconds 2
+if (Test-Path -Path $config.SikuliFile -PathType Leaf) {
+    Write-Output "Download of SikulixIDE was successful."
+} else {
+    Write-Output "Download of Sikulixide failed."
+}
+
+Set-Location $config.TempFolder
 } catch {
     Write-Error "An error occurred: $($_.Exception.Message)"
 }
