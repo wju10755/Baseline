@@ -69,30 +69,55 @@ if ($DPMpackage) {
 }
 
 # Check if Dell Display Manager is installed
-$DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-ddm.zip"
-$DDMzip = "C:\temp\Uninstall-ddm.zip"
-$DDMdir = "C:\temp\Uninstall-DDM"
-$DDMpackageName = 'Dell Display Manager'
+#$DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-ddm.zip"
+#$DDMzip = "C:\temp\Uninstall-ddm.zip"
+#$DDMdir = "C:\temp\Uninstall-DDM"
+#$DDMpackageName = 'Dell Display Manager'
 
-$DDMpackage = Get-Package -Name $DDMpackageName -ErrorAction SilentlyContinue
+#$DDMpackage = Get-Package -Name $DDMpackageName -ErrorAction SilentlyContinue
 
-if ($DDMpackage) {
-    # Download Dell Peripheral Manager
-    $ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $DDMurl -OutFile $DDMzip *> $null
+#if ($DDMpackage) {
+#    # Download Dell Peripheral Manager
+#    $ProgressPreference = 'SilentlyContinue'
+#    Invoke-WebRequest -Uri $DDMurl -OutFile $DDMzip *> $null
+#
+#    # Extract the file
+#    Write-Host "Extracting Dell Display Manager package..."
+#    Expand-Archive -Path $DDMzip -DestinationPath $DDMdir -Force
+#
+#    # Run the script
+#    Write-Host "Removing Dell Display Manager..." -NoNewline
+#    & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+#    Write-Host " done." -ForegroundColor "Green"
+#    Write-Log "Removed Dell Display Manager."
+#} else {
+#    Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
+#}
 
-    # Extract the file
-    Write-Host "Extracting Dell Display Manager package..."
-    Expand-Archive -Path $DDMzip -DestinationPath $DDMdir -Force
+# Define the registry paths for installed programs
+$registryPaths = @(
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+    "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+)
 
-    # Run the script
-    Write-Host "Removing Dell Display Manager..." -NoNewline
-    #& "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
-    & "C:\Program Files\Dell\Dell Display Manager 2\uninst.exe" /S /v/qn
+# Check if Dell Display Manager is installed
+$isInstalled = $false
+foreach ($path in $registryPaths) {
+    $installedPrograms = Get-ItemProperty $path\* -ErrorAction SilentlyContinue
+    $dellDisplayManager = $installedPrograms | Where-Object { $_.DisplayName -like "*Dell Display Manager*" }
+    if ($dellDisplayManager) {
+        $isInstalled = $true
+        break
+    }
+}
+
+# Output the result
+if ($isInstalled) {
+    Write-Host "Uninstalling Dell Display Manager..."
+    Start-Process -FilePath "C:\Program Files\Dell\Dell Display Manager 2\uninst.exe" -ArgumentList "/S", "/v/qn" -Wait -NoNewWindow
     Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell Display Manager."
 } else {
-    Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
+    Write-Host "Dell Display Manager is not installed."
 }
 
 
