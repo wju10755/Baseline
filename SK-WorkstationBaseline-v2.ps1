@@ -1,10 +1,46 @@
-# Requirement: Run As Administrator
 Clear-Host
+function Print-Middle($Message, $Color = "White") {
+    Write-Host (" " * [System.Math]::Floor(([System.Console]::BufferWidth / 2) - ($Message.Length / 2))) -NoNewline;
+    Write-Host -ForegroundColor $Color $Message;
+}
+
+# Print Script Title
+#################################
+$Padding = ("=" * [System.Console]::BufferWidth);
+Write-Host -ForegroundColor "Red" $Padding -NoNewline;
+Print-Middle "MITS - New Workstation Baseline Utility";
+Write-Host -ForegroundColor "Red" -NoNewline $Padding;
+Write-Host " "
+Set-ExecutionPolicy -Scope Process RemoteSigned -Force
+$ErrorActionPreference = 'SilentlyContinue'
+$WarningActionPreference = 'SilentlyContinue'
+Start-Transcript -path c:\temp\baseline_transcript.txt
+Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
+#Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"=
+Write-Output " "
+Write-Output " "
+Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
+Write-Output " "
+Write-Host "Installing required powershell modules..." -NoNewline
+# Check and Install NuGet Provider if not found
+if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
+    Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
+    Import-PackageProvider -Name NuGet -Force | Out-Null
+    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
+    
+}
+
+# Check and install BurntToast Module if not found
+if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
+    Install-Module -Name BurntToast -Scope CurrentUser -Force -WarningAction SilentlyContinue | Out-Null
+    Import-Module BurntToast 
+}
 
 # Central Configuration
 $config = @{
     PSNoticeUrl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
     NoSnoozeUrl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
+    Sikulixide  = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/sikulixide-2.0.5.jar"
     TempFolder           = "C:\temp"
     LogFile              = "C:\temp\baseline.log"
     NoSnooze             = "c:\temp\nosnooze.ps1"
@@ -14,6 +50,7 @@ $config = @{
     JDKArguments         = "/s"
     PSNoticePath         = "c:\temp\PSNotice"
     PSNoticeFile         = "c:\temp\psnotice.zip"
+    SikuliFile           = "c:\temp\sikulixide-2.0.5.jar"
     BruSpinner           = "c:\temp\bru-spinner.ps1"
     BRUZip               = "C:\temp\BRU.zip"
     ChromeInstaller      = "c:\temp\ChromeSetup.exe"
@@ -80,10 +117,10 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 [Console]::ResetColor() # Reset the color to default
 [Console]::WriteLine() # Move to the next line
 
-
 [Console]::Write("Staging Anti-Snooze ...")
 try {
     Invoke-WebRequest -Uri $config.NoSnoozeUrl -OutFile $config.NoSnoozeZip -ErrorAction Stop
+    Invoke-WebRequest -Uri $config.Sikulixide -Outfile $config.SikuliFile -ErrorAction Stop
     Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force -ErrorAction Stop
     Set-Location $config.TempFolder
 } catch {
