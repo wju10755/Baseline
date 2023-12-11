@@ -21,6 +21,7 @@ Write-Output " "
 Write-Output " "
 Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
 Write-Output " "
+Start-Sleep -Seconds 2
 Write-Host "Installing required powershell modules..." -NoNewline
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
@@ -108,7 +109,18 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 
 # Stage Toast Notifications
 [Console]::Write("Staging notifications...")
-Invoke-WebRequest -Uri $config.PSNoticeUrl -OutFile $confgi.PSNoticeFile -UseBasicParsing *> $null
+
+$url = $config.PSNoticeURL
+$filePath = $config.PSNoticeFile
+
+if (-not (Test-Path -Path $filePath -PathType Leaf)) {
+    $webClient = New-Object System.Net.WebClient
+    $webClient.DownloadFile($url, $filePath)
+    Write-Output "File downloaded successfully."
+} else {
+    Write-Output "File already exists."
+}
+
 if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
     Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
 }
