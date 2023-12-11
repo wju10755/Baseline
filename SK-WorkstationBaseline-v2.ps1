@@ -905,6 +905,33 @@ Write-Output " "
 Write-Output "Starting Domain/Azure AD Join Function..."
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 Write-Output " "
+# Prompt the user to connect to SSL VPN
+$choice = Read-Host -Prompt "Do you want to connect to SSL VPN? Enter Y or N"
+
+if ($choice -eq "Y" -or $choice -eq "N") {
+    if ($choice -eq "Y") {
+                
+        if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
+            Write-Output 'NetExtender detected successfully, starting connection...'
+            start C:\temp\ssl-vpn.bat
+            Start-Sleep -Seconds 3
+            Read-Host -Prompt "Press Enter once connected to SSL VPN to continue."
+        } else {
+            Write-Output " "
+            Write-Output 'NetExtender not found! Exiting Script...'
+            break
+        }
+    } else {
+        # Skip the VPN connection setup
+        Write-Output " "
+        Write-Output "Skipping VPN Connection Setup..."
+        Write-Output " "
+    }
+} else {
+    # Display an error message if the user input is invalid
+    Write-Error "Invalid choice. Please enter Y or N."
+    break
+}
 
 # Prompt the user to choose between standard domain join or Azure AD join
 $choice = Read-Host -Prompt "Do you want to perform a standard domain join (S) or join Azure AD (A)? Enter S or A"
@@ -965,6 +992,6 @@ Remove-Item -path c:\BRU -Recurse -Force
 Write-Log "Baseline temp file cleanup completed successfully"
 Start-Sleep -Seconds 1
 Write-Host " done." -ForegroundColor "Green"    
-Start-Sleep -seconds 2
+Start-Sleep -seconds 1
 Start-Process "appwiz.cpl"
 Read-Host -Prompt "Press Enter to exit."
