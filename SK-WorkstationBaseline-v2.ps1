@@ -117,7 +117,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 [Console]::ResetColor() # Reset the color to default
 [Console]::WriteLine() # Move to the next line
 
-[Console]::Write("Staging Anti-Snooze ...")
+[Console]::Write("Staging Anti-Snooze function...")
 try {
     Invoke-WebRequest -Uri $config.NoSnoozeUrl -OutFile $config.NoSnoozeZip -ErrorAction Stop
     Invoke-WebRequest -Uri $config.Sikulixide -Outfile $config.SikuliFile -ErrorAction Stop
