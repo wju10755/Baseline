@@ -124,33 +124,43 @@ if (-not (Test-Path -Path $filePath -PathType Leaf)) {
 if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
     Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
 }
+
+
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor() # Reset the color to default
 [Console]::WriteLine() # Move to the next line
 
 [Console]::Write("Staging Anti-Snooze function...")
-try {
-    Invoke-WebRequest -Uri $config.NoSnoozeUrl -OutFile $config.NoSnoozeZip -ErrorAction Stop
-    Start-Sleep -seconds 2
-    if (Test-Path -Path $config.NoSnoozeZip -PathType Leaf) {
-    Write-Output "Download of NoSnooze was successful."
+$url = $config.NoSnoozeUrl
+$filePath = $config.NoSnoozeZip
+
+if (-not (Test-Path -Path $filePath -PathType Leaf)) {
+    $webClient = New-Object System.Net.WebClient
+    $webClient.DownloadFile($url, $filePath)
+    Write-Output "NoSnooze downloaded successfully."
 } else {
-    Write-Output "Download of NoSnooze failed."
-}
-Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force -ErrorAction Stop
-Start-Sleep -Seconds 2
-Invoke-WebRequest -Uri $config.Sikulixide -Outfile $config.SikuliFile -ErrorAction Stop
-Start-Sleep -Seconds 2
-if (Test-Path -Path $config.SikuliFile -PathType Leaf) {
-    Write-Output "Download of SikulixIDE was successful."
-} else {
-    Write-Output "Download of Sikulixide failed."
+    Write-Output "NoSnooze archive already exists."
 }
 
-Set-Location $config.TempFolder
-} catch {
-    Write-Error "An error occurred: $($_.Exception.Message)"
+if (Test-Path -Path $config.NoSnoozeZip -PathType Leaf) {
+    Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force
+}
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor() # Reset the color to default
+[Console]::WriteLine() # Move to the next line
+
+
+# Download Sikulixide
+$url = $config.Sikulixide
+$filePath = $config.SikuliFile
+
+if (-not (Test-Path -Path $filePath -PathType Leaf)) {
+    $webClient = New-Object System.Net.WebClient
+    $webClient.DownloadFile($url, $filePath)
+} else {
+    Write-Output "Sikulixide archive already exists."
 }
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
