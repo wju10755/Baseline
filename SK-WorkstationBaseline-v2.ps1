@@ -422,7 +422,7 @@ Start-Sleep -Seconds 2
 
 # Name of the module
 $moduleName = "CommonStuff"
-
+$WarningActionPreference = "SilentlyContinue"
 # Check if the module is installed
 if (-not (Get-Module -ListAvailable -Name $moduleName)) {
     #Write-Host "Module '$moduleName' is not installed. Attempting to install..."
