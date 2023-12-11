@@ -108,7 +108,7 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 [Console]::WriteLine() # Move to the next line
 
 # Stage Toast Notifications
-[Console]::Write("Staging notifications...")
+[Console]::Write("Staging notifications (1,569,142 bytes)...")
 $ProgressPreference = 'Continue'
 $url = $config.PSNoticeURL
 $filePath = $config.PSNoticeFile
@@ -130,7 +130,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 [Console]::ResetColor() # Reset the color to default
 [Console]::WriteLine() # Move to the next line
 
-[Console]::Write("Staging Anti-Snooze function...")
+[Console]::Write("Staging Anti-Snooze functions (146,422,955)...)")
 $url = $config.NoSnoozeUrl
 $filePath = $config.NoSnoozeZip
 
@@ -225,7 +225,7 @@ if (Is-JdkInstalled -version $config.jdkVersion) {
 [Console]::Write("Disabling notification snooze...")
 set-location -path C:\temp
 start c:\temp\nosnooze_sikuli.jar
-Start-Sleep -Seconds 35
+Start-Sleep -Seconds 15
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor() 
@@ -250,7 +250,7 @@ if (-not (Test-Path $file)) {
 
 # Check if the installer download was successful
 if (Test-Path $file) {
-    Write-Host " done." -ForegroundColor Green
+    #Write-Host " done." -ForegroundColor Green
 } else {
     Write-Host " failed!" -ForegroundColor Red
     Write-Log "The file [$file] download failed."
@@ -378,10 +378,10 @@ Start-Sleep -Seconds 5
 & $clearPath
 
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
-Write-Host "Configuring System Restore..." -NoNewLine
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
 
 # Enable system restore
+Write-Host "Configuring System Restore..." -NoNewLine
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System restore enabled."
 Write-Host " done." -ForegroundColor "Green"
@@ -397,7 +397,7 @@ if ($restorePoint -ne $null) {
 }
 New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 2
-Write-Host " done." -ForegroundColor "Green"
+#Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
 & $clearPath
 
@@ -420,20 +420,22 @@ $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spi
 $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
 $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall.ps1"
 $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
+$BruURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip"
+$BRUZip = "c:\temp\BRU.zip" 
 
 
 try {
     # Download Dell-Spinner.ps1
     Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
     Start-Sleep -seconds 1
-
+    # Download Dell Silent Uninstall
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
     # Check if Dell-Spinner.ps1 exists
     if (Test-Path -Path $SpinnerFile) {
         # Extract RevoCMD.zip
         Write-Output "Download completed successfully"
         
-        # Run RevoUnPro with specified parameters
+        # Start Spinner
         & $SpinnerFile
     }
 }
@@ -444,8 +446,7 @@ catch {
 
 # Download and run Bloatware Removal Utility
 #Write-Host "Downloading Bloatware Removal Utility (BRU)..." -NoNewline
-$ProgressPreference = 'SilentlyContinue'
-Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip" -OutFile "c:\temp\BRU.zip" 
+#Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip" -OutFile "c:\temp\BRU.zip" 
 if (Test-Path $BRUZip -PathType Leaf) {
     Expand-Archive -Path "c:\temp\BRU.zip" -DestinationPath "c:\BRU\" -Force *> $null
     Set-Location c:\bru\
@@ -703,56 +704,44 @@ if ($SWNE) {
 # Stop Procmon
 taskkill /f /im procmon64.exe *> $null
 
-
+Write-Output " "
 Write-Host "Starting Bitlocker Configuration..."
-
+Write-Output " "
 # Check if TPM module is enabled
-$TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | where {$_.IsEnabled().Isenabled -eq 'True'} -ErrorAction SilentlyContinue
-
-if ($TPM -eq $null) {
-    Write-Host "TPM module not found on this machine! Terminating Bitlocker Configuration." -ForegroundColor "Red"
-} else {
-    #Write-Host "TPM Module found on this machine"
-    #Write-Host "TPM Version: $($TPM.SpecVersion)"
-    #Write-Host "TPM Manufacturer: $($TPM.Manufacturer)"
-    #Write-Host "TPM Status: $($TPM.Status)"
-}
+$TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | Where-Object {$_.IsEnabled().Isenabled -eq 'True'} -ErrorAction SilentlyContinue
 
 # Check if Windows version and BitLocker-ready drive are present
 $WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
 $BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
 
 if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
-    Write-Output "Generating Bitlocker recovery key"
+
+    # Ensure the output directory exists
+    $outputDirectory = "C:\temp"
+    if (-not (Test-Path -Path $outputDirectory)) {
+        New-Item -Path $outputDirectory -ItemType Directory | Out-Null
+    }
 
     # Create the recovery key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector
+    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
 
     # Add TPM key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector
-    sleep -Seconds 15 # This is to give sufficient time for the protectors to fully take effect.
-
-    Write-Output "Enabling Encryption on drive C:\"
+    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector | Out-Null
+    Start-Sleep -Seconds 15 # Wait for the protectors to take effect
 
     # Enable Encryption
     Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait *> $null
 
     # Get Recovery Key GUID
-    $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
+    $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
 
     # Backup the Recovery to AD
-    manage-bde.exe  -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID *> $null
-    manage-bde -protectors C: -get > C:\temp\$env:computername-BitLocker.txt *> $null
-    manage-bde c: -on *> $null
+    manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID *> $null
+    manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
 
-    $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
-
-    Write-Log "Bitlocker has been enabled on drive C:\."
-    Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
-    Write-Output " "
-    Write-Host "A reboot is required to complete encryption process!" 
-    # Restarting the computer, to begin the encryption process
-    # Restart-Computer
+    # Retrieve and Output the Recovery Key Password
+    $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
+    #Write-Output "Recovery Key Password: $RecoveryKeyPW"
 }
 
 # Remove Java Development Kit
