@@ -667,7 +667,7 @@ if ($Chrome) {
         # If not found, download it from the given URL
         $ProgressPreference = 'Continue'
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
-        Write-Host "Downloading Google Chrome..." -NoNewline
+        Write-Host "Downloading Google Chrome (1,373,744 bytes)..." -NoNewline
         Invoke-WebRequest -OutFile c:\temp\ChromeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe" -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
     }
@@ -711,7 +711,7 @@ if ($Acrobat) {
     if (-not (Test-Path $FilePath)) {
         # If not found, download it from the given URL
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
-        Write-Host "Downloading Adobe Acrobat Reader..." -NoNewline
+        Write-Host "Downloading Adobe Acrobat Reader ( 277,900,248 bytes)..." -NoNewline
         & $acrobatDownload
         Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
@@ -754,14 +754,13 @@ if ($O365) {
     $FilePath = "C:\temp\O2k16pp.zip"
     if (-not (Test-Path $FilePath)) {
         # If not found, download it from the given URL
-        $URL = "https://skgeneralstorage.blob.core.windows.net/o2k16pp/O2k16pp.zip"
-        Write-Host "Downloading Microsoft Office 2016..." -NoNewline
+        Write-Host "Downloading Microsoft Office 2016 (757,921,585 bytes)..." -NoNewline
         Invoke-WebRequest -OutFile c:\temp\O2k16pp.zip -Uri "https://skgeneralstorage.blob.core.windows.net/o2k16pp/O2k16pp.zip" -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
-    $ExpectedSize = 757921802 # in bytes
+    $ExpectedSize = 757921585 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
         & $officeNotice
@@ -831,10 +830,10 @@ $TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | whe
 if ($TPM -eq $null) {
     Write-Host "TPM module not found on this machine! Terminating Bitlocker Configuration." -ForegroundColor "Red"
 } else {
-    Write-Host "TPM Module found on this machine"
-    Write-Host "TPM Version: $($TPM.SpecVersion)"
-    Write-Host "TPM Manufacturer: $($TPM.Manufacturer)"
-    Write-Host "TPM Status: $($TPM.Status)"
+    #Write-Host "TPM Module found on this machine"
+    #Write-Host "TPM Version: $($TPM.SpecVersion)"
+    #Write-Host "TPM Manufacturer: $($TPM.Manufacturer)"
+    #Write-Host "TPM Status: $($TPM.Status)"
 }
 
 # Check if Windows version and BitLocker-ready drive are present
@@ -854,15 +853,15 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Output "Enabling Encryption on drive C:\"
 
     # Enable Encryption
-    Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait
+    Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait *> $null
 
     # Get Recovery Key GUID
     $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
 
     # Backup the Recovery to AD
-    manage-bde.exe  -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID
-    manage-bde -protectors C: -get > C:\temp\$env:computername-BitLocker.txt
-    manage-bde c: -on
+    manage-bde.exe  -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID *> $null
+    manage-bde -protectors C: -get > C:\temp\$env:computername-BitLocker.txt | Out-Null
+    manage-bde c: -on *> $null
 
     $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
 
@@ -876,7 +875,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
 # Check for and install all available Windows update
 Start-Sleep -Seconds 4
-Write-Output "Windows Update Inprogress..."
+Write-Output "Windows Update in progress..."
 & $updateNotice
 Install-Module -Name PSWindowsUpdate -Force -ErrorAction SilentlyContinue
 Import-Module PSWindowsUpdate

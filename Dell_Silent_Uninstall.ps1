@@ -87,12 +87,14 @@ if ($DDMpackage) {
 
     # Run the script
     Write-Host "Removing Dell Display Manager..." -NoNewline
-    & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+    #& "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+    & "C:\Program Files\Dell\Dell Display Manager 2\uninst.exe" /S /v/qn
     Write-Host " done." -ForegroundColor "Green"
     Write-Log "Removed Dell Display Manager."
 } else {
     Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
 }
+
 
 $softwarePaths = @(
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
