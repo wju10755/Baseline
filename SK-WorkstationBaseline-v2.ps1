@@ -820,7 +820,8 @@ if ($SWNE) {
 }
 
 # Stop Procmon
-taskkill /f /im procmon64.exe > $null
+taskkill /f /im procmon64.exe *> $null
+
 
 Write-Host "Starting Bitlocker Configuration..."
 
@@ -871,6 +872,28 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Host "A reboot is required to complete encryption process!" 
     # Restarting the computer, to begin the encryption process
     # Restart-Computer
+}
+
+# Remove Java Development Kit
+$uninstallCommand = "MsiExec.exe"
+$uninstallArguments = "/X{0232D1A9-B924-5BA2-8D5C-2C479AF9E842} /quiet /norestart"
+
+try {
+    # Start the uninstall process
+    $process = Start-Process -FilePath $uninstallCommand -ArgumentList $uninstallArguments -Wait -NoNewWindow -PassThru
+
+    # Check if the uninstallation was successful
+    if ($process.ExitCode -eq 0) {
+        Write-Log "Java Development Kit successfully uninstalled."
+        Remove-Item -path "c:\temp\jdk-11.0.17_windows-x64_bin.exe" | Out-Null
+    }
+    else {
+        Write-Log "Java Development Kit uninstallation failed. Exit Code: $($process.ExitCode)"
+    }
+}
+catch {
+    # Catch and display any exceptions
+    Write-Log "An error occurred: $_"
 }
 
 # Check for and install all available Windows update
