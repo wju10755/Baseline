@@ -300,7 +300,7 @@ Write-Host "Identifying device type: " -NoNewline
 Start-Sleep -Seconds 2
 Write-Host $deviceType -ForegroundColor "Yellow"
 Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
-New-BurntToastNotification -Text "Identified device type: $manufacturer $deviceType" -AppLogo "$PSNotice\smallA.png"
+New-BurntToastNotification -Text "Identified device type: $manufacturer $deviceType" -AppLogo C:\temp\PSNotice\smallA.png
 & $clearPath
 Start-Sleep -Seconds 2
 
@@ -308,7 +308,7 @@ Start-Sleep -Seconds 2
 Write-Host "Setting Power Profile..." -NoNewLine
 Start-Sleep -Seconds 3
 powercfg /S SCHEME_BALANCED
-New-BurntToastNotification -Text "Power profile set to Balanced" -AppLogo "$PSNotice\smallA.png"
+New-BurntToastNotification -Text "Power profile set to Balanced" -AppLogo "C:\temp\PSNotice\smallA.png"
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Power profile set to 'Balanced'."
 Start-Sleep -Seconds 5
@@ -320,7 +320,7 @@ Write-Host "Disabling Sleep and Hibernation..." -NoNewline
 powercfg /change standby-timeout-ac 0
 powercfg /change hibernate-timeout-ac 0
 powercfg /h off
-New-BurntToastNotification -Text "Sleep and hibernation settings disabled" -AppLogo "$PSNotice\smallA.png"
+New-BurntToastNotification -Text "Sleep and hibernation settings disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Disabled sleep and hibernation modes."
@@ -333,7 +333,7 @@ Write-Host "Disabling Fast Startup..." -NoNewline
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
 Write-Log "Disabled fast startup."
-New-BurntToastNotification -Text "Fast startup disabled" -AppLogo "$PSNotice\smallA.png"
+New-BurntToastNotification -Text "Fast startup disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
@@ -343,7 +343,7 @@ Start-Sleep -Seconds 5
 Start-Sleep -Seconds 1
 Write-Host "Configuring power profile..." -NoNewline
 powercfg /SETACTIVE SCHEME_CURRENT
-New-BurntToastNotification -Text "Power profile set to 'Balanced'" -AppLogo "$PSNotice\smallA.png"
+New-BurntToastNotification -Text "Power profile set to 'Balanced'" -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 
@@ -352,7 +352,7 @@ Start-Sleep -Seconds 2
 Write-Host "Configuring power button action to shutdown..." -NoNewline
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
-New-BurntToastNotification -Text "Power button action set to 'Shutdown'" -AppLogo "$PSNotice\smallA.png"
+New-BurntToastNotification -Text "Power button action set to 'Shutdown'" -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 3
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Set power button action to 'Shutdown'."
@@ -366,7 +366,7 @@ if ($deviceType -eq "Laptop") {
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
     Write-Log "Set 'lid close action' to Do Nothing on laptop."
-    New-BurntToastNotification -Text "Lid close action set to 'Do Nothing'" -AppLogo "$PSNotice\smallA.png"
+    New-BurntToastNotification -Text "Lid close action set to 'Do Nothing'" -AppLogo "c:\temp\PSNotice\smallA.png"
     Start-Sleep -Seconds 2
     Write-Host " done." -ForegroundColor "Green"
     Start-Sleep -Seconds 5
@@ -383,7 +383,7 @@ Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 2
 Write-Host "Syncing clock..." -NoNewline
 w32tm /resync -ErrorAction SilentlyContinue | out-null
-New-BurntToastNotification -Text "Default timezone set to 'EST'." -AppLogo "$PSNotice\smallA.png"
+New-BurntToastNotification -Text "Default timezone set to 'EST'." -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"    
 Start-Sleep -Seconds 5
@@ -405,7 +405,7 @@ if ($restorePoint -ne $null) {
 } else {
     Write-Output "Failed to create restore point"
 }
-New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "$PSNotice\smallA.png"
+New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
