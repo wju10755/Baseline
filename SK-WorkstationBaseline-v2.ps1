@@ -109,7 +109,7 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 
 # Stage Toast Notifications
 [Console]::Write("Staging notifications...")
-
+$ProgressPreference = 'Continue'
 $url = $config.PSNoticeURL
 $filePath = $config.PSNoticeFile
 
