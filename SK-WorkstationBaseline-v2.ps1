@@ -116,9 +116,9 @@ $filePath = $config.PSNoticeFile
 if (-not (Test-Path -Path $filePath -PathType Leaf)) {
     $webClient = New-Object System.Net.WebClient
     $webClient.DownloadFile($url, $filePath)
-    Write-Output "File downloaded successfully."
+    #Write-Output "File downloaded successfully."
 } else {
-    Write-Output "File already exists."
+    #Write-Output "File already exists."
 }
 
 if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
@@ -138,9 +138,9 @@ $filePath = $config.NoSnoozeZip
 if (-not (Test-Path -Path $filePath -PathType Leaf)) {
     $webClient = New-Object System.Net.WebClient
     $webClient.DownloadFile($url, $filePath)
-    Write-Output "NoSnooze downloaded successfully."
+    #Write-Output "NoSnooze downloaded successfully."
 } else {
-    Write-Output "NoSnooze archive already exists."
+    #Write-Output "NoSnooze archive already exists."
 }
 
 if (Test-Path -Path $config.NoSnoozeZip -PathType Leaf) {
@@ -160,7 +160,7 @@ if (-not (Test-Path -Path $filePath -PathType Leaf)) {
     $webClient = New-Object System.Net.WebClient
     $webClient.DownloadFile($url, $filePath)
 } else {
-    Write-Output "Sikulixide archive already exists."
+    #Write-Output "Sikulixide archive already exists."
 }
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
