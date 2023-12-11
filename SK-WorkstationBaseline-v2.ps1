@@ -144,11 +144,6 @@ if (-not (Test-Path -Path $filePath -PathType Leaf)) {
 if (Test-Path -Path $config.NoSnoozeZip -PathType Leaf) {
     Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force
 }
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line
-
 
 # Download Sikulixide
 $url = $config.Sikulixide
@@ -184,7 +179,7 @@ function Is-JdkInstalled {
 
 # Check if JDK 11.0.17 is already installed
 if (Is-JdkInstalled -version $config.jdkVersion) {
-    Write-Host "JDK $jdkVersion is already installed."
+    #Write-Host "JDK $jdkVersion is already installed."
 } else {
     # Define the path to the JDK installer
     $installerPath = "C:\temp\jdk-11.0.17_windows-x64_bin.exe"
@@ -241,55 +236,55 @@ Start-Sleep -Seconds 25
 Write-Log "Automated workstation baseline has started"
 
 # ConnectWise Automate Agent Installation
-
-# Agent Installer Download Check
+# Define file paths and names
 $file = 'c:\temp\Warehouse-Agent_Install.MSI'
+$agentName = "LTService"
+$agentPath = "C:\Windows\LTSvc\"
+$installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
 
-if ([System.IO.File]::Exists($file)) {
-    try {
-        Write-Host " done." -ForegroundColor "Green"
-    } catch {
-        throw $_.Exception.Message
-    }    
+# Function to write logs
+function Write-Log {
+    param ([string]$message)
+    # Implement logging logic here, e.g., appending to a log file
 }
-else {
-    Write-Host " failed!" -ForegroundColor "Red"
-    Write-log "The file [$file] download failed."
+
+# Check if the installer file exists
+if (-not (Test-Path $file)) {
+    Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline
+    Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
+}
+
+# Check if the installer download was successful
+if (Test-Path $file) {
+    Write-Host " done." -ForegroundColor Green
+} else {
+    Write-Host " failed!" -ForegroundColor Red
+    Write-Log "The file [$file] download failed."
+    exit
 }
 
 # Check if the LabTech agent is already installed
-$agentName = "LTService"
-$agentPath = "C:\Windows\LTSvc\"
-
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     Write-Output "The LabTech agent is already installed."
-}
-elseif (Test-Path $agentPath) {
+} elseif (Test-Path $agentPath) {
     Write-Output "The LabTech agent files are present, but the service is not installed."
-}
-else {
+} else {
     Write-Host "Installing ConnectWise Automate Agent..." -NoNewline
-    Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline   
-    Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI" -OutFile "c:\temp\Warehouse-Agent_Install.MSI" *> $null
-    Start-Process msiexec.exe -Wait -ArgumentList '/I C:\temp\Warehouse-Agent_Install.MSI /quiet'
+    Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
+
+    # Wait for the installation to complete
     Start-Sleep -Seconds 45
-    & $clearPath
 
     # Automate Agent Installation Check
-    $folder = 'C:\Windows\LTSvc\'
-    if ([System.IO.Directory]::Exists($folder)) {
-        try {
-            Write-Host " done." -ForegroundColor "Green"
-            Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
-        } catch {
-            throw $_.Exception.Message
-        }    
-    }
-    else {
-        Write-Host " failed!" -foregroundcolor red
+    if (Test-Path $agentPath) {
+        Write-Host " done." -ForegroundColor Green
+        Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
+    } else {
+        Write-Host " failed!" -ForegroundColor Red
         Write-Log "ConnectWise Automate Agent installation failed!"
     }
 }
+
 
 # Identify device manufacturer and type
 $computerSystem = Get-WmiObject Win32_ComputerSystem
