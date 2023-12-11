@@ -420,6 +420,53 @@ Start-Sleep -Seconds 3
 $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2
 
+# Name of the module
+$moduleName = "CommonStuff"
+
+# Check if the module is installed
+if (-not (Get-Module -ListAvailable -Name $moduleName)) {
+    #Write-Host "Module '$moduleName' is not installed. Attempting to install..."
+
+    # Attempt to install the module from the PowerShell Gallery
+    # This requires administrative privileges
+    try {
+        Install-Module -Name $moduleName -Scope CurrentUser -Force -ErrorAction Stop
+        #Write-Host "Module '$moduleName' installed successfully."
+    } catch {
+        Write-Error "Failed to install module '$moduleName': $_"
+        exit
+    }
+} else {
+    #Write-Host "Module '$moduleName' is already installed."
+}
+
+# Import the module
+try {
+    Import-Module -Name $moduleName -ErrorAction Stop
+    #Write-Host "Module '$moduleName' imported successfully."
+} catch {
+    Write-Error "Failed to import module '$moduleName': $_"
+}
+
+
+# Remove Dell Pair Application
+$pairPath = "C:\Program Files\Dell\Dell Pair\Uninstall.exe"
+if (Test-Path $pairPath) {
+    Write-Host "Removing Dell Pair Application..." -NoNewline
+    $pair = "`"$pairPath`" /S"
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $pair" *> $null
+    Start-Sleep -Seconds 10
+    Write-Host " done." -ForegroundColor "Green"
+    Write-Log "Removed Dell Pair Application."   
+} else {
+    #Write-Host "Dell Pair Uninstall.exe file does not exist."
+    Write-Host "Dell Pair installation not found." -ForegroundColor "Red"
+}
+
+$DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm.zip"
+$DPMzip = "C:\temp\Uninstall-dpm.zip"
+$DPMdir = "C:\temp\Uninstall-DPM"
+
 # Check if Dell Peripheral Manager is installed
 Write-Host "Starting Dell bloatware removal`n" -NoNewline
 $DPMpackageName = 'Dell Peripheral Manager'
@@ -443,164 +490,80 @@ if ($DPMpackage) {
     Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
 }
 
-#Remove Dell Display Manager 
-cd 
-.\uninst.exe /S /v/qn
-#$DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-ddm.zip"
-#$DDMzip = "C:\temp\Uninstall-ddm.zip"
-#$DDMdir = "C:\temp\Uninstall-DDM"
-#$DDMpackageName = 'Dell Display Manager'
+# Check if Dell Display Manager is installed
+$DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-ddm.zip"
+$DDMzip = "C:\temp\Uninstall-ddm.zip"
+$DDMdir = "C:\temp\Uninstall-DDM"
+$DDMpackageName = 'Dell Display Manager'
 
-#$DDMpackage = Get-Package -Name $DDMpackageName -ErrorAction SilentlyContinue
+$DDMpackage = Get-Package -Name $DDMpackageName -ErrorAction SilentlyContinue
 
-#if ($DDMpackage) {
-#    # Download Dell Peripheral Manager
-#    $ProgressPreference = 'SilentlyContinue'
-#    Invoke-WebRequest -Uri $DDMurl -OutFile $DDMzip *> $null
-#
-#    # Extract the file
-#    Write-Host "Extracting Dell Display Manager package..."
-#    Expand-Archive -Path $DDMzip -DestinationPath $DDMdir -Force
-#
-#    # Run the script
-#    Write-Host "Removing Dell Display Manager..." -NoNewline
-#    & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
-#    Write-Host " done." -ForegroundColor "Green"
-#    Write-Log "Removed Dell Display Manager."
-#} else {
-#    Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
-#}
+if ($DDMpackage) {
+    # Download Dell Peripheral Manager
+    $ProgressPreference = 'SilentlyContinue'
+    Invoke-WebRequest -Uri $DDMurl -OutFile $DDMzip *> $null
 
-    
-# Remove Dell Optimizer Core
-#if (test-path -path "C:\Program Files (x86)\InstallShield Installation Information\{286A9ADE-A581-43E8-AA85-6F5D58C7DC88}\DellOptimizer.exe" ) {invoke-command -scriptblock {'C:\Program Files (x86)\InstallShield Installation Information\{286A9ADE-A581-43E8-AA85-6F5D58C7DC88}\DellOptimizer.exe'} -ArgumentList "-remove -runfromtemp"}
-$optimizerPath = "C:\Program Files (x86)\InstallShield Installation Information\{286A9ADE-A581-43E8-AA85-6F5D58C7DC88}\DellOptimizer.exe"
-if (Test-Path $optimizerPath) {
-    Write-Host "Removing Dell Optimizer Core..." -NoNewline
-    $command = "`"$optimizerPath`" -remove -runfromtemp -silent"
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $command" -NoNewWindow -Wait *> $null
+    # Extract the file
+    Write-Host "Extracting Dell Display Manager package..."
+    Expand-Archive -Path $DDMzip -DestinationPath $DDMdir -Force
+
+    # Run the script
+    Write-Host "Removing Dell Display Manager..." -NoNewline
+    & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
     Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell Optimizer Core."
+    Write-Log "Removed Dell Display Manager."
 } else {
-    Write-Host "Dell Optimizer Core installation not found." -foregroundColor "Red"
+    Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
 }
-    
-# Remove Dell Command Update (All Versions)
-$Name = "Dell Command | Update*"
-$ProcName = "DellCommandUpdate"
-$Timestamp = Get-Date -Format "yyyy-MM-dd_THHmmss"
-$LogFile = "C:\temp\Dell-CU-Uninst_$Timestamp.log"
-$ProgramList = @( "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" )
-$Programs = Get-ItemProperty $ProgramList -EA 0
-$App = ($Programs | Where-Object { $_.DisplayName -like $Name -and $_.UninstallString -like "*msiexec*" }).PSChildName
 
-if ($App) {
-    Get-Process | Where-Object { $_.ProcessName -eq $ProcName } | Stop-Process -Force
-    $Params = @(
-        "/qn"
-        "/norestart"
-        "/X"
-        "$App"
-        "/L*V ""$LogFile"""
-        )
-        Write-Host "Removing Dell Command Update..." -NoNewline
-        Start-Process "msiexec.exe" -ArgumentList $Params -Wait -NoNewWindow
-        Write-Host " done." -ForegroundColor "Green"
-        Write-Log "Removed Dell Command Update."
+$softwarePaths = @(
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+    "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+)
+
+$isInstalled = $false
+$uninstallCommand = "C:\Program Files (x86)\InstallShield Installation Information\{286A9ADE-A581-43E8-AA85-6F5D58C7DC88}\DellOptimizer.exe"
+
+foreach ($path in $softwarePaths) {
+    $software = Get-ItemProperty $path\* -ErrorAction SilentlyContinue
+    $dellOptimizerCore = $software | Where-Object { $_.DisplayName -like "*Dell Optimizer Core*" }
+    if ($dellOptimizerCore) {
+        $isInstalled = $true
+        break
+    }
 }
-else {
-    Write-Host "$Name installation not found." -foregroundColor "Red"
+
+if ($isInstalled) {
+    Start-Process -FilePath $uninstallCommand -ArgumentList "-remove -runfromtemp -silent" -Wait -NoNewWindow
 }
 
 
-# Remove Dell Pair Application
-$pairPath = "C:\Program Files\Dell\Dell Pair\Uninstall.exe"
-if (Test-Path $pairPath) {
-    Write-Host "Removing Dell Pair Application..." -NoNewline
-    $pair = "`"$pairPath`" /S"
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $pair" *> $null
-    Start-Sleep -Seconds 10
-    Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell Pair Application."   
+$SWName = Get-InstalledSoftware "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services" | 
+    Where-Object { $_.DisplayName -ne "Dell Pair" } | 
+    Select-Object -ExpandProperty DisplayName
+
+if ($SWName) {
+    try {
+        foreach ($name in $SWName) {
+            $param = @{
+                Name        = $name
+                ErrorAction = "Stop"
+            }
+
+            if ($name -eq "Dell Optimizer Service") {
+                # uninstallation isn't unattended without -silent switch
+                $param["addArgument"] = "-silent"
+            }
+
+            Uninstall-ApplicationViaUninstallString @param
+        }
+    } catch {
+        Write-Error "There was an error when uninstalling bloatware: $_"
+    }
 } else {
-    #Write-Host "Dell Pair Uninstall.exe file does not exist."
-    Write-Host "Dell Pair installation not found." -ForegroundColor "Red"
+    "There is no bloatware detected"
 }
 
-# Dell Support Assist Remediation Service
-$filePath = "C:\ProgramData\Package Cache\{b2e99ca2-5292-470d-bf98-4d347c913748}\DellSupportAssistRemediationServiceInstaller.exe"
-if (Test-Path $filePath) {
-    Write=Host "Removing Dell Support Assist Remediation Service..." -NoNewline
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$filePath`" /uninstall /quiet" -NoNewWindow -Wait *> $null
-    Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Dell Support Assist Remediation Service removed."
-} else {
-    Write-Host "Support Assist Remediation Service not found." -foregroundColor "Red"   
-}
-
-# Dell Support Assist OS Recovery Plugin for Dell Update
-$DSARP = "C:\ProgramData\Package Cache\{9d6ba6ac-00ed-41bc-9a72-368346191765}\DellUpdateSupportAssistPlugin.exe"
-if (Test-Path $DSARP) {
-    Write-Host "Removing Dell Support Assist OS Recovery Plugin for Dell Update..." -NoNewline
-    Start-Process -FilePath "$DSARP" -ArgumentList "/uninstall" -Wait *> $null
-    Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Dell Support Assist OS Recovery Plugin for Dell Update removed."
-    Start-Sleep -Seconds 15
-    taskkill /f /im DellUpdateSupportAssistPlugin.exe *> $null
-
-} else {
-    Write-Host "Dell Support Assist OS Recovery Plugin for Dell Update not found" -ForegroundColor "Yellow"
-}
-
-
-# Remove Dell SupportAssist
-#$exePath = "C:\ProgramData\Package Cache\{2600102a-dac2-4b2a-8257-df60c573fc29}\DellUpdateSupportAssistPlugin.exe"
-#if (Test-Path $exePath) {
-#    Write-Host "Removing Dell SupportAssist..." -NoNewline
-#    $command = "`"$exePath`" /uninstall /quiet"
-#    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $command" *> $null
-#    Write-Host " done." -ForegroundColor "Green"
-#    Write-Log "Removed Dell SupportAssist."
-#    Start-Sleep -Seconds 3
-#        } else {
-#        #Write-Host "DellUpdateSupportAssistPlugin.exe does not exist."
-#        Write-Host "Dell SupportAssist installation not found." -ForegroundColor "Red"
-#    }
-
-# Remove Support Assist v2
-$ProgressPreference = 'SilentlyContinue'
-$RevoURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/RevoCMD.zip"
-$RevoFile = "c:\temp\RevoCMD.zip"
-$RevoDestination = "c:\temp\RevoCMD"
-
-# Download RevoCMD.zip
-Invoke-WebRequest -Uri $RevoURL -OutFile $RevoFile -ErrorAction SilentlyContinue
-
-# Check if RevoCMD.zip exists
-if (Test-Path -Path $RevoFile) {
-    # Extract RevoCMD.zip
-    Expand-Archive -Path $RevoFile -DestinationPath $RevoDestination -Force
-    
-    # Run RevoUnPro with specified parameters
-    Start-Process -FilePath "$RevoDestination\RevoUnPro.exe" -ArgumentList "/mu 'Dell SupportAssist' /path 'C:\Program Files\Dell\SupportAssistAgent' /mode Moderate /32"
-}
-
-
-# Download and run Bloatware Removal Utility
-$ProgressPreference = 'SilentlyContinue'
-Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip" -OutFile "c:\temp\BRU.zip" 
-if (Test-Path "c:\temp\BRU.zip" -PathType Leaf) {
-  Expand-Archive -Path "c:\temp\BRU.zip" -DestinationPath "c:\BRU\" -Force *> $null
-  Set-Location c:\bru\
-  Stop-Transcript | Out-Null
-    
-  # Restart Explorer process
-  Start-Job -ScriptBlock {
-    Start-Sleep -Seconds 190
-    Stop-Process -Name explorer -Force
-    Start-Process explorer *> $null
-  } *> $null
-}
 
 # Download and run Bloatware Removal Utility
 #Write-Host "Downloading Bloatware Removal Utility (BRU)..." -NoNewline
