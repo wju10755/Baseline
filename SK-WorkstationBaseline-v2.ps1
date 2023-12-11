@@ -11,7 +11,7 @@ Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
-Set-ExecutionPolicy -Scope process RemoteSigned -force -ErrorAction SilentlyContinue | Out-Null
+Set-ExecutionPolicy -Scope process RemoteSigned -force *> $null
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningActionPreference = 'SilentlyContinue'
 Start-Transcript -path c:\temp\baseline_transcript.txt
