@@ -69,7 +69,18 @@ $config = @{
     UpdateNotice         = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
     UpdateComplete       = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
     BaselineComplete     = "C:\temp\psnotice\BaselineComplete\New-ToastNotification.ps1"
-    
+    AutomateSuccess      = "C:\temp\psnotice\AppNotice\automate\"
+    AutomateFailure      = "C:\temp\psnotice\AppNotice\automate\failure\New-ToastNotification.ps1"
+    HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
+    PowerProfile         = "C:\temp\psnotice\powerprofile\New-ToastNotification.ps1"
+    HiberSleep           = "C:\temp\psnotice\HiberSleep\New-ToastNotification.ps1"
+    FastStartup          = "C:\temp\psnotice\FastStartup\New-ToastNotification.ps1"
+    PwrButton            = "C:\temp\psnotice\PwrButton\New-ToastNotification.ps1"
+    LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
+    TimeZone             = "C:\temp\psnotice\TimeZone\New-ToastNotification.ps1"
+    SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
+    Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
+    Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
     # Add other configuration items here...
 }
 
@@ -140,7 +151,7 @@ $file = 'c:\temp\Warehouse-Agent_Install.MSI'
 $agentName = "LTService"
 $agentPath = "C:\Windows\LTSvc\"
 $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
-
+#& $config.ClearPath
 # Check if the installer file exists
 if (-not (Test-Path $file)) {
     Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline
@@ -172,9 +183,13 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     if (Test-Path $agentPath) {
         Write-Host " done." -ForegroundColor Green
         Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
+        & $config.AutomateSuccess
     } else {
         Write-Host " failed!" -ForegroundColor Red
         Write-Log "ConnectWise Automate Agent installation failed!"
+        & $config.AutomateFailure
+        Start-Sleep -Seconds 5
+        & $config.ClearPath
     }
 }
 
@@ -187,19 +202,20 @@ Write-Host "Identifying device type: " -NoNewline
 Start-Sleep -Seconds 2
 Write-Host $deviceType -ForegroundColor "Cyan"
 Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
-New-BurntToastNotification -Text "Identified device type: $manufacturer $deviceType" -AppLogo C:\temp\PSNotice\smallA.png
-& $clearPath
-Start-Sleep -Seconds 2
+#New-BurntToastNotification -Text "Identified device type: $manufacturer $deviceType" -AppLogo C:\temp\PSNotice\smallA.png
+#& $clearPath
+
 
 # Set power profile to 'Balanced'
 Write-Host "Setting Power Profile..." -NoNewLine
 Start-Sleep -Seconds 3
 powercfg /S SCHEME_BALANCED
-New-BurntToastNotification -Text "Power profile set to Balanced" -AppLogo "C:\temp\PSNotice\smallA.png"
+#New-BurntToastNotification -Text "Power profile set to Balanced" -AppLogo "C:\temp\PSNotice\smallA.png"
+& $config.PowerProfile
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Power profile set to 'Balanced'."
 Start-Sleep -Seconds 5
-& $clearPath
+& $config.clearPath
 
 # Disable sleep and hibernation modes
 Start-Sleep -Seconds 1
@@ -207,12 +223,13 @@ Write-Host "Disabling Sleep and Hibernation..." -NoNewline
 powercfg /change standby-timeout-ac 0
 powercfg /change hibernate-timeout-ac 0
 powercfg /h off
-New-BurntToastNotification -Text "Sleep and hibernation settings disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
+#New-BurntToastNotification -Text "Sleep and hibernation settings disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
+& $config.HiberSleep
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Disabled sleep and hibernation modes."
 Start-Sleep -Seconds 5
-& $clearPath
+& $config.clearPath
 
 # Disable fast startup
 Start-Sleep -Seconds 1
@@ -220,31 +237,36 @@ Write-Host "Disabling Fast Startup..." -NoNewline
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
 Write-Log "Disabled fast startup."
-New-BurntToastNotification -Text "Fast startup disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
+#New-BurntToastNotification -Text "Fast startup disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
+& $config.FastStartup
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
-& $clearPath
+& $config.clearPath
 
 # Set power profile
 Start-Sleep -Seconds 1
 Write-Host "Configuring power profile..." -NoNewline
 powercfg /SETACTIVE SCHEME_CURRENT
-New-BurntToastNotification -Text "Power profile set to 'Balanced'" -AppLogo "c:\temp\PSNotice\smallA.png"
+#New-BurntToastNotification -Text "Power profile set to 'Balanced'" -AppLogo "c:\temp\PSNotice\smallA.png"
+& $config.PowerProfile
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
+Start-Sleep -Seconds 5
+& $config.clearPath
 
 # Set power button action to 'Shutdown'
 Start-Sleep -Seconds 2
 Write-Host "Configuring power button action to shutdown..." -NoNewline
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
-New-BurntToastNotification -Text "Power button action set to 'Shutdown'" -AppLogo "c:\temp\PSNotice\smallA.png"
+#New-BurntToastNotification -Text "Power button action set to 'Shutdown'" -AppLogo "c:\temp\PSNotice\smallA.png"
+& $config.PwrButton
 Start-Sleep -Seconds 3
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Set power button action to 'Shutdown'."
 Start-Sleep -Seconds 5
-& $clearPath
+& $config.clearPath
 
 # Set 'lid close action' to do nothing on laptops
 Start-Sleep -Seconds 1
@@ -253,11 +275,12 @@ if ($deviceType -eq "Laptop") {
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
     Write-Log "Set 'lid close action' to Do Nothing on laptop."
-    New-BurntToastNotification -Text "Lid close action set to 'Do Nothing'" -AppLogo "c:\temp\PSNotice\smallA.png"
+    #New-BurntToastNotification -Text "Lid close action set to 'Do Nothing'" -AppLogo "c:\temp\PSNotice\smallA.png"
+    & $config.LidAction
     Start-Sleep -Seconds 2
     Write-Host " done." -ForegroundColor "Green"
     Start-Sleep -Seconds 5
-    & $clearPath
+    & $config.clearPath
 }
 
 # Set the time zone to 'Eastern Standard Time'
@@ -270,11 +293,12 @@ Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 2
 Write-Host "Syncing clock..." -NoNewline
 w32tm /resync -ErrorAction SilentlyContinue | out-null
-New-BurntToastNotification -Text "Default timezone set to 'EST'." -AppLogo "c:\temp\PSNotice\smallA.png"
+#New-BurntToastNotification -Text "Default timezone set to 'EST'." -AppLogo "c:\temp\PSNotice\smallA.png"
+& $config.timezone
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"    
 Start-Sleep -Seconds 5
-& $clearPath
+& $config.clearPath
 
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
@@ -284,7 +308,9 @@ Write-Host "Configuring System Restore..." -NoNewLine
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System restore enabled."
 Write-Host " done." -ForegroundColor "Green"
-
+& $config.SystemRestore
+Start-Sleep -Seconds 5
+& $config.ClearPath
 # Create restore point
 Write-Host "Creating System Restore Checkpoint..." -nonewline
 Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_SETTINGS'
@@ -294,11 +320,12 @@ if ($restorePoint -ne $null) {
 } else {
     Write-Host "Failed to create restore point" -ForegroundColor "Red"
 }
-New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
+#New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
+& $config.Checkpoint
 Start-Sleep -Seconds 2
-#Write-Host " done." -ForegroundColor "Green"
+Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
-& $clearPath
+& $config.clearPath
 
 # Download Procmon
 $ProgressPreference = 'SilentlyContinue'
@@ -321,7 +348,7 @@ if ($manufacturer -eq "Dell Inc.") {
     $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
     $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall.ps1"
     $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
- 
+    & $config.HardwareMFG
     Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
     Start-Sleep -seconds 1
     # Download Dell Silent Uninstall
@@ -351,6 +378,7 @@ if (Is-Windows11) {
     try {
         # Your Windows 11 specific code here
         # Download Win11Debloat.ps1
+        & $config.Win
         $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
         $Win11DebloatFile = "c:\temp\Win11Debloat.zip"
         $Win11Debloat_SpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
