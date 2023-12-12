@@ -744,6 +744,19 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     #Write-Output "Recovery Key Password: $RecoveryKeyPW"
 }
 
+# Installing Windows Updates
+& $config.UpdateNotice
+Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/update_windows.ps1" -OutFile "c:\temp\update_windows.ps1"
+if (Test-Path "c:\temp\update_windows.ps1") {
+    $updatePath = "C:\temp\Update_Windows2.ps1"
+    Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
+    & $config.ClearPath
+
+} else {
+    Write-host "Windows update module download failed" -ForegroundColor Red
+}
+& $config.UpdateComplete
+
 # Remove Java Development Kit
 $uninstallCommand = "MsiExec.exe"
 $uninstallArguments = "/X{0232D1A9-B924-5BA2-8D5C-2C479AF9E842} /quiet /norestart"
@@ -767,23 +780,24 @@ catch {
 }
 
 # Check for and install all available Windows update
-Start-Sleep -Seconds 4
-Write-Output "Windows Update in progress..."
-& $updateNotice
-Install-Module -Name PSWindowsUpdate -Force -ErrorAction SilentlyContinue
-Import-Module PSWindowsUpdate
-$updates = Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -ErrorAction SilentlyContinue
-$TotalUpdates = $updates.Count
-& $clearPath
-Write-Output "$totalUpdates Windows updates are available."
-if ($updates) {
-    & $updateComplete
-    Write-Log "Installed $($updates.Count) Windows updates"
-    Start-Sleep -Seconds 30
-    & $clearPath
-} else {
-    Write-Log "No additional Windows updates are available."
-}
+#Start-Sleep -Seconds 4
+#Write-Output "Windows Update in progress..."
+#& $updateNotice
+#Install-Module -Name PSWindowsUpdate -Force -ErrorAction SilentlyContinue
+#Import-Module PSWindowsUpdate
+#$updates = Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -ErrorAction SilentlyContinue
+#$TotalUpdates = $updates.Count
+#& $clearPath
+#Write-Output "$totalUpdates Windows updates are available."
+#if ($updates) {
+#    & $updateComplete
+#    Write-Log "Installed $($updates.Count) Windows updates"
+#    Start-Sleep -Seconds 30
+#    & $clearPath
+#} else {
+#    Write-Log "No additional Windows updates are available."
+#}
+
 
 # Notify device is ready for Domain Join Operation
 $NTFY1 = "& cmd.exe /c curl -d '%ComputerName% is ready to join the domain.' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
