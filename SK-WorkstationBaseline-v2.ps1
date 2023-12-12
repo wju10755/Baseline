@@ -147,7 +147,7 @@ $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/
 #& $config.ClearPath
 # Check if the installer file exists
 if (-not (Test-Path $file)) {
-    Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline
+    #Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline
     Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
 }
 
@@ -162,7 +162,7 @@ if (Test-Path $file) {
 
 # Check if the LabTech agent is already installed
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Output "The LabTech agent is already installed."
+    Write-Host "The LabTech agent is already installed." -ForegroundColor Cyan
 } elseif (Test-Path $agentPath) {
     Write-Output "The LabTech agent files are present, but the service is not installed."
 } else {
@@ -379,8 +379,8 @@ if (Is-Windows11) {
         Start-Sleep -seconds 1
        
         Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
-        #& 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
-        & 'C:\temp\Win11Debloat_spinner.ps1'
+        & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        #& 'C:\temp\Win11Debloat_spinner.ps1'
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
