@@ -424,7 +424,8 @@ $BruURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zi
 $BRUZip = "c:\temp\BRU.zip" 
 $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
 $Win11DebloatFile = "c:\temp\Win11Debloat.zip"
-$Win11Spinner = "c:\temp\"
+$Win11SpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
+$Win11Spinner = "c:\temp\Win11Debloat-Spinner.ps1"
 
 try {
     # Download Dell-Spinner.ps1
@@ -449,7 +450,7 @@ catch {
 try {
     # Download Win11Debloat.ps1
     Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
-    Invoke-WebRequest -Uri
+    Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11Spinner -UseBasicParsing -ErrorAction Stop
     Start-Sleep -seconds 1
     # Check if Dell-Spinner.ps1 exists
     if (Test-Path -Path $Win11DebloatFile) {
