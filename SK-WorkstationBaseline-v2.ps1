@@ -55,7 +55,6 @@ $config = @{
     SikuliFile           = "c:\temp\sikulixide-2.0.5.jar"
     BruSpinner           = "c:\temp\bru-spinner.ps1"
     BRUZip               = "C:\temp\BRU.zip"
-    Win11Spinner         = "C:\temp\Win11Debloat\Win11Debloat-spinner.ps1"
     ChromeInstaller      = "c:\temp\ChromeSetup.exe"
     AcrobatInstaller     = "c:\temp\AcroRdrDC2300620360_en_US.exe"
     OfficeInstaller      = "c:\temp\Office2016_ProPlus"
@@ -423,7 +422,8 @@ $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_
 $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
 $BruURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip"
 $BRUZip = "c:\temp\BRU.zip" 
-
+$Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
+$Win11DebloatFile = "c:\temp\Win11Debloat.zip"
 
 try {
     # Download Dell-Spinner.ps1
@@ -444,19 +444,25 @@ catch {
     Write-Error "An error occurred: $($Error[0].Exception.Message)"
 }
 
-$Win11Debloat = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
-Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip" -OutFile "c:\temp\Win11Debloat.zip" 
-if (Test-Path $Win11Debloat -PathType Leaf) {
-    Expand-Archive -Path "c:\temp\Win11Debloat.zip" -DestinationPath "c:\temp\Win11Debloat\" -Force *> $null
 
 try {
-    $ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -OutFile "c:\temp\Win11Debloat-Spinner.ps1" -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat-Spinner.ps1" -UseBasicParsing
-    & $config.Win11Spinner
-} catch {
-        Write-Host "An error occurred during download: $_" -foregroundColor "Red"
-}    
+    # Download Win11Debloat.ps1
+    Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
+    Start-Sleep -seconds 1
+    # Check if Dell-Spinner.ps1 exists
+    if (Test-Path -Path $Win11DebloatFile) {
+        Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
+        & 'C:\temp\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+    }
+}
+catch {
+    Write-Error "An error occurred: $($Error[0].Exception.Message)"
+} else {
+    Write-Warning "This script can only be run on a Dell system."
+    Write-Log "Only Dell systems are eligible for this bloatware removal script."
+} 
 
+ 
 # Download and run Bloatware Removal Utility
 #Write-Host "Downloading Bloatware Removal Utility (BRU)..." -NoNewline
 #Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip" -OutFile "c:\temp\BRU.zip" 
@@ -465,7 +471,7 @@ try {
 #    Set-Location c:\bru\
 #    Stop-Transcript | Out-Null
         
-#    # Restart Explorer process
+    # Restart Explorer process
 #    Start-Job -ScriptBlock {
 #        Start-Sleep -Seconds 195
 #        Stop-Process -Name explorer -Force
@@ -484,26 +490,21 @@ try {
 #    Start-Transcript -path c:\temp\baseline_transcript.txt -Append | Out-Null
 
     # Check if the Bloatware Removal Utility completed successfully
- #   $path = "C:\BRU"
- #   $filePattern = "Bloatware-Removal-*"
+#    $path = "C:\BRU"
+#    $filePattern = "Bloatware-Removal-*"
 
     # Get all files in the path that match the file pattern
- #   $files = Get-ChildItem -Path $path -Filter $filePattern
-
+#    $files = Get-ChildItem -Path $path -Filter $filePattern
+#
 #    if ($files.Count -gt 0) {
 #        Write-Output "Bloatware Removal Utility completed successfully." | Out-Null
 #        Write-Log "Bloatware Removal Utility Completed Successfully"
-#    } else {
-#        Write-Output "Bloatware Removal Utility failed." -foregroundColor "Red"
+ #   } else {
+        Write-Output "Bloatware Removal Utility failed." -foregroundColor "Red"
 #    }
 #} else {
 #    Write-Output "Download failed. File not found."
 #    Write-Log "Bloatware Removal Utility Download Failed" 
-
-} else {
-    Write-Warning "This script can only be run on a Dell system."
-    Write-Log "Only Dell systems are eligible for this bloatware removal script."
-} 
 
 # Remove Microsoft OneDrive
 try {
