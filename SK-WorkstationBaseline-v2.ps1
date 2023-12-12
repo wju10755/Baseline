@@ -370,12 +370,17 @@ if (Is-Windows11) {
     try {
         # Your Windows 11 specific code here
         # Download Win11Debloat.ps1
+        $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
+        Win11DebloatFile = "c:\temp\Win11Debloat.zip"
+        $Win11DebloatSpinURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
+        Win11DebloatSpinFile = "c:\temp\Win11Debloat_spinner.ps1"
         Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
-        Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11Spinner -UseBasicParsing -ErrorAction Stop
+        Invoke-WebRequest -Uri $Win11DebloatSpinURL -OutFile $Win11DebloatSpinFile -UseBasicParsing -ErrorAction Stop
         Start-Sleep -seconds 1
         if (Test-Path -Path $Win11DebloatFile) {
             Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
             & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+            #& 'C:\temp\Win11Debloat_spinner.ps1'
         }
     }
     catch {
