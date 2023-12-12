@@ -32,5 +32,5 @@ function Show-Spinner {
 $scriptBlock = {
     & 'C:\temp\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
 }
-Show-Spinner -Script $scriptBlock -Message "Removing Windows 11 Bloatware..."
+Show-Spinner -Script {& 'C:\temp\Win11Debloat_spinner.ps1'} -Message "Removing Windows Bloatware..."
 Start-Sleep -Seconds 3
