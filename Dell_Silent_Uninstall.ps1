@@ -143,6 +143,38 @@ if ($isInstalled) {
 }
 
 
+# Define the registry paths for installed programs
+$registryPaths = @(
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+    "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+)
+
+# Function to search for Dell Peripheral Manager in the registry
+function IsSoftwareInstalled($softwareName) {
+    foreach ($path in $registryPaths) {
+        $installedSoftware = Get-ItemProperty $path\* -ErrorAction SilentlyContinue
+        $foundSoftware = $installedSoftware | Where-Object { $_.DisplayName -like "*$softwareName*" }
+        if ($foundSoftware) {
+            return $true
+        }
+    }
+    return $false
+}
+
+# Check if Dell Peripheral Manager is installed
+$isInstalled = IsSoftwareInstalled "Dell Peripheral Manager"
+
+# Output the result
+if ($isInstalled) {
+    Write-Host "Removing Dell Peripheral Manager..." -NoNewline
+    Start-Process -FilePath "C:\Program Files\Dell\Dell Peripheral Manager\uninstall.exe" -ArgumentList "/S" -Wait -NoNewWindow
+    Write-Host " done." -ForegroundColor Green
+
+} else {
+    Write-Host "Dell Peripheral Manager is not installed."
+}
+
+# Trigger remaining Dell application uninstall
 $SWName = Get-InstalledSoftware "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services" | 
     Where-Object { $_.DisplayName -ne "Dell Pair" } | 
     Select-Object -ExpandProperty DisplayName
