@@ -315,8 +315,7 @@ if ($restorePoint -ne $null) {
 }
 #New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.Checkpoint
-Start-Sleep -Seconds 2
-Write-Host " done." -ForegroundColor "Green"
+#Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
 & $config.clearPath
 
@@ -355,7 +354,7 @@ if ($manufacturer -eq "Dell Inc.") {
     Write-Warning "This script can only be run on a Dell system."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
-    
+
 # Function to check if the OS is Windows 11
 function Is-Windows11 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
@@ -371,15 +370,11 @@ if (Is-Windows11) {
     try {
         # Your Windows 11 specific code here
         # Download Win11Debloat.ps1
-        & $config.Win
-        $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
-        $Win11DebloatFile = "c:\temp\Win11Debloat.zip"
-        $Win11Debloat_SpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
         Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
-        Invoke-WebRequest -Uri $Win11Debloat_SpinnerURL -OutFile $Win11Spinner -UseBasicParsing -ErrorAction Stop
+        Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11Spinner -UseBasicParsing -ErrorAction Stop
         Start-Sleep -seconds 1
         if (Test-Path -Path $Win11DebloatFile) {
-            Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat -Force
+            Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
             & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
         }
     }
