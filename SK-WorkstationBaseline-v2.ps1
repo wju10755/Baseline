@@ -74,6 +74,7 @@ $config = @{
     SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
     Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
     Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
+    DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
     # Add other configuration items here...
 }
 
@@ -112,7 +113,7 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 [Console]::WriteLine() # Move to the next line
 
 # Stage Toast Notifications
-[Console]::Write("Staging notifications (1,569,142 bytes)...")
+[Console]::Write("Staging notifications...")
 $ProgressPreference = 'Continue'
 $url = $config.PSNoticeURL
 $filePath = $config.PSNoticeFile
@@ -139,7 +140,6 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 Write-Log "Automated workstation baseline has started"
 
 # ConnectWise Automate Agent Installation
-# Define file paths and names
 $file = 'c:\temp\Warehouse-Agent_Install.MSI'
 $agentName = "LTService"
 $agentPath = "C:\Windows\LTSvc\"
