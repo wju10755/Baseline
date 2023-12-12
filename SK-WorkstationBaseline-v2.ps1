@@ -193,7 +193,7 @@ $manufacturer = $computerSystem.Manufacturer
 $deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
 Write-Host "Identifying device type: " -NoNewline
 Start-Sleep -Seconds 2
-Write-Host $deviceType -ForegroundColor "Cyan"
+Write-Host $deviceType -ForegroundColor "Yellow"
 Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
 #New-BurntToastNotification -Text "Identified device type: $manufacturer $deviceType" -AppLogo C:\temp\PSNotice\smallA.png
 #& $clearPath
@@ -440,7 +440,7 @@ $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentV
 Where-Object { $_.DisplayName -like "*Google Chrome*" }
 
 if ($Chrome) {
-    Write-Host "Existing Google Chrome installation found." -ForegroundColor "Yellow"
+    Write-Host "Existing Google Chrome installation found." -ForegroundColor "Cyan"
 } else {
     $FilePath = "c:\temp\ChromeSetup.exe"
     if (-not (Test-Path $FilePath)) {
@@ -485,7 +485,7 @@ Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
 Start-Sleep -Seconds 1
 & $clearPath
 if ($Acrobat) {
-    Write-Host "Existing Acrobat Reader installation found." -ForegroundColor "Yellow"
+    Write-Host "Existing Acrobat Reader installation found." -ForegroundColor "Cyan"
 } else {
     $FilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
     if (-not (Test-Path $FilePath)) {
@@ -529,7 +529,7 @@ $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVer
 Where-Object { $_.DisplayName -like "*Microsoft Office Professional Plus 2016*" }
 
 if ($O365) {
-    Write-Host "Existing Microsoft Office 2016 installation found." -ForegroundColor "Yellow"
+    Write-Host "Existing Microsoft Office 2016 installation found." -ForegroundColor "Cyan"
 } else {
     $FilePath = "C:\temp\O2k16pp.zip"
     if (-not (Test-Path $FilePath)) {
@@ -571,7 +571,7 @@ $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVer
 Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
 
 if ($SWNE) {
-    Write-Host "Existing NetExtender installation found." -ForegroundColor "Yellow"
+    Write-Host "Existing NetExtender installation found." -ForegroundColor "Cyan"
 } else {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
