@@ -283,7 +283,7 @@ Set-TimeZone -Id "Eastern Standard Time"
 Write-Log "Time zone set to Eastern Standard Time."
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 3
 Write-Host "Syncing clock..." -NoNewline
 w32tm /resync -ErrorAction SilentlyContinue | out-null
 #New-BurntToastNotification -Text "Default timezone set to 'EST'." -AppLogo "c:\temp\PSNotice\smallA.png"
@@ -646,7 +646,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 & $config.UpdateNotice
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/update_windows.ps1" -OutFile "c:\temp\update_windows.ps1"
 if (Test-Path "c:\temp\update_windows.ps1") {
-    $updatePath = "C:\temp\Update_Windows2.ps1"
+    $updatePath = "C:\temp\Update_Windows.ps1"
     Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
     & $config.ClearPath
 
