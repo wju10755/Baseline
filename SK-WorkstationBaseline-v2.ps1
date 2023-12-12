@@ -371,10 +371,11 @@ if (Is-Windows11) {
         # Your Windows 11 specific code here
         # Download Win11Debloat.ps1
         $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
-        Win11DebloatFile = "c:\temp\Win11Debloat.zip"
+        $Win11DebloatFile = "c:\temp\Win11Debloat.zip"
         $Win11DebloatSpinURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
-        Win11DebloatSpinFile = "c:\temp\Win11Debloat_spinner.ps1"
+        $Win11DebloatSpinFile = "c:\temp\Win11Debloat_spinner.ps1"
         Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
+        if (Test-Path )
         Invoke-WebRequest -Uri $Win11DebloatSpinURL -OutFile $Win11DebloatSpinFile -UseBasicParsing -ErrorAction Stop
         Start-Sleep -seconds 1
         if (Test-Path -Path $Win11DebloatFile) {
