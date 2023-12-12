@@ -130,109 +130,8 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 [Console]::ResetColor() # Reset the color to default
 [Console]::WriteLine() # Move to the next line
 
-[Console]::Write("Staging Anti-Snooze functions (146,422,955)...)")
-$url = $config.NoSnoozeUrl
-$filePath = $config.NoSnoozeZip
-
-if (-not (Test-Path -Path $filePath -PathType Leaf)) {
-    Invoke-WebRequest -Uri $url -OutFile $filePath
-    #Write-Output "NoSnooze downloaded successfully."
-} else {
-    #Write-Output "NoSnooze archive already exists."
-}
-
-if (Test-Path -Path $config.NoSnoozeZip -PathType Leaf) {
-    Expand-Archive -Path $config.NoSnoozeZip -DestinationPath $config.TempFolder -Force
-}
-
-# Download Sikulixide
-$url = $config.Sikulixide
-$filePath = $config.SikuliFile
-
-if (-not (Test-Path -Path $filePath -PathType Leaf)) {
-    Invoke-WebRequest -Uri $url -OutFile $filePath
-    #Write-Output "Sikulixide downloaded successfully."
-} else {
-    #Write-Output "Sikulixide archive already exists."
-}
-
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() 
-[Console]::WriteLine() 
-
-
-# Function to check if JDK is installed
-function Is-JdkInstalled {
-    param (
-        [string]$version
-    )
-
-    # Check the registry for JDK installation
-    try {
-        $jdkPath = Get-ChildItem -Path "HKLM:\SOFTWARE\JavaSoft\JDK" -ErrorAction Stop | Get-ItemProperty | Where-Object { $_.JavaHome }
-        return $jdkPath -ne $null
-    } catch {
-        return $false
-    }
-}
-
-# Check if JDK 11.0.17 is already installed
-if (Is-JdkInstalled -version $config.jdkVersion) {
-    #Write-Host "JDK $jdkVersion is already installed."
-} else {
-    # Define the path to the JDK installer
-    $installerPath = "C:\temp\jdk-11.0.17_windows-x64_bin.exe"
-
-    # Define the silent installation arguments
-    $arguments = "/s"
-
-    # Create a new process start info object
-    $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
-
-    # Set the filename to the installer and add the silent installation arguments
-    $processStartInfo.FileName = $installerPath
-    $processStartInfo.Arguments = $arguments
-    $processStartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
-    $processStartInfo.CreateNoWindow = $true
-    $processStartInfo.UseShellExecute = $false
-
-    # Start the installation process
-    [Console]::Write("Installing Java Development Kit...")
-    $process = New-Object System.Diagnostics.Process
-    $process.StartInfo = $processStartInfo
-    $process.Start() | Out-Null
-    $process.WaitForExit()
-
-    # Check the exit code
-    if ($process.ExitCode -eq 0) {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-        [Console]::ResetColor() 
-        [Console]::WriteLine() 
-
-        } else {
-            Write-Host "JDK installation failed with exit code: $($process.ExitCode)"
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            [Console]::Write("JDK installation failed with exit code: $($process.ExitCode)")
-            [Console]::ResetColor() 
-            [Console]::WriteLine() 
-    
-        }
-}
-
-# Trigger NoSnooze
-[Console]::Write("Disabling notification snooze...")
-set-location -path C:\temp
-start c:\temp\nosnooze_sikuli.jar
-Start-Sleep -Seconds 25
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() 
-[Console]::WriteLine() 
-
 # Start Baseline Notification
-& $StartBaseline | Out-Null
+& $config.StartBaseline | Out-Null
 Write-Log "Automated workstation baseline has started"
 
 # ConnectWise Automate Agent Installation
@@ -414,14 +313,29 @@ Start-Sleep -Seconds 3
 $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2
 
+# Identify device manufacturer and type
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+$deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
+
+
+# Remove Dell Bloatware
+
+# Check if the system is manufactured by Dell
+if ($manufacturer -eq "Dell Inc.") {
+    # Set the URL and file path variables
+    $ProgressPreference = 'Continue'
+    $DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm.zip"
+    $DPMzip = "C:\temp\Uninstall-dpm.zip"
+    $DPMdir = "C:\temp\Uninstall-DPM"
+    
+
 # Download Dell Bloatware Silent Uninstall Resources
 $ProgressPreference = 'SilentlyContinue'
 $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
 $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
 $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall.ps1"
 $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
-$BruURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip"
-$BRUZip = "c:\temp\BRU.zip" 
 $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
 $Win11DebloatFile = "c:\temp\Win11Debloat.zip"
 $Win11SpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
@@ -464,50 +378,11 @@ catch {
     Write-Warning "This script can only be run on a Dell system."
     Write-Log "Only Dell systems are eligible for this bloatware removal script."
 } 
-
- 
-# Download and run Bloatware Removal Utility
-#Write-Host "Downloading Bloatware Removal Utility (BRU)..." -NoNewline
-#Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip" -OutFile "c:\temp\BRU.zip" 
-#if (Test-Path $BRUZip -PathType Leaf) {
-#    Expand-Archive -Path "c:\temp\BRU.zip" -DestinationPath "c:\BRU\" -Force *> $null
-#    Set-Location c:\bru\
-#    Stop-Transcript | Out-Null
-        
-    # Restart Explorer process
-#    Start-Job -ScriptBlock {
-#        Start-Sleep -Seconds 195
-#        Stop-Process -Name explorer -Force
-#        Start-Process explorer *> $null
-#    } *> $null
     
-# Execute BRU with Spinner indicator
-#try {
-#    $ProgressPreference = 'SilentlyContinue'
-#    Invoke-WebRequest -OutFile "c:\temp\BRU-Spinner.ps1" -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU-Spinner.ps1" -UseBasicParsing
-#    & $config.BruSpinner
-#} catch {
-#    Write-Host "An error occurred during download: $_" -foregroundColor "Red"
-#}
-        
-#    Start-Transcript -path c:\temp\baseline_transcript.txt -Append | Out-Null
-
-    # Check if the Bloatware Removal Utility completed successfully
-#    $path = "C:\BRU"
-#    $filePattern = "Bloatware-Removal-*"
-
-    # Get all files in the path that match the file pattern
-#    $files = Get-ChildItem -Path $path -Filter $filePattern
-#
-#    if ($files.Count -gt 0) {
-#        Write-Output "Bloatware Removal Utility completed successfully." | Out-Null
-#        Write-Log "Bloatware Removal Utility Completed Successfully"
- #   } else {
-#        Write-Output "Bloatware Removal Utility failed." -foregroundColor "Red"
-#    }
-#} else {
-#    Write-Output "Download failed. File not found."
-#    Write-Log "Bloatware Removal Utility Download Failed" 
+} else {
+    Write-Warning "This script can only be run on a Dell system."
+    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+}
 
 # Remove Microsoft OneDrive
 try {
