@@ -379,8 +379,8 @@ if (Is-Windows11) {
         Start-Sleep -seconds 1
        
         Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
-        & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
-        
+        #& 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        & 'C:\temp\Win11Debloat_spinner.ps1'
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
