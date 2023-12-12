@@ -424,6 +424,7 @@ $BruURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zi
 $BRUZip = "c:\temp\BRU.zip" 
 $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
 $Win11DebloatFile = "c:\temp\Win11Debloat.zip"
+$Win11Spinner = "c:\temp\"
 
 try {
     # Download Dell-Spinner.ps1
@@ -448,11 +449,12 @@ catch {
 try {
     # Download Win11Debloat.ps1
     Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
+    Invoke-WebRequest -Uri
     Start-Sleep -seconds 1
     # Check if Dell-Spinner.ps1 exists
     if (Test-Path -Path $Win11DebloatFile) {
         Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
-        & 'C:\temp\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
     }
 }
 catch {
@@ -500,7 +502,7 @@ catch {
 #        Write-Output "Bloatware Removal Utility completed successfully." | Out-Null
 #        Write-Log "Bloatware Removal Utility Completed Successfully"
  #   } else {
-        Write-Output "Bloatware Removal Utility failed." -foregroundColor "Red"
+#        Write-Output "Bloatware Removal Utility failed." -foregroundColor "Red"
 #    }
 #} else {
 #    Write-Output "Download failed. File not found."
