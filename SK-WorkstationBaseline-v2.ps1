@@ -42,19 +42,12 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 $config = @{
     PSNoticeUrl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
     NoSnoozeUrl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
-    Sikulixide  = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/sikulixide-2.0.5.jar"
     TempFolder           = "C:\temp"
     LogFile              = "C:\temp\baseline.log"
     NoSnooze             = "c:\temp\nosnooze.ps1"
     NoSnoozeZip          = "c:\temp\nosnooze.zip"
-    JDKInstallerPath     = "C:\temp\jdk-11.0.17_windows-x64_bin.exe"
-    JDKVersion           = "11.0.17"
-    JDKArguments         = "/s"
     PSNoticePath         = "c:\temp\PSNotice"
     PSNoticeFile         = "c:\temp\psnotice.zip"
-    SikuliFile           = "c:\temp\sikulixide-2.0.5.jar"
-    BruSpinner           = "c:\temp\bru-spinner.ps1"
-    BRUZip               = "C:\temp\BRU.zip"
     ChromeInstaller      = "c:\temp\ChromeSetup.exe"
     AcrobatInstaller     = "c:\temp\AcroRdrDC2300620360_en_US.exe"
     OfficeInstaller      = "c:\temp\Office2016_ProPlus"
@@ -662,28 +655,6 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     Write-host "Windows update module download failed" -ForegroundColor Red
 }
 & $config.UpdateComplete
-
-# Remove Java Development Kit
-$uninstallCommand = "MsiExec.exe"
-$uninstallArguments = "/X{0232D1A9-B924-5BA2-8D5C-2C479AF9E842} /quiet /norestart"
-
-try {
-    # Start the uninstall process
-    $process = Start-Process -FilePath $uninstallCommand -ArgumentList $uninstallArguments -Wait -NoNewWindow -PassThru
-
-    # Check if the uninstallation was successful
-    if ($process.ExitCode -eq 0) {
-        Write-Log "Java Development Kit successfully uninstalled."
-        Remove-Item -path "c:\temp\jdk-11.0.17_windows-x64_bin.exe" | Out-Null
-    }
-    else {
-        Write-Log "Java Development Kit uninstallation failed. Exit Code: $($process.ExitCode)"
-    }
-}
-catch {
-    # Catch and display any exceptions
-    Write-Log "An error occurred: $_"
-}
 
 # Check for and install all available Windows update
 #Start-Sleep -Seconds 4
