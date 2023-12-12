@@ -55,6 +55,7 @@ $config = @{
     SikuliFile           = "c:\temp\sikulixide-2.0.5.jar"
     BruSpinner           = "c:\temp\bru-spinner.ps1"
     BRUZip               = "C:\temp\BRU.zip"
+    Win11Spinner         = "C:\temp\Win11Debloat\Win11Debloat-spinner.ps1"
     ChromeInstaller      = "c:\temp\ChromeSetup.exe"
     AcrobatInstaller     = "c:\temp\AcroRdrDC2300620360_en_US.exe"
     OfficeInstaller      = "c:\temp\Office2016_ProPlus"
@@ -451,7 +452,7 @@ if (Test-Path $Win11Debloat -PathType Leaf) {
 try {
     $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -OutFile "c:\temp\Win11Debloat-Spinner.ps1" -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat-Spinner.ps1" -UseBasicParsing
-    & $config.BruSpinner
+    & $config.Win11Spinner
 } catch {
         Write-Host "An error occurred during download: $_" -foregroundColor "Red"
 }    
@@ -472,32 +473,32 @@ try {
 #    } *> $null
     
 # Execute BRU with Spinner indicator
-try {
-    $ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -OutFile "c:\temp\BRU-Spinner.ps1" -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU-Spinner.ps1" -UseBasicParsing
-    & $config.BruSpinner
-} catch {
-    Write-Host "An error occurred during download: $_" -foregroundColor "Red"
-}
+#try {
+#    $ProgressPreference = 'SilentlyContinue'
+#    Invoke-WebRequest -OutFile "c:\temp\BRU-Spinner.ps1" -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU-Spinner.ps1" -UseBasicParsing
+#    & $config.BruSpinner
+#} catch {
+#    Write-Host "An error occurred during download: $_" -foregroundColor "Red"
+#}
         
-    Start-Transcript -path c:\temp\baseline_transcript.txt -Append | Out-Null
+#    Start-Transcript -path c:\temp\baseline_transcript.txt -Append | Out-Null
 
     # Check if the Bloatware Removal Utility completed successfully
-    $path = "C:\BRU"
-    $filePattern = "Bloatware-Removal-*"
+ #   $path = "C:\BRU"
+ #   $filePattern = "Bloatware-Removal-*"
 
     # Get all files in the path that match the file pattern
-    $files = Get-ChildItem -Path $path -Filter $filePattern
+ #   $files = Get-ChildItem -Path $path -Filter $filePattern
 
-    if ($files.Count -gt 0) {
-        Write-Output "Bloatware Removal Utility completed successfully." | Out-Null
-        Write-Log "Bloatware Removal Utility Completed Successfully"
-    } else {
-        Write-Output "Bloatware Removal Utility failed." -foregroundColor "Red"
-    }
-} else {
-    Write-Output "Download failed. File not found."
-    Write-Log "Bloatware Removal Utility Download Failed" 
+#    if ($files.Count -gt 0) {
+#        Write-Output "Bloatware Removal Utility completed successfully." | Out-Null
+#        Write-Log "Bloatware Removal Utility Completed Successfully"
+#    } else {
+#        Write-Output "Bloatware Removal Utility failed." -foregroundColor "Red"
+#    }
+#} else {
+#    Write-Output "Download failed. File not found."
+#    Write-Log "Bloatware Removal Utility Download Failed" 
 
 } else {
     Write-Warning "This script can only be run on a Dell system."
