@@ -463,7 +463,7 @@ if (Test-Path $BRUZip -PathType Leaf) {
 try {
     $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -OutFile "c:\temp\BRU-Spinner.ps1" -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU-Spinner.ps1" -UseBasicParsing
-    & $BruSpinner
+    & $config.BruSpinner
 } catch {
     Write-Host "An error occurred during download: $_" -foregroundColor "Red"
 }
