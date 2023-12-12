@@ -358,7 +358,7 @@ if (Is-Windows11) {
         Invoke-WebRequest -Uri $Win11Debloat_SpinnerURL -OutFile $Win11Spinner -UseBasicParsing -ErrorAction Stop
         Start-Sleep -seconds 1
         if (Test-Path -Path $Win11DebloatFile) {
-            Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
+            Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat -Force
             & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
         }
     }
