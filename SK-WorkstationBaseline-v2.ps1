@@ -287,6 +287,7 @@ Start-Sleep -Seconds 2
 Write-Host "Syncing clock..." -NoNewline
 w32tm /resync -ErrorAction SilentlyContinue | out-null
 #New-BurntToastNotification -Text "Default timezone set to 'EST'." -AppLogo "c:\temp\PSNotice\smallA.png"
+Start-Sleep -Seconds 2
 & $config.timezone
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"    
