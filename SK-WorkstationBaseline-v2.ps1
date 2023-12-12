@@ -377,10 +377,10 @@ if (Is-Windows11) {
         Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
         Invoke-WebRequest -Uri $Win11DebloatSpinURL -OutFile $Win11DebloatSpinFile -UseBasicParsing -ErrorAction Stop
         Start-Sleep -seconds 1
-        if (Test-Path -Path $Win11DebloatFile) {
-            Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
-            & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
-        }
+       
+        Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
+        & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
