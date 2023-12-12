@@ -313,75 +313,61 @@ Start-Sleep -Seconds 3
 $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2
 
-# Identify device manufacturer and type
-$computerSystem = Get-WmiObject Win32_ComputerSystem
-$manufacturer = $computerSystem.Manufacturer
-$deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
-
-
-# Remove Dell Bloatware
 
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
     # Set the URL and file path variables
-    $ProgressPreference = 'Continue'
-    $DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm.zip"
-    $DPMzip = "C:\temp\Uninstall-dpm.zip"
-    $DPMdir = "C:\temp\Uninstall-DPM"
-    
-
-# Download Dell Bloatware Silent Uninstall Resources
-$ProgressPreference = 'SilentlyContinue'
-$SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
-$SpinnerFile = "c:\temp\Dell-Spinner.ps1"
-$DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall.ps1"
-$DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
-$Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
-$Win11DebloatFile = "c:\temp\Win11Debloat.zip"
-$Win11SpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
-$Win11Spinner = "c:\temp\Win11Debloat-Spinner.ps1"
-
-try {
-    # Download Dell-Spinner.ps1
+    $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
+    $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
+    $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall.ps1"
+    $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
+ 
     Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
     Start-Sleep -seconds 1
     # Download Dell Silent Uninstall
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
-    # Check if Dell-Spinner.ps1 exists
+
     if (Test-Path -Path $SpinnerFile) {
-        # Extract RevoCMD.zip
-        #Write-Output "Download completed successfully"
-        
-        # Start Spinner
-        & $SpinnerFile
-    }
-}
-catch {
-    Write-Error "An error occurred: $($Error[0].Exception.Message)"
-}
-
-
-try {
-    # Download Win11Debloat.ps1
-    Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
-    Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11Spinner -UseBasicParsing -ErrorAction Stop
-    Start-Sleep -seconds 1
-    # Check if Dell-Spinner.ps1 exists
-    if (Test-Path -Path $Win11DebloatFile) {
-        Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
-        & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
-    }
-}
-catch {
-    Write-Error "An error occurred: $($Error[0].Exception.Message)"
-} else {
-    Write-Warning "This script can only be run on a Dell system."
-    Write-Log "Only Dell systems are eligible for this bloatware removal script."
-} 
+    & $SpinnerFile
+        }
     
 } else {
     Write-Warning "This script can only be run on a Dell system."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+}
+    
+# Function to check if the OS is Windows 11
+function Is-Windows11 {
+    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
+    $osVersion = $osInfo.Version
+    $osProduct = $osInfo.Caption
+
+    # Check for Windows 11
+    return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
+}
+
+# Check if the OS is Windows 11
+if (Is-Windows11) {
+    try {
+        # Your Windows 11 specific code here
+        # Download Win11Debloat.ps1
+        $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
+        $Win11DebloatFile = "c:\temp\Win11Debloat.zip"
+        $Win11Debloat_SpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
+        Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
+        Invoke-WebRequest -Uri $Win11Debloat_SpinnerURL -OutFile $Win11Spinner -UseBasicParsing -ErrorAction Stop
+        Start-Sleep -seconds 1
+        if (Test-Path -Path $Win11DebloatFile) {
+            Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
+            & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        }
+    }
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    }
+}
+else {
+    Write-Host "This script is intended to run only on Windows 11."
 }
 
 # Remove Microsoft OneDrive
