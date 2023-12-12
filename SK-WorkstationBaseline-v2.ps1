@@ -443,21 +443,33 @@ catch {
     Write-Error "An error occurred: $($Error[0].Exception.Message)"
 }
 
+$Win11Debloat = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
+Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip" -OutFile "c:\temp\Win11Debloat.zip" 
+if (Test-Path $Win11Debloat -PathType Leaf) {
+    Expand-Archive -Path "c:\temp\Win11Debloat.zip" -DestinationPath "c:\temp\Win11Debloat\" -Force *> $null
+
+try {
+    $ProgressPreference = 'SilentlyContinue'
+    Invoke-WebRequest -OutFile "c:\temp\Win11Debloat-Spinner.ps1" -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat-Spinner.ps1" -UseBasicParsing
+    & $config.BruSpinner
+} catch {
+        Write-Host "An error occurred during download: $_" -foregroundColor "Red"
+}    
 
 # Download and run Bloatware Removal Utility
 #Write-Host "Downloading Bloatware Removal Utility (BRU)..." -NoNewline
 #Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BRU.zip" -OutFile "c:\temp\BRU.zip" 
-if (Test-Path $BRUZip -PathType Leaf) {
-    Expand-Archive -Path "c:\temp\BRU.zip" -DestinationPath "c:\BRU\" -Force *> $null
-    Set-Location c:\bru\
-    Stop-Transcript | Out-Null
+#if (Test-Path $BRUZip -PathType Leaf) {
+#    Expand-Archive -Path "c:\temp\BRU.zip" -DestinationPath "c:\BRU\" -Force *> $null
+#    Set-Location c:\bru\
+#    Stop-Transcript | Out-Null
         
-    # Restart Explorer process
-    Start-Job -ScriptBlock {
-        Start-Sleep -Seconds 195
-        Stop-Process -Name explorer -Force
-        Start-Process explorer *> $null
-    } *> $null
+#    # Restart Explorer process
+#    Start-Job -ScriptBlock {
+#        Start-Sleep -Seconds 195
+#        Stop-Process -Name explorer -Force
+#        Start-Process explorer *> $null
+#    } *> $null
     
 # Execute BRU with Spinner indicator
 try {
