@@ -433,7 +433,7 @@ try {
     # Check if Dell-Spinner.ps1 exists
     if (Test-Path -Path $SpinnerFile) {
         # Extract RevoCMD.zip
-        Write-Output "Download completed successfully"
+        #Write-Output "Download completed successfully"
         
         # Start Spinner
         & $SpinnerFile
