@@ -375,13 +375,11 @@ if (Is-Windows11) {
         $Win11DebloatSpinURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
         $Win11DebloatSpinFile = "c:\temp\Win11Debloat_spinner.ps1"
         Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
-        if (Test-Path )
         Invoke-WebRequest -Uri $Win11DebloatSpinURL -OutFile $Win11DebloatSpinFile -UseBasicParsing -ErrorAction Stop
         Start-Sleep -seconds 1
         if (Test-Path -Path $Win11DebloatFile) {
             Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
             & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
-            #& 'C:\temp\Win11Debloat_spinner.ps1'
         }
     }
     catch {
