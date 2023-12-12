@@ -225,7 +225,7 @@ if (Is-JdkInstalled -version $config.jdkVersion) {
 [Console]::Write("Disabling notification snooze...")
 set-location -path C:\temp
 start c:\temp\nosnooze_sikuli.jar
-Start-Sleep -Seconds 15
+Start-Sleep -Seconds 25
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor() 
