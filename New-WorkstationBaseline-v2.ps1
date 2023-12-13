@@ -186,7 +186,6 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     }
 }
 
-
 # Identify device manufacturer and type
 $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
