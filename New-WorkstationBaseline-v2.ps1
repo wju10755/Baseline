@@ -667,6 +667,10 @@ Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/inst
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
     Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
+    Start-Sleep -Seconds 2
+    # Add a reference to System.Windows.Forms assembly
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
     & $config.ClearPath
 
 } else {
