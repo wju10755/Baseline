@@ -375,6 +375,7 @@ if (Is-Windows11) {
         Start-Sleep -seconds 2
         Expand-Archive $MITS11DebloatFile -DestinationPath c:\temp\MITS-Debloat
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        Write-Output "Windows 11 Debloat Complete!"
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
@@ -404,6 +405,7 @@ if (Is-Windows10) {
         Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
         Start-Sleep -Seconds 2
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
+        Write-Output "Windows 10 Debloat Complete!"
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
@@ -430,6 +432,7 @@ try {
         }
     } else {
         Write-Host "OneDrive installation not found." -foregroundColor "Red"
+        Write-Host " "
     }
 } catch {
     Write-Host "An error occurred: $_" -foregroundColor "Red"
