@@ -555,8 +555,7 @@ $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVer
 Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
 
 if ($O365) {
-    Write-Host "Existing Microsoft Office installation found." -ForegroundColor "Yellow"
-} else {
+    Write-Host "Existing Microsoft Office installation found." -ForegroundColor "Cyan"
     $FilePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $FilePath)) {
         # If not found, download it from the given URL
