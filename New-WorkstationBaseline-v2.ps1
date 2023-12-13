@@ -426,9 +426,11 @@ try {
         if (-not $OneDriveProduct) {
             Write-Host " done." -foregroundColor "Green"
             Write-Log "OneDrive has been successfully removed."
+            Write-Output " "
         } else {
             Write-Host "Failed to remove OneDrive." -foregroundColor "Red"
             Write-Log "Failed to remove OneDrive."
+            Write-Output " "
         }
     } else {
         Write-Host "OneDrive installation not found." -foregroundColor "Red"
