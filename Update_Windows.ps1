@@ -9,7 +9,7 @@ if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
 Import-Module PSWindowsUpdate
 
 # Check for updates
-Write-Host "Checking for Windows updates..."
+Write-Host "Checking for updates..."
 $availableUpdates = Get-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot
 
 # Display the total number of updates found
@@ -22,8 +22,8 @@ if ($totalUpdates -gt 0) {
         Write-Host "Installing update: $($update.Title)"
         Install-WindowsUpdate -KBArticleID $update.KBArticleID -AcceptAll -IgnoreReboot -AutoReboot:$false
     }
-    Write-Host "Updates installation complete."
+    Write-Host "Windows Update Complete!."
     Start-Sleep -Seconds 3
 } else {
-    Write-Host "No updates are available."
+    Write-Host "No updates available."
 }

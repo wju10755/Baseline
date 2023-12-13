@@ -1,9 +1,9 @@
 # Install Office 2016
-$O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+$O2k16 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Microsoft Office Professional Plus 2016*" }
 
-if ($O365) {
+if ($O2k16) {
     Write-Host "Existing Microsoft Office 2016 installation found." -ForegroundColor "Cyan"
 } else {
     $FilePath = "C:\temp\O2k16pp.zip"
