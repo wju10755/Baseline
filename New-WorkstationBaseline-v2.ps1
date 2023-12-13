@@ -382,7 +382,7 @@ if (Is-Windows11) {
     }
 }
 else {
-    Write-Host "This script is intended to run only on Windows 11."
+    #Write-Host "This script is intended to run only on Windows 11."
 }
 
 # Function to check if the OS is Windows 10
@@ -412,7 +412,7 @@ if (Is-Windows10) {
     }
 }
 else {
-    Write-Host "This script is intended to run only on Windows 10."
+    #Write-Host "This script is intended to run only on Windows 10."
 }
 
 # Remove Microsoft OneDrive
