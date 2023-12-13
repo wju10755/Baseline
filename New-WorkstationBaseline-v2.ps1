@@ -430,11 +430,10 @@ try {
         } else {
             Write-Host "Failed to remove OneDrive." -foregroundColor "Red"
             Write-Log "Failed to remove OneDrive."
-            Write-Output " "
         }
     } else {
+        Write-Output " "
         Write-Host "OneDrive installation not found." -foregroundColor "Red"
-        Write-Host " "
     }
 } catch {
     Write-Host "An error occurred: $_" -foregroundColor "Red"
