@@ -345,14 +345,14 @@ if ($manufacturer -eq "Dell Inc.") {
     Start-Sleep -seconds 1
     # Download Dell Silent Uninstall
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
-
+    # Trigger Dell Bloatware Removal w/ spinning progress indicator.
     if (Test-Path -Path $SpinnerFile) {
     & $SpinnerFile
         }
     
 } else {
-    Write-Warning "This script can only be run on a Dell system."
-    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+    Write-Warning "Dell Bloatware Removal Script is intended to run on Dell machines."
+    Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
 
 # Function to check if the OS is Windows 11
@@ -365,7 +365,7 @@ function Is-Windows11 {
     return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
 }
 
-# Check if the OS is Windows 11
+# Trigger MITS Debloat for Windows 11
 if (Is-Windows11) {
     try {
         $MITS11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
@@ -394,7 +394,7 @@ function Is-Windows10 {
     return $osVersion -lt "10.0.22000" -and $osProduct -like "*Windows 10*"
 }
 
-# Check if the OS is Windows 10
+# Trigger MITS Debloat for Windows 10
 if (Is-Windows10) {
     try {
         $MITSDebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
@@ -435,7 +435,7 @@ try {
         Write-Host "OneDrive installation not found." -foregroundColor "Red"
     }
 } catch {
-    Write-Host "An error occurred: $_" -foregroundColor "Red"
+    Write-Log "An error occurred: $_"
 }
 
 # Remove Microsoft Teams Machine-Wide Installer
@@ -500,7 +500,7 @@ if ($Chrome) {
         Write-Log "Google Chrome download failed!"
         Start-Sleep -Seconds 10
         & $clearPath
-        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
 
@@ -535,6 +535,7 @@ if ($Acrobat) {
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Adobe Acrobat installed successfully."
         Start-Sleep -Seconds 2
+        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
         & $clearPath
     }
     else {
@@ -558,7 +559,7 @@ if ($O365) {
     $FilePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $FilePath)) {
         # If not found, download it from the given URL
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
+        #$URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
         Write-Host "Downloading Microsoft Office..." -NoNewline
         Invoke-WebRequest -OutFile c:\temp\OfficeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe" -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
@@ -707,7 +708,6 @@ Invoke-Expression -command $NTFY1 *> $null
 Start-Sleep -Seconds 3
 Write-Output " "
 Write-Output "Starting Domain/Azure AD Join Function..."
-Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 Write-Output " "
 # Prompt the user to connect to SSL VPN
 $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? Enter Y or N"
@@ -716,6 +716,7 @@ if ($choice -eq "Y" -or $choice -eq "N") {
     if ($choice -eq "Y") {
                 
         if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
+            Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
             Write-Output 'NetExtender detected successfully, starting connection...'
             start C:\temp\ssl-vpn.bat
             Start-Sleep -Seconds 3
@@ -791,11 +792,9 @@ Stop-Transcript
 
 # Baseline temp file cleanup
 Write-Host "Cleaning up temp files..." -NoNewline
-Remove-Item -path c:\BRU -Recurse -Force
 #Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
 Write-Log "Baseline temp file cleanup completed successfully"
-Start-Sleep -Seconds 1
-Write-Host " done." -ForegroundColor "Green"    
-Start-Sleep -seconds 1
+Start-Sleep -Seconds 2
 Start-Process "appwiz.cpl"
+Write-Host " "
 Read-Host -Prompt "Press Enter to exit."
