@@ -186,6 +186,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     }
 }
 
+
 # Identify device manufacturer and type
 $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
@@ -331,7 +332,7 @@ $wshell = New-Object -ComObject wscript.shell
 Start-Sleep -Seconds 3
 $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2
- 
+
 
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
@@ -351,9 +352,9 @@ if ($manufacturer -eq "Dell Inc.") {
         }
     
 } else {
-    #Write-Warning "This script can only be run on a Dell system."
-    Write-Log "Only Dell systems are eligible for this bloatware removal script."
-} 
+    Write-Warning "This script can only be run on a Dell system."
+    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+}
 
 
 # Function to check if the OS is Windows 11
@@ -366,24 +367,25 @@ function Is-Windows11 {
     return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
 }
 
-# Trigger MITS Debloat for Windows 11
+# Check if the OS is Windows 11
 if (Is-Windows11) {
     try {
-        $MITS11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
-        $MITS11DebloatFile = "c:\temp\MITS-Debloat.zip"
-        Invoke-WebRequest -Uri $MITS11DebloatURL -OutFile $MITS11DebloatFile -UseBasicParsing -ErrorAction Stop
+        $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
+        $Win11DebloatFile = "c:\temp\MITS-Debloat.zip"
+        Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
         Start-Sleep -seconds 2
-        Expand-Archive $MITS11DebloatFile -DestinationPath c:\temp\MITS-Debloat
+        Expand-Archive $Win11DebloatFile -DestinationPath 'c:\temp\MITS-Debloat'
+        Start-Sleep -Seconds 2
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
-        Write-Output "Windows 11 Debloat Complete!"
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
     }
 }
 else {
-    #Write-Host "This script is intended to run only on Windows 11."
+    Write-Log "This script is intended to run only on Windows 11."
 }
+
 
 # Function to check if the OS is Windows 10
 function Is-Windows10 {
@@ -416,11 +418,13 @@ else {
 }
 
 # Remove Pre-Installed Office 
+Write-Host "Triggering Click 2 Run Uninstall Script..." -NoNewline
 $url = 'https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubC2R.vbs'
 $output = 'c:\temp\OffScrubC2R.vbs'
 Invoke-WebRequest -Uri $url -OutFile $output
 if (Test-Path $output) {
-    Start-Process -FilePath "cscript.exe" -ArgumentList "$output ALL /Quiet /NoCancel"
+    Start-Process -FilePath "cscript.exe" -ArgumentList "$output ALL /Quiet /NoCancel" -Wait
+    Write-Host " done." -ForegroundColor "Green
 }
 
 
@@ -435,17 +439,15 @@ try {
         if (-not $OneDriveProduct) {
             Write-Host " done." -foregroundColor "Green"
             Write-Log "OneDrive has been successfully removed."
-            Write-Output " "
         } else {
             Write-Host "Failed to remove OneDrive." -foregroundColor "Red"
             Write-Log "Failed to remove OneDrive."
         }
     } else {
-        Write-Output " "
         Write-Host "OneDrive installation not found." -foregroundColor "Red"
     }
 } catch {
-    Write-Log "An error occurred: $_"
+    Write-Host "An error occurred: $_" -foregroundColor "Red"
 }
 
 # Remove Microsoft Teams Machine-Wide Installer
@@ -510,7 +512,7 @@ if ($Chrome) {
         Write-Log "Google Chrome download failed!"
         Start-Sleep -Seconds 10
         & $clearPath
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
 
@@ -541,12 +543,10 @@ if ($Acrobat) {
         Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
         & $acrobatNotification
         Start-Process -FilePath $FilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
-        Start-Sleep -Seconds 2
         & $acrobatComplete
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Adobe Acrobat installed successfully."
         Start-Sleep -Seconds 2
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
         & $clearPath
     }
     else {
@@ -560,29 +560,34 @@ if ($Acrobat) {
     }
 }
 
-# Install Office 365
+
+# Install Office 2016
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
+Where-Object { $_.DisplayName -like "*Microsoft Office Professional Plus 2016*" }
 
 if ($O365) {
-    Write-Host "Existing Microsoft Office installation found." -ForegroundColor "Cyan"
-    $FilePath = "c:\temp\OfficeSetup.exe"
+    Write-Host "Existing Microsoft Office 2016 installation found." -ForegroundColor "Cyan"
+} else {
+    $FilePath = "C:\temp\O2k16pp.zip"
     if (-not (Test-Path $FilePath)) {
         # If not found, download it from the given URL
-        #$URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        Write-Host "Downloading Microsoft Office..." -NoNewline
-        Invoke-WebRequest -OutFile c:\temp\OfficeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe" -UseBasicParsing
+        Write-Host "Downloading Microsoft Office 2016 (757,921,585 bytes)..." -NoNewline
+        Invoke-WebRequest -OutFile c:\temp\O2k16pp.zip -Uri "https://skgeneralstorage.blob.core.windows.net/o2k16pp/O2k16pp.zip" -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
-    $ExpectedSize = 7651616 # in bytes
+    $ExpectedSize = 757921585 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
         & $officeNotice
-        Write-Host "Installing Microsoft Office..." -NoNewline
-        Start-Process -FilePath "C:\temp\Officesetup.exe" -Wait
+        Expand-Archive -path c:\temp\O2k16pp.zip -DestinationPath 'c:\temp\' -Force
+        Write-Host "Installing Microsoft Office 2016..." -NoNewline
+        $OfficeInstaller = "C:\temp\Office2016_ProPlus\setup.exe"
+        $OfficeArguments = "/adminfile .\SLaddInstallOffice.msp"
+        Set-Location -path 'C:\temp\Office2016_ProPlus\'
+        Start-Process -FilePath $OfficeInstaller -ArgumentList $OfficeArguments -Wait    
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Office 365 Installation Completed Successfully."
         & $clearPath
@@ -591,7 +596,7 @@ if ($O365) {
         # Report download error
         & $officeFailure
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
-        Write-Log "Office download failed!"
+        Write-Log "Office 2016 download failed!"
         Start-Sleep -Seconds 10
         & $clearPath
         #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
@@ -681,10 +686,6 @@ Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/inst
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
     Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
-    Start-Sleep -Seconds 2
-    # Add a reference to System.Windows.Forms assembly
-    Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
     & $config.ClearPath
 
 } else {
@@ -719,6 +720,7 @@ Invoke-Expression -command $NTFY1 *> $null
 Start-Sleep -Seconds 3
 Write-Output " "
 Write-Output "Starting Domain/Azure AD Join Function..."
+Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 Write-Output " "
 # Prompt the user to connect to SSL VPN
 $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? Enter Y or N"
@@ -727,7 +729,6 @@ if ($choice -eq "Y" -or $choice -eq "N") {
     if ($choice -eq "Y") {
                 
         if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
-            Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
             Write-Output 'NetExtender detected successfully, starting connection...'
             start C:\temp\ssl-vpn.bat
             Start-Sleep -Seconds 3
@@ -803,9 +804,11 @@ Stop-Transcript
 
 # Baseline temp file cleanup
 Write-Host "Cleaning up temp files..." -NoNewline
+Remove-Item -path c:\BRU -Recurse -Force
 #Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
 Write-Log "Baseline temp file cleanup completed successfully"
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
+Write-Host " done." -ForegroundColor "Green"    
+Start-Sleep -seconds 1
 Start-Process "appwiz.cpl"
-Write-Host " "
 Read-Host -Prompt "Press Enter to exit."

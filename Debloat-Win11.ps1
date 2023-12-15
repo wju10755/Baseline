@@ -24,5 +24,5 @@ if (Is-Windows11) {
     }
 }
 else {
-    Write-Host "This script is intended to run only on Windows 11."
+    Write-Log "This script is intended to run only on Windows 11."
 }
