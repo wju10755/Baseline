@@ -331,7 +331,7 @@ $wshell = New-Object -ComObject wscript.shell
 Start-Sleep -Seconds 3
 $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2
-
+ 
 
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
@@ -353,7 +353,8 @@ if ($manufacturer -eq "Dell Inc.") {
 } else {
     Write-Warning "This script can only be run on a Dell system."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
-}
+} 
+
 
 # Function to check if the OS is Windows 11
 function Is-Windows11 {
