@@ -531,6 +531,7 @@ if ($Acrobat) {
         Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
         & $acrobatNotification
         Start-Process -FilePath $FilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
+        Start-Sleep -Seconds 2
         & $acrobatComplete
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Adobe Acrobat installed successfully."
