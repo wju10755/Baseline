@@ -345,14 +345,14 @@ if ($manufacturer -eq "Dell Inc.") {
     Start-Sleep -seconds 1
     # Download Dell Silent Uninstall
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
-    # Trigger Dell Bloatware Removal w/ spinning progress indicator.
+
     if (Test-Path -Path $SpinnerFile) {
     & $SpinnerFile
         }
     
 } else {
-    Write-Warning "Dell Bloatware Removal Script is intended to run on Dell machines."
-    Write-Log "Only Dell systems are eligible for this bloatware removal script."
+    Write-Warning "This script can only be run on a Dell system."
+    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
 
 # Function to check if the OS is Windows 11
@@ -413,6 +413,15 @@ if (Is-Windows10) {
 else {
     #Write-Host "This script is intended to run only on Windows 10."
 }
+
+# Remove Pre-Installed Office 
+$url = 'https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubC2R.vbs'
+$output = 'c:\temp\OffScrubC2R.vbs'
+Invoke-WebRequest -Uri $url -OutFile $output
+if (Test-Path $output) {
+    Start-Process -FilePath "cscript.exe" -ArgumentList "$output ALL /Quiet /NoCancel"
+}
+
 
 # Remove Microsoft OneDrive
 try {
