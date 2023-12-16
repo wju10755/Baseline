@@ -424,7 +424,6 @@ $output = 'c:\temp\OffScrubC2R.vbs'
 Invoke-WebRequest -Uri $url -OutFile $output
 if (Test-Path $output) {
     Start-Process -FilePath "cscript.exe" -ArgumentList "$output ALL /Quiet /NoCancel" -Wait
-    Write-Host " done." -ForegroundColor "Green
 }
 
 

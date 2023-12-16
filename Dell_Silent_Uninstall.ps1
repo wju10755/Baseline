@@ -1,4 +1,5 @@
-# Instal Common Stuff Module
+Start-Transcript -path c:\temp\Dell-Uninstall.log
+# Instal Common Stuff 
 $moduleName = "CommonStuff"
 
 # Check if the module is installed
@@ -158,3 +159,4 @@ if ($SWName) {
 } else {
     "There is no bloatware detected"
 }
+Stop-Transcript
