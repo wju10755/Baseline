@@ -126,11 +126,25 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
     Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
 }
 
+# Disable Notification Snooze
+Start-Sleep -Seconds 5
+Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe" -OutFile "c:\temp\SendWKey.exe"
+# Define the path to SendWKey.exe - adjust the path as necessary
+$sendWKeyPath = "C:\temp\SendWKey.exe"
 
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() 
-[Console]::WriteLine() 
+# Define the arguments for SendWKey.exe
+$arguments = '#{n}'
+
+# Execute SendWKey.exe with the arguments
+Start-Process -FilePath $sendWKeyPath -ArgumentList $arguments -NoNewWindow -Wait
+
+Start-Sleep -Seconds 1
+# Load System.Windows.Forms assembly
+Add-Type -AssemblyName System.Windows.Forms
+
+# Send the Space keystroke
+[System.Windows.Forms.SendKeys]::SendWait(' ')
+
 
 # Start Baseline Notification
 & $config.StartBaseline | Out-Null
@@ -298,12 +312,11 @@ Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_S
 $restorePoint = Get-ComputerRestorePoint | Sort-Object -Property "CreationTime" -Descending | Select-Object -First 1
 if ($restorePoint -ne $null) {
     Write-Host " done." -ForegroundColor "Green"
+    & $config.Checkpoint
 } else {
     Write-Host "Failed to create restore point" -ForegroundColor "Red"
 }
-& $config.Checkpoint
 Start-Sleep -Seconds 5
-
 
 # Download Procmon
 $ProgressPreference = 'SilentlyContinue'
@@ -402,14 +415,29 @@ else {
     #Write-Host "This script is intended to run only on Windows 10."
 }
 
+
 # Remove Pre-Installed Office 
-Write-Host "Triggering Click 2 Run Uninstall Script..." -NoNewline
-$url = 'https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubC2R.vbs'
-$output = 'c:\temp\OffScrubC2R.vbs'
-Invoke-WebRequest -Uri $url -OutFile $output
-if (Test-Path $output) {
-    Start-Process -FilePath "cscript.exe" -ArgumentList "$output ALL /Quiet /NoCancel" -Wait
-}
+$OfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/OfficeScrub-Spinner.ps1"
+$OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
+$OfficeScrubURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/OffScrubc2r.vbs"
+$OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
+ 
+Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
+Start-Sleep -seconds 1
+
+    # Validate successful download by checking the file size
+    $FileSize = (Get-Item $OfficeScrubFile).Length
+    $ExpectedSize = 146093 # in bytes 
+    if ($FileSize -eq $ExpectedSize) {
+        Write-Host "Scrubbing pre-installed versions of Office..." -NoNewline
+        Start-Process -FilePath "cscript.exe" -ArgumentList "$OfficeScrubFile ALL /Quiet /NoCancel" -Wait
+        Write-Host " done." -ForegroundColor "Green"
+        Write-Log "Pre-installed versions of Microsoft Office 365 successfully uninstalled."
+        Start-Sleep -Seconds 15  
+    } else {
+        Write-Host "Failed to download Office Scrub script." -ForegroundColor "Red"
+        Write-Log "Failed to download Office Scrub script."
+    }
 
 
 # Remove Microsoft OneDrive
@@ -477,12 +505,12 @@ if ($Chrome) {
     $FileSize = (Get-Item $FilePath).Length
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
-        & $chromeNotification
+        & $config.chromeNotification
         Write-Host "Installing Google Chrome..." -NoNewline
         Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Google Chrome installed successfully."
-        & $chromeComplete
+        & $config.chromeComplete
         Start-Sleep -Seconds 15
         
     }
@@ -510,10 +538,10 @@ if ($Acrobat) {
         # If not found, download it from the given URL
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
         Write-Host "Downloading Adobe Acrobat Reader ( 277,900,248 bytes)..." -NoNewline
-        & $acrobatDownload
+        & $config.acrobatDownload
         Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
-        & $clearPath
+        & $config.clearPath
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
@@ -521,21 +549,21 @@ if ($Acrobat) {
     if ($FileSize -eq $ExpectedSize) {
         # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
         Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
-        & $acrobatNotification
+        & $config.acrobatNotification
         Start-Process -FilePath $FilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
-        & $acrobatComplete
+        & $config.acrobatComplete
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Adobe Acrobat installed successfully."
         Start-Sleep -Seconds 2
-        & $clearPath
+        & $config.clearPath
     }
     else {
         # Report download error
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Download failed. File size does not match."
-        & $acrobatFailure
+        & $config.acrobatFailure
         Start-Sleep -Seconds 5
-        & $clearPath
+        & $config.clearPath
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
@@ -561,7 +589,7 @@ if ($O365) {
     $ExpectedSize = 757921585 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
-        & $officeNotice
+        & $config.officeNotice
         Expand-Archive -path c:\temp\O2k16pp.zip -DestinationPath 'c:\temp\' -Force
         Write-Host "Installing Microsoft Office 2016..." -NoNewline
         $OfficeInstaller = "C:\temp\Office2016_ProPlus\setup.exe"
@@ -570,16 +598,15 @@ if ($O365) {
         Start-Process -FilePath $OfficeInstaller -ArgumentList $OfficeArguments -Wait    
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Office 365 Installation Completed Successfully."
-        & $clearPath
+        
     }
     else {
         # Report download error
-        & $officeFailure
+        & $config.officeFailure
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Office 2016 download failed!"
         Start-Sleep -Seconds 10
-        & $clearPath
-        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
 
@@ -666,39 +693,21 @@ Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/inst
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
     Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
-    & $config.ClearPath
-
+    [void][System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')
+    [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
+    & $config.UpdateComplete
 } else {
     Write-host "Windows update module download failed" -ForegroundColor Red
 }
-& $config.UpdateComplete
-
-# Check for and install all available Windows update
-#Start-Sleep -Seconds 4
-#Write-Output "Windows Update in progress..."
-#& $updateNotice
-#Install-Module -Name PSWindowsUpdate -Force -ErrorAction SilentlyContinue
-#Import-Module PSWindowsUpdate
-#$updates = Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -ErrorAction SilentlyContinue
-#$TotalUpdates = $updates.Count
-#& $clearPath
-#Write-Output "$totalUpdates Windows updates are available."
-#if ($updates) {
-#    & $updateComplete
-#    Write-Log "Installed $($updates.Count) Windows updates"
-#    Start-Sleep -Seconds 30
-#    & $clearPath
-#} else {
-#    Write-Log "No additional Windows updates are available."
-#}
 
 
 # Notify device is ready for Domain Join Operation
 $NTFY1 = "& cmd.exe /c curl -d '%ComputerName% is ready to join the domain.' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
 Invoke-Expression -command $NTFY1 *> $null
-
 Start-Sleep -Seconds 3
 Write-Output " "
+
+
 Write-Output "Starting Domain/Azure AD Join Function..."
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 Write-Output " "
