@@ -459,6 +459,7 @@ try {
             Write-Log "Failed to remove OneDrive."
         }
     } else {
+        Write-Host " "
         Write-Host "OneDrive installation not found." -foregroundColor "Red"
     }
 } catch {
@@ -628,9 +629,9 @@ if ($SWNE) {
     if (-not (Test-Path $NEFilePath)) {
         # If not found, download it from the given URL
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
-        Write-Host "Downloading Sonicwall NetExtender..." -NoNewline
+        #Write-Host "Downloading Sonicwall NetExtender..." -NoNewline
         Invoke-WebRequest -OutFile c:\temp\NXSetupU-x64-10.2.337.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe" -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
+        #Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $NEFilePath).Length
@@ -656,6 +657,7 @@ taskkill /f /im procmon64.exe *> $null
 Write-Output " "
 Write-Host "Starting Bitlocker Configuration..."
 Write-Output " "
+
 # Check if TPM module is enabled
 $TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | Where-Object {$_.IsEnabled().Isenabled -eq 'True'} -ErrorAction SilentlyContinue
 
