@@ -132,6 +132,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 [Console]::WriteLine() 
 
 # Disable Notification Snooze
+Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
 Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe" -OutFile "c:\temp\SendWKey.exe"
 # Define the path to SendWKey.exe - adjust the path as necessary
@@ -144,12 +145,10 @@ $arguments = '#{n}'
 Start-Process -FilePath $sendWKeyPath -ArgumentList $arguments -NoNewWindow -Wait
 
 Start-Sleep -Seconds 1
-# Load System.Windows.Forms assembly
-Add-Type -AssemblyName System.Windows.Forms
 
 # Send the Space keystroke
 [System.Windows.Forms.SendKeys]::SendWait(' ')
-[System.Windows.Forms.SendKeys]::SendWait('ESC')
+[System.Windows.Forms.SendKeys]::SendWait('{ESC}')
 
 # Start Baseline Notification
 & $config.StartBaseline | Out-Null
@@ -363,7 +362,7 @@ if ($manufacturer -eq "Dell Inc.") {
 }
 
 # Remove Pre-Installed Office 
-$OfficeSpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeScrub-Spinner.ps1"
+$OfficeSpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeScrub_Spinner.ps1"
 $OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
 $OfficeScrubScriptURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/ScrubOffice.ps1"
 $OfficeScrubScriptFile = "c:\temp\ScrubOffice.ps1" 
@@ -373,9 +372,13 @@ $OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
 Invoke-WebRequest -Uri $OfficeScrubURL -OutFile $OfficeScrubFile -UseBasicParsing -ErrorAction Stop
 if (Test-Path $OfficeScrubFile) {
 Invoke-WebRequest -Uri $OfficeSpinnerURL -OutFile $OfficeSpinnerFile -UseBasicParsing -ErrorAction Stop
-    if (Test-Path $OfficeScrubFile) {
+    if (Test-Path $OfficeSpinnerFile) {
+        Invoke-WebRequest -Uri $OfficeScrubScriptURL -OutFile $OfficeScrubScriptFile -UseBasicParsing -ErrorAction Stop
+        if (Test-Path $OfficeScrubScriptFile) {
+        & $OfficeScrubScriptFile
+        }
     #Start-Process -FilePath "cscript.exe" -ArgumentList "$OfficeScrubFile ALL /Quiet /NoCancel" -Wait
-    & $OfficeSpinnerFile
+    
 }
 } else {
 Write-Host "Office C2R Scrub utility download failed"
