@@ -134,8 +134,8 @@ if ($isInstalled) {
 
 
 # Trigger remaining Dell application uninstall
-$SWName = Get-InstalledSoftware "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services" | 
-    Where-Object { $_.DisplayName -ne "Dell Pair" } | 
+$SWName = Get-InstalledSoftware "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services" |
+    Where-Object { $_.DisplayName -ne "Dell Pair" } |  
     Select-Object -ExpandProperty DisplayName
 
 if ($SWName) {

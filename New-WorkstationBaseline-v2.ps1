@@ -339,7 +339,7 @@ if ($manufacturer -eq "Dell Inc.") {
     # Set the URL and file path variables
     $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
     $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
-    $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall.ps1"
+    $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall-v2.ps1"
     $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
     & $config.HardwareMFG
     Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
@@ -352,7 +352,7 @@ if ($manufacturer -eq "Dell Inc.") {
         }
     
 } else {
-    Write-Warning "This script can only be run on a Dell system."
+    Write-Warning "Skipping Dell debloat module."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
 
