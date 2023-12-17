@@ -419,7 +419,7 @@ else {
 # Remove Pre-Installed Office 
 $OfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/OfficeScrub-Spinner.ps1"
 $OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
-$OfficeScrubURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/OffScrubc2r.vbs"
+$OfficeScrubURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubc2r.vbs"
 $OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
  
 Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
