@@ -126,11 +126,30 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
     Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
 }
 
-
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor() 
 [Console]::WriteLine() 
+
+# Disable Notification Snooze
+Start-Sleep -Seconds 5
+Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe" -OutFile "c:\temp\SendWKey.exe"
+# Define the path to SendWKey.exe - adjust the path as necessary
+$sendWKeyPath = "C:\temp\SendWKey.exe"
+
+# Define the arguments for SendWKey.exe
+$arguments = '#{n}'
+
+# Execute SendWKey.exe with the arguments
+Start-Process -FilePath $sendWKeyPath -ArgumentList $arguments -NoNewWindow -Wait
+
+Start-Sleep -Seconds 1
+# Load System.Windows.Forms assembly
+Add-Type -AssemblyName System.Windows.Forms
+
+# Send the Space keystroke
+[System.Windows.Forms.SendKeys]::SendWait(' ')
+
 
 # Start Baseline Notification
 & $config.StartBaseline | Out-Null
@@ -403,13 +422,21 @@ else {
     #Write-Host "This script is intended to run only on Windows 10."
 }
 
+
 # Remove Pre-Installed Office 
-Write-Host "Triggering Click 2 Run Uninstall Script..." -NoNewline
-$url = 'https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubC2R.vbs'
-$output = 'c:\temp\OffScrubC2R.vbs'
-Invoke-WebRequest -Uri $url -OutFile $output
-if (Test-Path $output) {
-    Start-Process -FilePath "cscript.exe" -ArgumentList "$output ALL /Quiet /NoCancel" -Wait
+$OfficeSpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeScrub-Spinner.ps1"
+$OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
+$OfficeScrubURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubc2r.vbs"
+$OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
+ 
+Invoke-WebRequest -Uri $OfficeScrubURL -OutFile $OfficeScrubFile -UseBasicParsing -ErrorAction Stop
+if (Test-Path $OfficeScrubFile) {
+Invoke-WebRequest -Uri $OfficeSpinnerURL -OutFile $OfficeSpinnerFile -UseBasicParsing -ErrorAction Stop
+    if (Test-Path $OfficeScrubFile) {
+    Start-Process -FilePath "cscript.exe" -ArgumentList "$OfficeScrubFile ALL /Quiet /NoCancel" -Wait
+    }
+} else {
+Write-Host "Office C2R Scrub utility download failed"
 }
 
 
@@ -546,33 +573,30 @@ if ($Acrobat) {
 }
 
 
-# Install Office 2016
+# Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Microsoft Office Professional Plus 2016*" }
+Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
 
 if ($O365) {
-    Write-Host "Existing Microsoft Office 2016 installation found." -ForegroundColor "Cyan"
+    Write-Host "Existing Microsoft Office installation found." -ForegroundColor "Yellow"
 } else {
-    $FilePath = "C:\temp\O2k16pp.zip"
+    $FilePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $FilePath)) {
         # If not found, download it from the given URL
-        Write-Host "Downloading Microsoft Office 2016 (757,921,585 bytes)..." -NoNewline
-        Invoke-WebRequest -OutFile c:\temp\O2k16pp.zip -Uri "https://skgeneralstorage.blob.core.windows.net/o2k16pp/O2k16pp.zip" -UseBasicParsing
+        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
+        Write-Host "Downloading Microsoft Office..." -NoNewline
+        Invoke-WebRequest -OutFile c:\temp\OfficeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe" -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
-    $ExpectedSize = 757921585 # in bytes
+    $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
         & $officeNotice
-        Expand-Archive -path c:\temp\O2k16pp.zip -DestinationPath 'c:\temp\' -Force
-        Write-Host "Installing Microsoft Office 2016..." -NoNewline
-        $OfficeInstaller = "C:\temp\Office2016_ProPlus\setup.exe"
-        $OfficeArguments = "/adminfile .\SLaddInstallOffice.msp"
-        Set-Location -path 'C:\temp\Office2016_ProPlus\'
-        Start-Process -FilePath $OfficeInstaller -ArgumentList $OfficeArguments -Wait    
+        Write-Host "Installing Microsoft Office..." -NoNewline
+        Start-Process -FilePath "C:\temp\Officesetup.exe" -Wait
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Office 365 Installation Completed Successfully."
         & $clearPath
@@ -581,12 +605,13 @@ if ($O365) {
         # Report download error
         & $officeFailure
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
-        Write-Log "Office 2016 download failed!"
+        Write-Log "Office download failed!"
         Start-Sleep -Seconds 10
         & $clearPath
         #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
+
 
 # Install NetExtender
 $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
