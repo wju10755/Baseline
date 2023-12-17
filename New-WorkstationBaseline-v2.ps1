@@ -700,7 +700,9 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/update_windows.ps1" -OutFile "c:\temp\update_windows.ps1"
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
-    Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
+    Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath# Load System.Windows.Forms assembly
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
     & $config.ClearPath
 
 } else {
