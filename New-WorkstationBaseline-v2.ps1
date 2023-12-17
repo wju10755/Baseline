@@ -149,7 +149,7 @@ Add-Type -AssemblyName System.Windows.Forms
 
 # Send the Space keystroke
 [System.Windows.Forms.SendKeys]::SendWait(' ')
-
+[System.Windows.Forms.SendKeys]::SendWait('ESC')
 
 # Start Baseline Notification
 & $config.StartBaseline | Out-Null
@@ -362,6 +362,25 @@ if ($manufacturer -eq "Dell Inc.") {
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
 
+# Remove Pre-Installed Office 
+$OfficeSpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeScrub-Spinner.ps1"
+$OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
+$OfficeScrubScriptURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/ScrubOffice.ps1"
+$OfficeScrubScriptFile = "c:\temp\ScrubOffice.ps1" 
+$OfficeScrubURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubc2r.vbs"
+$OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
+ 
+Invoke-WebRequest -Uri $OfficeScrubURL -OutFile $OfficeScrubFile -UseBasicParsing -ErrorAction Stop
+if (Test-Path $OfficeScrubFile) {
+Invoke-WebRequest -Uri $OfficeSpinnerURL -OutFile $OfficeSpinnerFile -UseBasicParsing -ErrorAction Stop
+    if (Test-Path $OfficeScrubFile) {
+    #Start-Process -FilePath "cscript.exe" -ArgumentList "$OfficeScrubFile ALL /Quiet /NoCancel" -Wait
+    & $OfficeSpinnerFile
+}
+} else {
+Write-Host "Office C2R Scrub utility download failed"
+}
+
 
 # Function to check if the OS is Windows 11
 function Is-Windows11 {
@@ -421,26 +440,6 @@ if (Is-Windows10) {
 }
 else {
     #Write-Host "This script is intended to run only on Windows 10."
-}
-
-
-# Remove Pre-Installed Office 
-$OfficeSpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeScrub-Spinner.ps1"
-$OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
-$OfficeScrubScriptURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/ScrubOffice.ps1"
-$OfficeScrubScriptFile = "c:\temp\ScrubOffice.ps1" 
-$OfficeScrubURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubc2r.vbs"
-$OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
- 
-Invoke-WebRequest -Uri $OfficeScrubURL -OutFile $OfficeScrubFile -UseBasicParsing -ErrorAction Stop
-if (Test-Path $OfficeScrubFile) {
-Invoke-WebRequest -Uri $OfficeSpinnerURL -OutFile $OfficeSpinnerFile -UseBasicParsing -ErrorAction Stop
-    if (Test-Path $OfficeScrubFile) {
-    #Start-Process -FilePath "cscript.exe" -ArgumentList "$OfficeScrubFile ALL /Quiet /NoCancel" -Wait
-    & $OfficeSpinnerFile
-}
-} else {
-Write-Host "Office C2R Scrub utility download failed"
 }
 
 
