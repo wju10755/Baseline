@@ -301,6 +301,7 @@ if ($restorePoint -ne $null) {
 } else {
     Write-Host "Failed to create restore point" -ForegroundColor "Red"
 }
+#New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.Checkpoint
 Start-Sleep -Seconds 5
 
@@ -337,22 +338,22 @@ if ($manufacturer -eq "Dell Inc.") {
         }
     
 } else {
-    Write-Warning "Hardware requiremet check failed, Skipping Dell debloat module..."
+    Write-Warning "Skipping Dell debloat module."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
 
 
-# Windows 11 Version Check Function
+# Function to check if the OS is Windows 11
 function Is-Windows11 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
     $osVersion = $osInfo.Version
     $osProduct = $osInfo.Caption
 
-    # OS Build ID Check
+    # Check for Windows 11
     return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
 }
 
-# Debloat Windows 11
+# Check if the OS is Windows 11
 if (Is-Windows11) {
     try {
         $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
@@ -368,17 +369,17 @@ if (Is-Windows11) {
     }
 }
 else {
-    #Write-Log "This script is intended to run only on Windows 11."
+    Write-Log "This script is intended to run only on Windows 11."
 }
 
 
-# Windows 10 Version Check Function
+# Function to check if the OS is Windows 10
 function Is-Windows10 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
     $osVersion = $osInfo.Version
     $osProduct = $osInfo.Caption
 
-    # OS Build ID
+    # Check for Windows 10
     return $osVersion -lt "10.0.22000" -and $osProduct -like "*Windows 10*"
 }
 
@@ -477,22 +478,26 @@ if ($Chrome) {
     $FileSize = (Get-Item $FilePath).Length
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
+        # Run c:\temp\ChromeSetup.exe to install Google Chrome silently
         & $chromeNotification
         Write-Host "Installing Google Chrome..." -NoNewline
         Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
+        & $clearPath
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Google Chrome installed successfully."
         & $chromeComplete
         Start-Sleep -Seconds 15
+        & $clearPath
         
     }
     else {
         # Report download error
-        & $config.chromeFailure
+        & $chromeFailure
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Google Chrome download failed!"
         Start-Sleep -Seconds 10
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        & $clearPath
+        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
 
