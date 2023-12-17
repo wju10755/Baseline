@@ -427,6 +427,8 @@ else {
 # Remove Pre-Installed Office 
 $OfficeSpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeScrub-Spinner.ps1"
 $OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
+$OfficeScrubScriptURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/ScrubOffice.ps1"
+$OfficeScrubScriptFile = "c:\temp\ScrubOffice.ps1" 
 $OfficeScrubURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubc2r.vbs"
 $OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
  

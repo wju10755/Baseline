@@ -7,7 +7,7 @@ if (!(Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
 
 # Ensure PSWindowsUpdate module is installed
 if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
-    Install-Module -Name PSWindowsUpdate -Force -Confirm:$false
+    Install-Module -Name PSWindowsUpdate -Force -Confirm:$false -AllowClobber
 }
 
 # Import PSWindowsUpdate module
