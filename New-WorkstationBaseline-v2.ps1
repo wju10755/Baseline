@@ -75,10 +75,9 @@ $config = @{
     Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
     Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
     DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
-    # Add other configuration items here...
 }
 
-# Ensure essential directories and files exist
+# Create temp directory and baseline log
 function Initialize-Environment {
     if (-not (Test-Path $config.TempFolder)) {
         New-Item -Path $config.TempFolder -ItemType Directory | Out-Null
@@ -88,7 +87,7 @@ function Initialize-Environment {
     }
 }
 
-# Custom logging function
+# Baseline Log
 function Write-Log {
     param (
         [string]$Message
@@ -120,9 +119,7 @@ $filePath = $config.PSNoticeFile
 
 if (-not (Test-Path -Path $filePath -PathType Leaf)) {
     Invoke-WebRequest -Uri $url -OutFile $filePath
-    #Write-Output "File downloaded successfully."
 } else {
-    #Write-Output "File already exists."
 }
 
 if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
@@ -132,8 +129,8 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line
+[Console]::ResetColor() 
+[Console]::WriteLine() 
 
 # Start Baseline Notification
 & $config.StartBaseline | Out-Null
@@ -145,13 +142,12 @@ $agentName = "LTService"
 $agentPath = "C:\Windows\LTSvc\"
 $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
 #& $config.ClearPath
-# Check if the installer file exists
 if (-not (Test-Path $file)) {
     #Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline
     Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
 }
 
-# Check if the installer download was successful
+# Verify dowload
 if (Test-Path $file) {
     #Write-Host " done." -ForegroundColor Green
 } else {
@@ -160,7 +156,7 @@ if (Test-Path $file) {
     exit
 }
 
-# Check if the LabTech agent is already installed
+# Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     Write-Host "The LabTech agent is already installed." -ForegroundColor Cyan
 } elseif (Test-Path $agentPath) {
@@ -187,7 +183,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 }
 
 
-# Identify device manufacturer and type
+# Identify device manufacturer and chassis type
 $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
 $deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
@@ -195,8 +191,6 @@ Write-Host "Identifying device type: " -NoNewline
 Start-Sleep -Seconds 2
 Write-Host $deviceType -ForegroundColor "Yellow"
 Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
-#New-BurntToastNotification -Text "Identified device type: $manufacturer $deviceType" -AppLogo C:\temp\PSNotice\smallA.png
-#& $clearPath
 
 
 # Set power profile to 'Balanced'
@@ -208,7 +202,7 @@ powercfg /S SCHEME_BALANCED
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Power profile set to 'Balanced'."
 Start-Sleep -Seconds 5
-& $config.clearPath
+
 
 # Disable sleep and hibernation modes
 Start-Sleep -Seconds 1
@@ -222,7 +216,7 @@ Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Disabled sleep and hibernation modes."
 Start-Sleep -Seconds 5
-& $config.clearPath
+
 
 # Disable fast startup
 Start-Sleep -Seconds 1
@@ -235,7 +229,6 @@ Write-Log "Disabled fast startup."
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
-& $config.clearPath
 
 # Set power profile
 Start-Sleep -Seconds 1
@@ -246,7 +239,6 @@ powercfg /SETACTIVE SCHEME_CURRENT
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
-& $config.clearPath
 
 # Set power button action to 'Shutdown'
 Start-Sleep -Seconds 2
@@ -259,7 +251,6 @@ Start-Sleep -Seconds 3
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Set power button action to 'Shutdown'."
 Start-Sleep -Seconds 5
-& $config.clearPath
 
 # Set 'lid close action' to do nothing on laptops
 Start-Sleep -Seconds 1
@@ -268,12 +259,10 @@ if ($deviceType -eq "Laptop") {
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
     Write-Log "Set 'lid close action' to Do Nothing on laptop."
-    #New-BurntToastNotification -Text "Lid close action set to 'Do Nothing'" -AppLogo "c:\temp\PSNotice\smallA.png"
     & $config.LidAction
     Start-Sleep -Seconds 2
     Write-Host " done." -ForegroundColor "Green"
     Start-Sleep -Seconds 5
-    & $config.clearPath
 }
 
 # Set the time zone to 'Eastern Standard Time'
@@ -286,13 +275,11 @@ Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 3
 Write-Host "Syncing clock..." -NoNewline
 w32tm /resync -ErrorAction SilentlyContinue | out-null
-#New-BurntToastNotification -Text "Default timezone set to 'EST'." -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 2
 & $config.timezone
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"    
 Start-Sleep -Seconds 5
-& $config.clearPath
 
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
@@ -304,7 +291,7 @@ Write-Log "System restore enabled."
 Write-Host " done." -ForegroundColor "Green"
 & $config.SystemRestore
 Start-Sleep -Seconds 5
-& $config.ClearPath
+
 # Create restore point
 Write-Host "Creating System Restore Checkpoint..." -nonewline
 Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_SETTINGS'
@@ -314,11 +301,9 @@ if ($restorePoint -ne $null) {
 } else {
     Write-Host "Failed to create restore point" -ForegroundColor "Red"
 }
-#New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.Checkpoint
-#Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
-& $config.clearPath
+
 
 # Download Procmon
 $ProgressPreference = 'SilentlyContinue'
@@ -352,22 +337,22 @@ if ($manufacturer -eq "Dell Inc.") {
         }
     
 } else {
-    Write-Warning "Skipping Dell debloat module."
+    Write-Warning "Hardware requiremet check failed, Skipping Dell debloat module..."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
 
 
-# Function to check if the OS is Windows 11
+# Windows 11 Version Check Function
 function Is-Windows11 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
     $osVersion = $osInfo.Version
     $osProduct = $osInfo.Caption
 
-    # Check for Windows 11
+    # OS Build ID Check
     return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
 }
 
-# Check if the OS is Windows 11
+# Debloat Windows 11
 if (Is-Windows11) {
     try {
         $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
@@ -383,17 +368,17 @@ if (Is-Windows11) {
     }
 }
 else {
-    Write-Log "This script is intended to run only on Windows 11."
+    #Write-Log "This script is intended to run only on Windows 11."
 }
 
 
-# Function to check if the OS is Windows 10
+# Windows 10 Version Check Function
 function Is-Windows10 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
     $osVersion = $osInfo.Version
     $osProduct = $osInfo.Caption
 
-    # Check for Windows 10
+    # OS Build ID Check
     return $osVersion -lt "10.0.22000" -and $osProduct -like "*Windows 10*"
 }
 
@@ -492,26 +477,22 @@ if ($Chrome) {
     $FileSize = (Get-Item $FilePath).Length
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\ChromeSetup.exe to install Google Chrome silently
         & $chromeNotification
         Write-Host "Installing Google Chrome..." -NoNewline
         Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
-        & $clearPath
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Google Chrome installed successfully."
         & $chromeComplete
         Start-Sleep -Seconds 15
-        & $clearPath
         
     }
     else {
         # Report download error
-        & $chromeFailure
+        & $config.chromeFailure
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Google Chrome download failed!"
         Start-Sleep -Seconds 10
-        & $clearPath
-        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
 
