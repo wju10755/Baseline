@@ -1,4 +1,9 @@
 # Script: UpdateWindows.ps1
+# Check if NuGet provider is installed
+if (!(Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
+    # Install NuGet provider
+    Install-PackageProvider -Name NuGet -Force
+}
 
 # Ensure PSWindowsUpdate module is installed
 if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
