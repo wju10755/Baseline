@@ -425,21 +425,21 @@ else {
 
 
 # Remove Pre-Installed Office 
+$OfficeSpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeScrub-Spinner.ps1"
+$OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
+$OfficeScrubURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubc2r.vbs"
+$OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
+ 
 Invoke-WebRequest -Uri $OfficeScrubURL -OutFile $OfficeScrubFile -UseBasicParsing -ErrorAction Stop
 if (Test-Path $OfficeScrubFile) {
-    Invoke-WebRequest -Uri $OfficeSpinnerURL -OutFile $OfficeSpinnerFile -UseBasicParsing -ErrorAction Stop
+Invoke-WebRequest -Uri $OfficeSpinnerURL -OutFile $OfficeSpinnerFile -UseBasicParsing -ErrorAction Stop
     if (Test-Path $OfficeScrubFile) {
-        $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
-        $processStartInfo.FileName = "cscript.exe"
-        $processStartInfo.Arguments = "$OfficeScrubFile ALL /Quiet /NoCancel"
-        $processStartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
-        $process = [System.Diagnostics.Process]::Start($processStartInfo)
-        $process.WaitForExit()
-    }
-} else {
-    Write-Host "Office C2R Scrub utility download failed"
+    #Start-Process -FilePath "cscript.exe" -ArgumentList "$OfficeScrubFile ALL /Quiet /NoCancel" -Wait
+    & $OfficeSpinnerFile
 }
-
+} else {
+Write-Host "Office C2R Scrub utility download failed"
+}
 
 
 # Remove Microsoft OneDrive
