@@ -1,4 +1,31 @@
 Start-Transcript -path c:\temp\Dell_Uninstall.log
+# Instal Common Stuff 
+$moduleName = "CommonStuff"
+
+# Check if the module is installed
+if (-not (Get-Module -ListAvailable -Name $moduleName)) {
+    #Write-Host "Module '$moduleName' is not installed. Attempting to install..."
+
+    # Attempt to install the module from the PowerShell Gallery
+    # This requires administrative privileges
+    try {
+        Install-Module -Name $moduleName -Scope CurrentUser -Force -ErrorAction Stop
+        #Write-Host "Module '$moduleName' installed successfully."
+    } catch {
+        Write-Error "Failed to install module '$moduleName': $_"
+        exit
+    }
+} else {
+    #Write-Host "Module '$moduleName' is already installed."
+}
+try {
+    Import-Module -Name $moduleName -ErrorAction Stop
+    #Write-Host "Module '$moduleName' imported successfully."
+} catch {
+    Write-Error "Failed to import module '$moduleName': $_"
+}
+
+
 # Remove Dell Display Manager
 $registryPaths = @(
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
