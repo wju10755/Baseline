@@ -353,7 +353,6 @@ if ($manufacturer -eq "Dell Inc.") {
 
     if (Test-Path -Path $SpinnerFile) {
     & $SpinnerFile
-    Write-Host " "
         }
     
 } else {
