@@ -16,7 +16,20 @@ Set-ExecutionPolicy -Scope process RemoteSigned -Force
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningActionPreference = 'SilentlyContinue'
 Start-Transcript -path c:\temp\baseline_transcript.txt
-Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
+
+# Trigger Wake Lock
+# Check if the system type is a laptop (Mobile or Notebook)
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+if ($computerSystem.PCSystemType -eq 2) {
+    # It's a laptop, run the specified command
+    Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
+} else {
+    # It's not a laptop, continue to the next part of the script
+    #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
+}
+
 #Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"=
 Write-Output " "
 Write-Output " "
