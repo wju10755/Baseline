@@ -28,37 +28,6 @@ if ($computerSystem.PCSystemType -eq 2) {
 } else {
     # It's not a laptop, continue to the next part of the script
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
-    # Get the Process ID of the current PowerShell session
-$WLID = $PID
-
-# Add the user32.dll functions for simulating mouse input
-Add-Type -TypeDefinition @"
-    using System;
-    using System.Runtime.InteropServices;
-
-    public class MouseInput {
-        [DllImport("user32.dll")]
-        public static extern void mouse_event(int dwFlags, int dx, int dy, int dwData, int dwExtraInfo);
-
-        public const int MOUSEEVENTF_MOVE = 0x0001;
-    }
-"@ 
-
-# Function to simulate a subtle mouse move
-function SimulateMouseMove {
-    [MouseInput]::mouse_event([MouseInput]::MOUSEEVENTF_MOVE, 0, 1, 0, 0)
-}
-
-# Display the Process ID (For verification or use)
-Write-Host "The Process ID of this script is: $WLID"
-
-# Run the mouse move simulation every minute
-while ($true) {
-    SimulateMouseMove
-    Start-Sleep -Seconds 60
-}
-
-
 }
 
 #Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"=
@@ -762,17 +731,6 @@ if (Test-Path "c:\temp\update_windows.ps1") {
 #    Write-Log "No additional Windows updates are available."
 #}
 
-# Assume $WLID contains the Process ID
-# $WLID = ...
-
-# Terminate Wake Lock via $WLID process id
-try {
-    Stop-Process -Id $WLID -Force
-    Write-Host "Process with ID $WLID has been terminated."
-} catch {
-    Write-Host "Failed to terminate process. Process with ID $WLID may not exist or you might not have the necessary permissions."
-}
-
 
 # Notify device is ready for Domain Join Operation
 $NTFY1 = "& cmd.exe /c curl -d '%ComputerName% is ready to join the domain.' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
@@ -864,12 +822,12 @@ Write-Log "Baseline configuration completed successfully."
 Stop-Transcript
 
 # Baseline temp file cleanup
-Write-Host "Cleaning up temp files..." -NoNewline
-Remove-Item -path c:\BRU -Recurse -Force
+#Write-Host "Cleaning up temp files..." -NoNewline
+#Remove-Item -path c:\BRU -Recurse -Force
 #Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
-Write-Log "Baseline temp file cleanup completed successfully"
-Start-Sleep -Seconds 1
-Write-Host " done." -ForegroundColor "Green"    
-Start-Sleep -seconds 1
+#Write-Log "Baseline temp file cleanup completed successfully"
+#Start-Sleep -Seconds 1
+#Write-Host " done." -ForegroundColor "Green"    
+#Start-Sleep -seconds 1
 Start-Process "appwiz.cpl"
 Read-Host -Prompt "Press Enter to exit."
