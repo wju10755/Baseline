@@ -17,20 +17,21 @@ $ErrorActionPreference = 'SilentlyContinue'
 $WarningActionPreference = 'SilentlyContinue'
 Start-Transcript -path c:\temp\baseline_transcript.txt
 
-# Trigger Wake Lock
+
 # Check if the system type is a laptop (Mobile or Notebook)
-# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
 $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
+
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
 if ($computerSystem.PCSystemType -eq 2) {
     # It's a laptop, run the specified command
     Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
 } else {
     # It's not a laptop, continue to the next part of the script
-    #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
+    Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
 
-#Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"=
+
 Write-Output " "
 Write-Output " "
 Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
@@ -372,16 +373,30 @@ if ($manufacturer -eq "Dell Inc.") {
     Write-Warning "Skipping Dell debloat module."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
-Write-Host "Removing pre-installed versions of Microsoft 365..." -NoNewline
+
 # Remove Pre-Installed Office 
-$DisplayName  = "Microsoft Office 365*"
-$OfficeUninstallStrings = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*$DisplayName*"} | Select UninstallString).UninstallString
-        ForEach ($UninstallString in $OfficeUninstallStrings) {
-            $UninstallEXE = ($UninstallString -split '"')[1]
-            $UninstallArg = ($UninstallString -split '"')[2] + " DisplayLevel=False"
-            Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
-            Write-Host " done." -ForegroundColor Green
+$OfficeSpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeScrub_Spinner.ps1"
+$OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
+$OfficeScrubScriptURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/ScrubOffice.ps1"
+$OfficeScrubScriptFile = "c:\temp\ScrubOffice.ps1" 
+$OfficeScrubURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubc2r.vbs"
+$OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
+ 
+Invoke-WebRequest -Uri $OfficeScrubURL -OutFile $OfficeScrubFile -UseBasicParsing -ErrorAction Stop
+if (Test-Path $OfficeScrubFile) {
+Invoke-WebRequest -Uri $OfficeSpinnerURL -OutFile $OfficeSpinnerFile -UseBasicParsing -ErrorAction Stop
+    if (Test-Path $OfficeSpinnerFile) {
+        Invoke-WebRequest -Uri $OfficeScrubScriptURL -OutFile $OfficeScrubScriptFile -UseBasicParsing -ErrorAction Stop
+        if (Test-Path $OfficeScrubScriptFile) {
+        & $OfficeScrubScriptFile
         }
+    #Start-Process -FilePath "cscript.exe" -ArgumentList "$OfficeScrubFile ALL /Quiet /NoCancel" -Wait
+    
+}
+} else {
+Write-Host "Office C2R Scrub utility download failed"
+}
+
 
 # Function to check if the OS is Windows 11
 function Is-Windows11 {
@@ -822,12 +837,12 @@ Write-Log "Baseline configuration completed successfully."
 Stop-Transcript
 
 # Baseline temp file cleanup
-#Write-Host "Cleaning up temp files..." -NoNewline
-#Remove-Item -path c:\BRU -Recurse -Force
+Write-Host "Cleaning up temp files..." -NoNewline
+Remove-Item -path c:\BRU -Recurse -Force
 #Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
-#Write-Log "Baseline temp file cleanup completed successfully"
-#Start-Sleep -Seconds 1
-#Write-Host " done." -ForegroundColor "Green"    
-#Start-Sleep -seconds 1
+Write-Log "Baseline temp file cleanup completed successfully"
+Start-Sleep -Seconds 1
+Write-Host " done." -ForegroundColor "Green"    
+Start-Sleep -seconds 1
 Start-Process "appwiz.cpl"
 Read-Host -Prompt "Press Enter to exit."
