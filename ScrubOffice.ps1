@@ -1,12 +1,26 @@
-$OfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/OfficeScrub-Spinner.ps1"
+$OfficeSpinnerURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeScrub_Spinner.ps1"
 $OfficeSpinnerFile = "c:\temp\OfficeScrub-Spinner.ps1"
 $OfficeScrubScriptURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/ScrubOffice.ps1"
 $OfficeScrubScriptFile = "c:\temp\ScrubOffice.ps1" 
-$OfficeScrubURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/OffScrubc2r.vbs"
+$OfficeScrubURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OffScrubc2r.vbs"
 $OfficeScrubFile = "c:\temp\OffScrubc2r.vbs"
  
-Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
-Start-Sleep -seconds 1
+# Verify requried files exist
+if (-NOT (Test-Path $OfficeScrubFile)) {
+    Write-Host "Downloading required file..." 
+    Invoke-WebRequest -Uri $OfficeScrubURL -OutFile $OfficeScrubFile -UseBasicParsing -ErrorAction Stop 
+}
+
+if (-NOT (Test-Path $OfficeScrubScriptFile)) {
+    Write-Host "Downloading required file..."
+    Invoke-WebRequest -Uri $OfficeScrubScriptURL -OutFile OfficeScrubScriptFile -UseBasicParsing -ErrorAction Stop
+
+}
+
+if (-NOT (Test-Path $OfficeSpinnerFile)) {
+    Write-Host "Downloading required file..." 
+    Invoke-WebRequest -Uri $OfficeSpinnerURL -OutFile $OfficeSpinnerFile -UseBasicParsing -ErrorAction Stop 
+}
 
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $OfficeScrubFile).Length
