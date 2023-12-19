@@ -374,7 +374,7 @@ if ($manufacturer -eq "Dell Inc.") {
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
 
-# Remove Pre-Installed OFfice
+# Remove Pre-Installed Office
 $RemoveOfficeURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
 RemoveOfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
 $RemoveOfficeScript = "c:\temp\Remove-Office.ps1"
@@ -437,7 +437,7 @@ if (Is-Windows10) {
         Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
         Start-Sleep -Seconds 2
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
-        Write-Output "Windows 10 Debloat Complete!"
+        #Write-Output "Windows 10 Debloat Complete!"
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
