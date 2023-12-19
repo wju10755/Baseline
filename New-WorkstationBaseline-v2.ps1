@@ -602,6 +602,7 @@ if ($Acrobat) {
         Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
         & $config.ClearPath
+        
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
@@ -614,6 +615,7 @@ if ($Acrobat) {
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Adobe Acrobat installed successfully."
         Start-Sleep -Seconds 2
+        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
     else {
         # Report download error
@@ -683,6 +685,7 @@ if ($SWNE) {
         start-process -filepath "C:\temp\NXSetupU-x64-10.2.337.exe" /S -Wait
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Sonicwall NetExtender installed successfully."
+        Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
     }
     else {
         # Report download error
@@ -746,7 +749,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
 } else {
-    Write-host "Windows update module download failed" -ForegroundColor Red
+    Write-host "Windows update execution failed!" -ForegroundColor Red
 }
 
 
