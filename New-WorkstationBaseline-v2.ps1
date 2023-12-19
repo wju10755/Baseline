@@ -31,7 +31,6 @@ if ($computerSystem.PCSystemType -eq 2) {
     Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
 
-
 Write-Output " "
 Write-Output " "
 Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
@@ -152,7 +151,6 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
 Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe" -OutFile "c:\temp\SendWKey.exe"
-# Define the path to SendWKey.exe - adjust the path as necessary
 $sendWKeyPath = "C:\temp\SendWKey.exe"
 
 # Define the arguments for SendWKey.exe
@@ -228,9 +226,6 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 }
 
 
-
-
-
 # Set power profile to 'Balanced'
 Write-Host "Setting Power Profile..." -NoNewLine
 Start-Sleep -Seconds 3
@@ -248,7 +243,6 @@ Write-Host "Disabling Sleep and Hibernation..." -NoNewline
 powercfg /change standby-timeout-ac 0
 powercfg /change hibernate-timeout-ac 0
 powercfg /h off
-#New-BurntToastNotification -Text "Sleep and hibernation settings disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.HiberSleep
 Start-Sleep -Seconds 1
 Write-Host " done." -ForegroundColor "Green"
@@ -283,7 +277,6 @@ Start-Sleep -Seconds 2
 Write-Host "Configuring power button action to shutdown..." -NoNewline
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
-#New-BurntToastNotification -Text "Power button action set to 'Shutdown'" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.PwrButton
 Start-Sleep -Seconds 3
 Write-Host " done." -ForegroundColor "Green"
@@ -340,7 +333,6 @@ if ($restorePoint -ne $null) {
 } else {
     Write-Host "Failed to create restore point" -ForegroundColor "Red"
 }
-#New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.Checkpoint
 Start-Sleep -Seconds 5
 
@@ -416,7 +408,6 @@ if ($manufacturer -eq "Dell Inc.") {
     & $config.DellHardware
     Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
     Start-Sleep -seconds 2
-    # Download Dell Silent Uninstall
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
 
     if (Test-Path -Path $SpinnerFile) {
@@ -442,7 +433,10 @@ if(Test-Path $RemoveOfficeSpinner) {
     & $config.ScrubOffice
     &$RemoveOfficeSpinner
 }
+
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
+
+
 # Function to check if the OS is Windows 11
 function Is-Windows11 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
@@ -808,6 +802,7 @@ if ($choice -eq "A" -or $choice -eq "S") {
             Write-Host "Domain join completed successfully." -ForegroundColor Green
             Write-Log "$env:COMPUTERNAME joined to $domain successfully"
         } else {
+            Write-Host " "
             Write-Host "Domain join completed but requires a restart." -ForegroundColor Yellow
             Write-Log "$env:COMPUTERNAME joined to $domain but requires a restart."
         }
