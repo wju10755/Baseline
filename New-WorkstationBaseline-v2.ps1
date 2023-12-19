@@ -799,13 +799,16 @@ if ($choice -eq "A" -or $choice -eq "S") {
         $domain = Read-Host -Prompt "Enter the domain name to join"
 
         # Join the system to the domain using the credentials
-        Add-Computer -DomainName $domain -Credential $cred 
+        $joinOutput = Add-Computer -DomainName $domain -Credential $cred 
         $domainJoinSuccessful = Test-ComputerSecureChannel
-            if ($domainJoinSuccessful) {
-                Write-Host "Domain join completed successfully."
-                Write-Log "$env:COMPUTERNAME joined to $domain successfully"
-            } else {
-                Write-Host "Domain join failed." -ForegroundColor "Red"
+        # Check if the output contains the warning message
+        if ($joinOutput -notlike "*Warning: The changes will take effect after you restart the computer*") {
+            Write-Host " "
+            Write-Host "Domain join completed successfully." -ForegroundColor Green
+            Write-Log "$env:COMPUTERNAME joined to $domain successfully"
+        } else {
+            Write-Host "Domain join completed but requires a restart." -ForegroundColor Yellow
+            Write-Log "$env:COMPUTERNAME joined to $domain but requires a restart."
         }
     } else {
         # Join the system to Azure AD using Work or school account
@@ -828,6 +831,7 @@ if ($choice -eq "A" -or $choice -eq "S") {
     Write-Error "Invalid choice. Please enter A or S."
     break
 }
+
 
 # Notify device Baseline is complete
 $NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
