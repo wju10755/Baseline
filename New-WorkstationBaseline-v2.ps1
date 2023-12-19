@@ -819,6 +819,7 @@ if ($choice -eq "A" -or $choice -eq "S") {
         $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
 
         # Display the extracted value
+        Write-Host " "
         Write-Host "AzureAdJoined: $azureAdJoinedValue"
         Write-Log "$env:COMPUTERNAME joined to Azure AD."
     }
