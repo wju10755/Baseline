@@ -383,7 +383,7 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1" -OutFile "c:\temp\Remove-Office-Spinner.ps1"
 
 if(Test-Path $RemoveOfficeSpinner) {
-    Write-Host "Starting uninstall of pre-installed Microsoft 365 Applications..."
+    #Write-Host "Starting uninstall of pre-installed Microsoft 365 Applications..."
     &$RemoveOfficeSpinner
 }
 
