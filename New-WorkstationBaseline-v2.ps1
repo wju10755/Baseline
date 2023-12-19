@@ -54,45 +54,45 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 
 # Central Configuration
 $config = @{
-    PSNoticeUrl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
-    NoSnoozeUrl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
-    TempFolder           = "C:\temp"
-    LogFile              = "C:\temp\baseline.log"
-    NoSnooze             = "c:\temp\nosnooze.ps1"
-    NoSnoozeZip          = "c:\temp\nosnooze.zip"
-    PSNoticePath         = "c:\temp\PSNotice"
-    PSNoticeFile         = "c:\temp\psnotice.zip"
-    ChromeInstaller      = "c:\temp\ChromeSetup.exe"
-    AcrobatInstaller     = "c:\temp\AcroRdrDC2300620360_en_US.exe"
-    OfficeInstaller      = "c:\temp\Office2016_ProPlus"
-    ClearPath            = "C:\temp\psnotice\Clear-ToastNotification.ps1"
-    ChromeNotification   = "C:\temp\psnotice\appnotice\Chrome\New-ToastNotification.ps1"
-    AcrobotNotification  = "C:\temp\psnotice\appnotice\acrobat\New-ToastNotification.ps1"
     AcrobatComplete      = "c:\temp\psnotice\appnotice\acrobat\AcrobatComplete.ps1"
     AcrobatFailure       = "C:\temp\psnotice\appnotice\acrobat\failure\New-ToastNotification.ps1"
+    AcrobatInstaller     = "c:\temp\AcroRdrDC2300620360_en_US.exe"
+    AutomateFailure      = "C:\temp\psnotice\AppNotice\automate\failure\New-ToastNotification.ps1"
+    AutomateSuccess      = "C:\temp\psnotice\AppNotice\automate\"
+    BaselineComplete     = "C:\temp\psnotice\BaselineComplete\New-ToastNotification.ps1"
+    Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
+    ChromeInstaller      = "c:\temp\ChromeSetup.exe"
+    ChromeNotification   = "C:\temp\psnotice\appnotice\Chrome\New-ToastNotification.ps1"
+    ClearPath            = "C:\temp\psnotice\Clear-ToastNotification.ps1"
+    DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
+    DellBloatware        = "C:\temp\psnotice\DellNotice\New-ToastNotification.ps1"
+    DellHardware         = "C:\temp\psnotice\hardware-dell"
+    FastStartup          = "C:\temp\psnotice\FastStartup\New-ToastNotification.ps1"
+    HiberSleep           = "C:\temp\psnotice\HiberSleep\New-ToastNotification.ps1"
+    HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
+    LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
+    LogFile              = "C:\temp\baseline.log"
+    NoSnooze             = "c:\temp\nosnooze.ps1"
+    NoSnoozeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
+    NoSnoozeZip          = "c:\temp\nosnooze.zip"
     OfficeComplete       = "C:\temp\psnotice\OfficeNotice\complete\New-ToastNotification.ps1"
     OfficeFailure        = "C:\temp\psnotice\OfficeNotice\failure\New-ToastNotification.ps1"
-    StartBaseline        = "C:\temp\psnotice\BaselineStart\New-ToastNotification.ps1"
-    UpdateNotice         = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
-    UpdateComplete       = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
-    BaselineComplete     = "C:\temp\psnotice\BaselineComplete\New-ToastNotification.ps1"
-    AutomateSuccess      = "C:\temp\psnotice\AppNotice\automate\"
-    AutomateFailure      = "C:\temp\psnotice\AppNotice\automate\failure\New-ToastNotification.ps1"
-    HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
+    OfficeInstaller      = "c:\temp\Office2016_ProPlus"
     PowerProfile         = "C:\temp\psnotice\powerprofile\New-ToastNotification.ps1"
-    HiberSleep           = "C:\temp\psnotice\HiberSleep\New-ToastNotification.ps1"
-    FastStartup          = "C:\temp\psnotice\FastStartup\New-ToastNotification.ps1"
-    PwrButton            = "C:\temp\psnotice\PwrButton\New-ToastNotification.ps1"
-    LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
-    TimeZone             = "C:\temp\psnotice\TimeZone\New-ToastNotification.ps1"
-    SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
-    Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
-    Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
-    Win10                = "C:\temp\psnotice\win10\New-ToastNotification.ps1"
-    DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
+    PSNoticeFile         = "c:\temp\psnotice.zip"
+    PSNoticePath         = "c:\temp\PSNotice"
+    PSNoticeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
     ScrubOffice          = "C:\temp\psnotice\scruboffice\New-ToastNotification.ps1"
-    DellBloatware        = "C:\temp\psnotice\DellNotice\New-ToastNotification.ps1"
+    StartBaseline        = "C:\temp\psnotice\BaselineStart\New-ToastNotification.ps1"
+    SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
+    TempFolder           = "C:\temp"
+    TimeZone             = "C:\temp\psnotice\TimeZone\New-ToastNotification.ps1"
+    UpdateComplete       = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
+    UpdateNotice         = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
+    Win10                = "C:\temp\psnotice\win10\New-ToastNotification.ps1"
+    Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
 }
+
 
 # Create temp directory and baseline log
 function Initialize-Environment {
@@ -179,7 +179,7 @@ Write-Host "Identifying device type: " -NoNewline
 Start-Sleep -Seconds 2
 Write-Host $deviceType -ForegroundColor "Yellow"
 Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
-& $config.HardwareMFG
+
 
 # ConnectWise Automate Agent Installation
 $file = 'c:\temp\Warehouse-Agent_Install.MSI'
@@ -413,9 +413,9 @@ if ($manufacturer -eq "Dell Inc.") {
     $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
     $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall-v2.ps1"
     $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
-    
+    & $config.DellHardware
     Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
-    Start-Sleep -seconds 1
+    Start-Sleep -seconds 2
     # Download Dell Silent Uninstall
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
 
