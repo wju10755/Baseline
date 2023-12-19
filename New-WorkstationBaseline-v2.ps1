@@ -250,10 +250,10 @@ powercfg /change hibernate-timeout-ac 0
 powercfg /h off
 #New-BurntToastNotification -Text "Sleep and hibernation settings disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.HiberSleep
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Disabled sleep and hibernation mode."
-Start-Sleep -Seconds 5
+Start-Sleep -Seconds 2
 
 
 # Disable fast startup
@@ -263,7 +263,7 @@ $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
 Write-Log "Disabled fast startup."
 & $config.FastStartup
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
 
@@ -273,7 +273,7 @@ Write-Host "Configuring power profile..." -NoNewline
 powercfg /SETACTIVE SCHEME_CURRENT
 #New-BurntToastNotification -Text "Power profile set to 'Balanced'" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.PowerProfile
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Power Profile set to 'Balanced'"
 Start-Sleep -Seconds 5
@@ -358,6 +358,53 @@ Start-Sleep -Seconds 3
 $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2
 
+# Move Procmon left
+Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class WinAPI {
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+    }
+"@
+
+function Move-ProcessWindowToTopLeft([string]$processName) {
+    $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
+    if ($process -eq $null) {
+        Write-Host "Process not found."
+        return
+    }
+
+    $hWnd = $process.MainWindowHandle
+    if ($hWnd -eq [IntPtr]::Zero) {
+        Write-Host "Window handle not found."
+        return
+    }
+
+    $windowRect = New-Object WinAPI+RECT
+    [WinAPI]::GetWindowRect($hWnd, [ref]$windowRect)
+    $windowWidth = $windowRect.Right - $windowRect.Left
+    $windowHeight = $windowRect.Bottom - $windowRect.Top
+
+    # Set coordinates to the top left corner of the screen
+    $x = 0
+    $y = 0
+
+    [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
+}
+
+Move-ProcessWindowToTopLeft -processName "procmon64"
 
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
