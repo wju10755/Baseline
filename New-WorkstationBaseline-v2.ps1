@@ -1,5 +1,6 @@
 Clear-Host
 $ErrorActionPreference = 'SilentlyContinue'
+$WarningActionPreference = 'SilentlyContinue'
 function Print-Middle($Message, $Color = "White") {
     Write-Host (" " * [System.Math]::Floor(([System.Console]::BufferWidth / 2) - ($Message.Length / 2))) -NoNewline;
     Write-Host -ForegroundColor $Color $Message;
@@ -13,8 +14,7 @@ Print-Middle "MITS - New Workstation Baseline Utility";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 Set-ExecutionPolicy -Scope process RemoteSigned -Force
-$ErrorActionPreference = 'SilentlyContinue'
-$WarningActionPreference = 'SilentlyContinue'
+
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 $LogFile = C:\temp\$env:COMPUTERNAME-baseline.log
 
@@ -419,7 +419,8 @@ if ($manufacturer -eq "Dell Inc.") {
     Write-Warning "Skipping Dell debloat module."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
-
+taskkill /f /im procmon64.exe *> $null
+Start-Sleep -Seconds 3
 # Remove Pre-Installed Office
 $RemoveOfficeURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
 $RemoveOfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
@@ -427,11 +428,13 @@ $RemoveOfficeScript = "c:\temp\Remove-Office.ps1"
 $RemoveOfficeSpinner = "c:\temp\Remove-Office-Spinner.ps1"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1" -OutFile "c:\temp\Remove-Office.ps1"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1" -OutFile "c:\temp\Remove-Office-Spinner.ps1"
-
+Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 if(Test-Path $RemoveOfficeSpinner) {
     & $config.ScrubOffice
     &$RemoveOfficeSpinner
 }
+taskkill /f /im procmon64.exe *> $null
 
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
@@ -541,6 +544,11 @@ try {
 } catch {
     Write-Host "An error occurred: $_" -foregroundColor "Red"
 }
+
+
+Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
+
 
 # Install Google Chrome
 $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
