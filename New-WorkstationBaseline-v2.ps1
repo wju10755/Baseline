@@ -246,7 +246,7 @@ powercfg /h off
 & $config.HiberSleep
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
-Write-Log "Disabled sleep and hibernation modes."
+Write-Log "Disabled sleep and hibernation mode."
 Start-Sleep -Seconds 5
 
 
@@ -256,7 +256,6 @@ Write-Host "Disabling Fast Startup..." -NoNewline
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
 Write-Log "Disabled fast startup."
-#New-BurntToastNotification -Text "Fast startup disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.FastStartup
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
@@ -270,6 +269,7 @@ powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PowerProfile
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
+Write-Log "Power Profile set to 'Balanced'"
 Start-Sleep -Seconds 5
 
 # Set power button action to 'Shutdown'
@@ -281,7 +281,7 @@ powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PwrButton
 Start-Sleep -Seconds 3
 Write-Host " done." -ForegroundColor "Green"
-Write-Log "Set power button action to 'Shutdown'."
+Write-Log "Power button action set to 'Shutdown'."
 Start-Sleep -Seconds 5
 
 # Set 'lid close action' to do nothing on laptops
@@ -290,7 +290,7 @@ if ($deviceType -eq "Laptop") {
     Write-Host "Setting Lid Close Action..." -NoNewline
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
-    Write-Log "Set 'lid close action' to Do Nothing on laptop."
+    Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
     & $config.LidAction
     Start-Sleep -Seconds 2
     Write-Host " done." -ForegroundColor "Green"
@@ -299,6 +299,7 @@ if ($deviceType -eq "Laptop") {
 
 # Set the time zone to 'Eastern Standard Time'
 Write-Host "Setting EST as default timezone..." -NoNewline
+Start-Sleep -Seconds 2
 Start-Service W32Time
 Set-TimeZone -Id "Eastern Standard Time"
 Write-Log "Time zone set to Eastern Standard Time."
@@ -317,9 +318,9 @@ Start-Sleep -Seconds 5
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
 
 # Enable system restore
-Write-Host "Configuring System Restore..." -NoNewLine
+Write-Host "Enabling System Restore..." -NoNewLine
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
-Write-Log "System restore enabled."
+Write-Log "Enabled System Restore."
 Write-Host " done." -ForegroundColor "Green"
 & $config.SystemRestore
 Start-Sleep -Seconds 5
@@ -413,7 +414,7 @@ if (Is-Windows11) {
     }
 }
 else {
-    Write-Log "This script is intended to run only on Windows 11."
+    #Write-Log "This script is intended to run only on Windows 11."
 }
 
 
@@ -452,7 +453,7 @@ else {
 try {
     $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
     if ($OneDriveProduct) {
-        Write-Host "Removing Microsoft OneDrive (Personal)" -NoNewline
+        Write-Host "Removing Microsoft OneDrive (Personal)..." -NoNewline
         $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
         # Recheck if OneDrive is uninstalled
         $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
@@ -475,9 +476,8 @@ try {
 try {
     $TeamsMWI = Get-Package -Name 'Teams Machine*'
     if ($TeamsMWI) {
-        Write-Host "Removing Microsoft Teams Machine-Wide Installer" -NoNewline
+        Write-Host "Removing Microsoft Teams Machine-Wide Installer..." -NoNewline
         Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
-        # Recheck if Teams Machine Wide Installer is uninstalled
         $MWICheck = Get-Package -Name 'Teams Machine*'
         if (-not $MWICheck) {
             Write-Host " done." -foregroundColor "Green"
@@ -503,18 +503,14 @@ if ($Chrome) {
 } else {
     $FilePath = "c:\temp\ChromeSetup.exe"
     if (-not (Test-Path $FilePath)) {
-        # If not found, download it from the given URL
         $ProgressPreference = 'Continue'
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
-        #Write-Host "Downloading Google Chrome (1,373,744 bytes)..." -NoNewline
         Invoke-WebRequest -OutFile c:\temp\ChromeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe" -UseBasicParsing
-        #Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\ChromeSetup.exe to install Google Chrome silently
         & $config.chromeNotification
         Write-Host "Installing Google Chrome..." -NoNewline
         Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
@@ -543,9 +539,8 @@ if ($Acrobat) {
 } else {
     $FilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
     if (-not (Test-Path $FilePath)) {
-        # If not found, download it from the given URL
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
-        Write-Host "Downloading Adobe Acrobat Reader ( 277,900,248 bytes)..." -NoNewline
+        Write-Host "Downloading Adobe Acrobat Reader (277,900,248 bytes)..." -NoNewline
         & $config.acrobatDownload
         Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
@@ -583,17 +578,13 @@ if ($O365) {
 } else {
     $FilePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $FilePath)) {
-        # If not found, download it from the given URL
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        #Write-Host "Downloading Microsoft Office..." -NoNewline
         Invoke-WebRequest -OutFile c:\temp\OfficeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe" -UseBasicParsing
-        #Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
     $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
         & $config.officeNotice
         Write-Host "Installing Microsoft Office..." -NoNewline
         Start-Process -FilePath "C:\temp\Officesetup.exe" -Wait
@@ -623,17 +614,13 @@ if ($SWNE) {
 } else {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
-        # If not found, download it from the given URL
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
-        #Write-Host "Downloading Sonicwall NetExtender..." -NoNewline
         Invoke-WebRequest -OutFile c:\temp\NXSetupU-x64-10.2.337.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe" -UseBasicParsing
-        #Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $NEFilePath).Length
     $ExpectedSize = 4788816 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\NXSetupU-x64-10.2.337.exe /S to install NetExtender silently
         Write-Host "Installing Sonicwall NetExtender..." -NoNewline
         start-process -filepath "C:\temp\NXSetupU-x64-10.2.337.exe" /S -Wait
         Write-Host " done." -ForegroundColor "Green"
