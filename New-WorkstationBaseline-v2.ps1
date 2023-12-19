@@ -16,7 +16,7 @@ Set-ExecutionPolicy -Scope process RemoteSigned -Force
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningActionPreference = 'SilentlyContinue'
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
-
+$LogFile = C:\temp\$env:COMPUTERNAME-baseline.log
 
 # Check if the system type is a laptop (Mobile or Notebook)
 $computerSystem = Get-WmiObject Win32_ComputerSystem
@@ -70,7 +70,6 @@ $config = @{
     HiberSleep           = "C:\temp\psnotice\HiberSleep\New-ToastNotification.ps1"
     HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
     LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
-    LogFile              = "C:\temp\$env:COMPUTERNAME-baseline.log"
     NoSnooze             = "c:\temp\nosnooze.ps1"
     NoSnoozeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
     NoSnoozeZip          = "c:\temp\nosnooze.zip"
