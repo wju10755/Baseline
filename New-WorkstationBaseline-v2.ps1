@@ -376,7 +376,7 @@ if ($manufacturer -eq "Dell Inc.") {
 
 # Remove Pre-Installed Office
 $RemoveOfficeURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
-RemoveOfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
+$RemoveOfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
 $RemoveOfficeScript = "c:\temp\Remove-Office.ps1"
 $RemoveOfficeSpinner = "c:\temp\Remove-Office-Spinner.ps1"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1" -OutFile "c:\temp\Remove-Office.ps1"
