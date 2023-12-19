@@ -395,7 +395,7 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
     [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
 }
 
-Move-ProcessWindowToTopLeft -processName "procmon64"
+Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
