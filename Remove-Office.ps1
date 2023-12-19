@@ -3,9 +3,7 @@ $OfficeUninstallStrings = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\Cur
         ForEach ($UninstallString in $OfficeUninstallStrings) {
             $UninstallEXE = ($UninstallString -split '"')[1]
             $UninstallArg = ($UninstallString -split '"')[2] + " DisplayLevel=False"
-            Write-Host "This is where the Microsoft 365 uninstall will be triggered"
-            Start-Sleep -seconds 10
-            #Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
+            Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
         } 
 
 Start-Sleep -Seconds 3
@@ -14,7 +12,5 @@ $OneNoteUninstallStrings = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\Cu
         ForEach ($UninstallString in $OneNoteUninstallStrings) {
             $UninstallEXE = ($UninstallString -split '"')[1]
             $UninstallArg = ($UninstallString -split '"')[2] + " DisplayLevel=False"
-            Write-Host "This is where the Microsoft OneNote uninstall will be triggered"
-            Start-Sleep -seconds 10 
-            #Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
+            Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
         }  
