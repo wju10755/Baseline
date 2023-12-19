@@ -1,4 +1,4 @@
-Start-Transcript -path c:\temp\Dell_Uninstall.log
+Start-Transcript -path c:\temp\$env:ComputerName-Dell_Uninstall.log
 # Instal Common Stuff 
 $moduleName = "CommonStuff"
 
