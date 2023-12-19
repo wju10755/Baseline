@@ -420,6 +420,7 @@ if ($manufacturer -eq "Dell Inc.") {
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
 
     if (Test-Path -Path $SpinnerFile) {
+    Stop-Transcript *> $null
     & $config.DellBloatware
     & $SpinnerFile
         }
@@ -441,7 +442,7 @@ if(Test-Path $RemoveOfficeSpinner) {
     & $config.ScrubOffice
     &$RemoveOfficeSpinner
 }
-
+Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 # Function to check if the OS is Windows 11
 function Is-Windows11 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
