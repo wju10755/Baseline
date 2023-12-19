@@ -89,6 +89,7 @@ $config = @{
     Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
     Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
     DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
+    ScrubOffice          = "C:\temp\psnotice\scruboffice\New-ToastNotification.ps1"
 }
 
 # Create temp directory and baseline log
@@ -384,7 +385,7 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1" -OutFile "c:\temp\Remove-Office-Spinner.ps1"
 
 if(Test-Path $RemoveOfficeSpinner) {
-    #Write-Host "Starting uninstall of pre-installed Microsoft 365 Applications..."
+    & $config.ScrubOffice
     &$RemoveOfficeSpinner
 }
 
@@ -438,7 +439,6 @@ if (Is-Windows10) {
         Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
         Start-Sleep -Seconds 2
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
-        #Write-Output "Windows 10 Debloat Complete!"
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
@@ -544,6 +544,7 @@ if ($Acrobat) {
         & $config.acrobatDownload
         Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
+        & $config.ClearPath
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
