@@ -506,34 +506,31 @@ if ($Chrome) {
         # If not found, download it from the given URL
         $ProgressPreference = 'Continue'
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
-        Write-Host "Downloading Google Chrome (1,373,744 bytes)..." -NoNewline
+        #Write-Host "Downloading Google Chrome (1,373,744 bytes)..." -NoNewline
         Invoke-WebRequest -OutFile c:\temp\ChromeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe" -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
+        #Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
         # Run c:\temp\ChromeSetup.exe to install Google Chrome silently
-        & $chromeNotification
+        & $config.chromeNotification
         Write-Host "Installing Google Chrome..." -NoNewline
         Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
-        & $clearPath
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Google Chrome installed successfully."
-        & $chromeComplete
+        & $config.chromeComplete
         Start-Sleep -Seconds 15
-        & $clearPath
-        
+        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
     else {
         # Report download error
-        & $chromeFailure
+        & $config.chromeFailure
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Google Chrome download failed!"
         Start-Sleep -Seconds 10
-        & $clearPath
-        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
 
@@ -541,8 +538,6 @@ if ($Chrome) {
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                   HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
-Start-Sleep -Seconds 1
-& $clearPath
 if ($Acrobat) {
     Write-Host "Existing Acrobat Reader installation found." -ForegroundColor "Cyan"
 } else {
@@ -551,32 +546,28 @@ if ($Acrobat) {
         # If not found, download it from the given URL
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
         Write-Host "Downloading Adobe Acrobat Reader ( 277,900,248 bytes)..." -NoNewline
-        & $acrobatDownload
+        & $config.acrobatDownload
         Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
-        & $clearPath
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
     $ExpectedSize = 277900248 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
         Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
-        & $acrobatNotification
+        & $config.acrobatNotification
         Start-Process -FilePath $FilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
-        & $acrobatComplete
+        & $config.acrobatComplete
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Adobe Acrobat installed successfully."
         Start-Sleep -Seconds 2
-        & $clearPath
     }
     else {
         # Report download error
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Download failed. File size does not match."
-        & $acrobatFailure
+        & $config.acrobatFailure
         Start-Sleep -Seconds 5
-        & $clearPath
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
@@ -603,21 +594,21 @@ if ($O365) {
     $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
-        & $officeNotice
+        & $config.officeNotice
         Write-Host "Installing Microsoft Office..." -NoNewline
         Start-Process -FilePath "C:\temp\Officesetup.exe" -Wait
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Office 365 Installation Completed Successfully."
-        & $clearPath
+        Start-Sleep -Seconds 10
+        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
     else {
         # Report download error
-        & $officeFailure
+        & $config.officeFailure
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Office download failed!"
         Start-Sleep -Seconds 10
-        & $clearPath
-        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
 
@@ -709,38 +700,17 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     Start-Sleep -seconds 2
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
-    & $config.ClearPath
-
 } else {
     Write-host "Windows update module download failed" -ForegroundColor Red
 }
 & $config.UpdateComplete
 
-# Check for and install all available Windows update
-#Start-Sleep -Seconds 4
-#Write-Output "Windows Update in progress..."
-#& $updateNotice
-#Install-Module -Name PSWindowsUpdate -Force -ErrorAction SilentlyContinue
-#Import-Module PSWindowsUpdate
-#$updates = Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -ErrorAction SilentlyContinue
-#$TotalUpdates = $updates.Count
-#& $clearPath
-#Write-Output "$totalUpdates Windows updates are available."
-#if ($updates) {
-#    & $updateComplete
-#    Write-Log "Installed $($updates.Count) Windows updates"
-#    Start-Sleep -Seconds 30
-#    & $clearPath
-#} else {
-#    Write-Log "No additional Windows updates are available."
-#}
-
 
 # Notify device is ready for Domain Join Operation
 $NTFY1 = "& cmd.exe /c curl -d '%ComputerName% is ready to join the domain.' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
 Invoke-Expression -command $NTFY1 *> $null
-
 Start-Sleep -Seconds 3
+
 Write-Output " "
 Write-Output "Starting Domain/Azure AD Join Function..."
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
@@ -821,17 +791,16 @@ $NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete!' 172-233-19
 Invoke-Expression -command $NTFY2 *> $null
 
 # Final log entry
-& $baselineComplete
+& $config.baselineComplete
 Write-Log "Baseline configuration completed successfully."
 Stop-Transcript
 
 # Baseline temp file cleanup
-Write-Host "Cleaning up temp files..." -NoNewline
-Remove-Item -path c:\BRU -Recurse -Force
+#Write-Host "Cleaning up temp files..." -NoNewline
 #Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
-Write-Log "Baseline temp file cleanup completed successfully"
-Start-Sleep -Seconds 1
-Write-Host " done." -ForegroundColor "Green"    
+#Write-Log "Baseline temp file cleanup completed successfully"
+#Start-Sleep -Seconds 1
+#Write-Host " done." -ForegroundColor "Green"    
 Start-Sleep -seconds 1
 Start-Process "appwiz.cpl"
 Read-Host -Prompt "Press Enter to exit."
