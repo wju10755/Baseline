@@ -88,8 +88,10 @@ $config = @{
     SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
     Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
     Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
+    Win10                = "C:\temp\psnotice\win10\New-ToastNotification.ps1"
     DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
     ScrubOffice          = "C:\temp\psnotice\scruboffice\New-ToastNotification.ps1"
+    DellBloatware        = "C:\temp\psnotice\DellNotice\New-ToastNotification.ps1"
 }
 
 # Create temp directory and baseline log
@@ -169,6 +171,16 @@ Start-Sleep -Seconds 1
 & $config.StartBaseline | Out-Null
 Write-Log "Automated workstation baseline has started"
 
+# Identify device manufacturer and chassis type
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+$deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
+Write-Host "Identifying device type: " -NoNewline
+Start-Sleep -Seconds 2
+Write-Host $deviceType -ForegroundColor "Yellow"
+Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
+& $config.HardwareMFG
+
 # ConnectWise Automate Agent Installation
 $file = 'c:\temp\Warehouse-Agent_Install.MSI'
 $agentName = "LTService"
@@ -216,14 +228,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 }
 
 
-# Identify device manufacturer and chassis type
-$computerSystem = Get-WmiObject Win32_ComputerSystem
-$manufacturer = $computerSystem.Manufacturer
-$deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
-Write-Host "Identifying device type: " -NoNewline
-Start-Sleep -Seconds 2
-Write-Host $deviceType -ForegroundColor "Yellow"
-Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
+
 
 
 # Set power profile to 'Balanced'
@@ -361,13 +366,14 @@ if ($manufacturer -eq "Dell Inc.") {
     $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
     $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall-v2.ps1"
     $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
-    & $config.HardwareMFG
+    
     Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
     Start-Sleep -seconds 1
     # Download Dell Silent Uninstall
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
 
     if (Test-Path -Path $SpinnerFile) {
+    & $config.DellBloatware
     & $SpinnerFile
         }
     
@@ -408,6 +414,7 @@ if (Is-Windows11) {
         Start-Sleep -seconds 2
         Expand-Archive $Win11DebloatFile -DestinationPath 'c:\temp\MITS-Debloat'
         Start-Sleep -Seconds 2
+        & $config.Win11
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
     }
     catch {
@@ -438,6 +445,7 @@ if (Is-Windows10) {
         Start-Sleep -seconds 2
         Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
         Start-Sleep -Seconds 2
+        & $config.win10
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
     }
     catch {
@@ -691,7 +699,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
 } else {
     Write-host "Windows update module download failed" -ForegroundColor Red
 }
-& $config.UpdateComplete
+
 
 
 # Notify device is ready for Domain Join Operation
