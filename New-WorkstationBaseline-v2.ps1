@@ -324,17 +324,17 @@ Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
 
 # Create restore point
-Write-Host "Creating System Restore Checkpoint..." -nonewline
-Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_SETTINGS'
-$restorePoint = Get-ComputerRestorePoint | Sort-Object -Property "CreationTime" -Descending | Select-Object -First 1
-if ($restorePoint -ne $null) {
-    Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Restore Checkpoint Created Successfully."
-} else {
-    Write-Host "Failed to create restore point" -ForegroundColor "Red"
-}
-& $config.Checkpoint
-Start-Sleep -Seconds 5
+#Write-Host "Creating System Restore Checkpoint..." -nonewline
+#Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_SETTINGS'
+#$restorePoint = Get-ComputerRestorePoint | Sort-Object -Property "CreationTime" -Descending | Select-Object -First 1
+#if ($restorePoint -ne $null) {
+#    Write-Host " done." -ForegroundColor "Green"
+#    Write-Log "Restore Checkpoint Created Successfully."
+#} else {
+#    Write-Host "Failed to create restore point" -ForegroundColor "Red"
+#}
+#& $config.Checkpoint
+#Start-Sleep -Seconds 5
 
 
 # Download Procmon
