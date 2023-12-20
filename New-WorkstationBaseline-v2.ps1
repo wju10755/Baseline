@@ -318,7 +318,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Syste
 # Enable system restore
 Write-Host "Enabling System Restore..." -NoNewLine
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
-Write-Log "Enabled System Restore."
+Write-Log "System Restore Enabled."
 Write-Host " done." -ForegroundColor "Green"
 & $config.SystemRestore
 Start-Sleep -Seconds 5
@@ -329,6 +329,7 @@ Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_S
 $restorePoint = Get-ComputerRestorePoint | Sort-Object -Property "CreationTime" -Descending | Select-Object -First 1
 if ($restorePoint -ne $null) {
     Write-Host " done." -ForegroundColor "Green"
+    Write-Log "Restore Checkpoint Created Successfully."
 } else {
     Write-Host "Failed to create restore point" -ForegroundColor "Red"
 }
@@ -416,11 +417,12 @@ if ($manufacturer -eq "Dell Inc.") {
         }
     
 } else {
-    Write-Warning "Skipping Dell debloat module."
+    Write-Warning "Skipping Dell debloat module due to device not meeting hardware requirements."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
 taskkill /f /im procmon64.exe *> $null
 Start-Sleep -Seconds 3
+
 # Remove Pre-Installed Office
 $RemoveOfficeURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
 $RemoveOfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
@@ -460,6 +462,7 @@ if (Is-Windows11) {
         Start-Sleep -Seconds 2
         & $config.Win11
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        Write-Log "Windows 11 Debloat completed successfully."
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
@@ -491,6 +494,7 @@ if (Is-Windows10) {
         Start-Sleep -Seconds 2
         & $config.win10
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
+        Write-Log "Windows 10 Debloat completed successfully."
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
@@ -572,7 +576,7 @@ if ($Chrome) {
         Write-Host "Installing Google Chrome..." -NoNewline
         Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
         Write-Host " done." -ForegroundColor "Green"
-        Write-Log "Google Chrome installed successfully."
+        Write-Log "Google Chrome successfully installed."
         & $config.chromeComplete
         Start-Sleep -Seconds 15
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
@@ -601,8 +605,7 @@ if ($Acrobat) {
         & $config.acrobatDownload
         Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
-        & $config.ClearPath
-        
+        & $config.ClearPath   
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
@@ -646,7 +649,7 @@ if ($O365) {
     $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         & $config.officeNotice
-        Write-Host "Installing Microsoft Office..." -NoNewline
+        Write-Host "Installing Office 365..." -NoNewline
         Start-Process -FilePath "C:\temp\Officesetup.exe" -Wait
         Write-Host " done." -ForegroundColor "Green"
         Write-Log "Office 365 Installation Completed Successfully."
@@ -684,7 +687,7 @@ if ($SWNE) {
         Write-Host "Installing Sonicwall NetExtender..." -NoNewline
         start-process -filepath "C:\temp\NXSetupU-x64-10.2.337.exe" /S -Wait
         Write-Host " done." -ForegroundColor "Green"
-        Write-Log "Sonicwall NetExtender installed successfully."
+        Write-Log "Sonicwall NetExtender installation completed successfully."
         Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
     }
     else {
@@ -736,7 +739,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
     # Retrieve and Output the Recovery Key Password
     $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
-    #Write-Output "Recovery Key Password: $RecoveryKeyPW"
+    Write-Log "Bitlocker Recovery Key Password: $RecoveryKeyPW"
 }
 
 # Installing Windows Updates
@@ -753,11 +756,14 @@ if (Test-Path "c:\temp\update_windows.ps1") {
 }
 
 
+# Notify device Baseline is complete and ready to join domain.
+$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready for domain join!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
+Invoke-Expression -command $NTFY2 *> $null
 
-# Notify device is ready for Domain Join Operation
-$NTFY1 = "& cmd.exe /c curl -d '%ComputerName% is ready to join the domain.' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
-Invoke-Expression -command $NTFY1 *> $null
-Start-Sleep -Seconds 3
+
+
+
+
 
 Write-Output " "
 Write-Output "Starting Domain/Azure AD Join Function..."
@@ -788,6 +794,7 @@ if ($choice -eq "Y" -or $choice -eq "N") {
 } else {
     # Display an error message if the user input is invalid
     Write-Error "Invalid choice. Please enter Y or N."
+    Write-Log "Invalid response received."
     break
 }
 
@@ -836,25 +843,15 @@ if ($choice -eq "A" -or $choice -eq "S") {
 } else {
     # Display an error message if the user input is invalid
     Write-Error "Invalid choice. Please enter A or S."
-    break
+    Write-Log "Invalid domain join response received."
+    #break
 }
 
-
-# Notify device Baseline is complete
-$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
-Invoke-Expression -command $NTFY2 *> $null
 
 # Final log entry
 & $config.baselineComplete
 Write-Log "Baseline configuration completed successfully."
-Stop-Transcript
-
-# Baseline temp file cleanup
-#Write-Host "Cleaning up temp files..." -NoNewline
-#Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
-#Write-Log "Baseline temp file cleanup completed successfully"
-#Start-Sleep -Seconds 1
-#Write-Host " done." -ForegroundColor "Green"    
+Stop-Transcript  
 Start-Sleep -seconds 1
 Start-Process "appwiz.cpl"
 Read-Host -Prompt "Press Enter to exit."
