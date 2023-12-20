@@ -70,6 +70,7 @@ $config = @{
     HiberSleep           = "C:\temp\psnotice\HiberSleep\New-ToastNotification.ps1"
     HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
     LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
+    LogFile              = "C:\temp\baseline.log"
     NoSnooze             = "c:\temp\nosnooze.ps1"
     NoSnoozeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
     NoSnoozeZip          = "c:\temp\nosnooze.zip"
@@ -97,8 +98,8 @@ function Initialize-Environment {
     if (-not (Test-Path $config.TempFolder)) {
         New-Item -Path $config.TempFolder -ItemType Directory | Out-Null
     }
-    if (-not (Test-Path $LogFile)) {
-        New-Item -Path $LogFile -ItemType File | Out-Null
+    if (-not (Test-Path $config.LogFile)) {
+        New-Item -Path $config.LogFile -ItemType File | Out-Null
     }
 }
 
@@ -107,7 +108,7 @@ function Write-Log {
     param (
         [string]$Message
     )
-    Add-Content -Path $LogFile -Value "$(Get-Date) - $Message"
+    Add-Content -Path $config.LogFile -Value "$(Get-Date) - $Message"
 }
 
 # Check for required Powershell Modules
