@@ -13,13 +13,40 @@ if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
 # Import PSWindowsUpdate module
 Import-Module PSWindowsUpdate
 
+# Variables
+$WUTemp = c:\temp\
+$WULog = c:\temp\$env:COMPUTERNAME-Updates.log
+
+# Create temp directory and baseline log
+function Initialize-Environment {
+    if (-not (Test-Path $WUTemp)) {
+        New-Item -Path $WUTemp -ItemType Directory | Out-Null
+    }
+    if (-not (Test-Path $WULog)) {
+        New-Item -Path $WULog -ItemType File | Out-Null
+    }
+}
+
+# Baseline Log
+function Write-Log {
+    param (
+        [string]$Message
+    )
+    Add-Content -Path $WULog -Value "$(Get-Date) - $Message"
+}
+
+
 # Check for updates
 Write-Host "Checking for updates..."
 $availableUpdates = Get-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot
+$ConsoleUpdates = $availableUpdates | Select-Object Title | ft -HideTableHeaders
 
 # Display the total number of updates found
 $totalUpdates = $availableUpdates.Count
 Write-Host "Total Updates available: $totalUpdates"
+Write-Log "Total Updates available: $totalUpdates"
+Write-Log "$consoleUpdates"
+
 Start-Sleep -Seconds 5
 # Install updates
 if ($totalUpdates -gt 0) {
