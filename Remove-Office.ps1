@@ -5,6 +5,7 @@ $OfficeUninstallStrings = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\Cur
             $UninstallArg = ($UninstallString -split '"')[2] + " DisplayLevel=False"
             Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
         } 
+taskkill /f /im procmon64.exe *> $null
 
 Start-Sleep -Seconds 3
 
