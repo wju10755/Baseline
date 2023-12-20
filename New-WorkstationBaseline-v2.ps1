@@ -97,8 +97,8 @@ function Initialize-Environment {
     if (-not (Test-Path $config.TempFolder)) {
         New-Item -Path $config.TempFolder -ItemType Directory | Out-Null
     }
-    if (-not (Test-Path $config.LogFile)) {
-        New-Item -Path $config.LogFile -ItemType File | Out-Null
+    if (-not (Test-Path $LogFile)) {
+        New-Item -Path $LogFile -ItemType File | Out-Null
     }
 }
 
@@ -107,7 +107,7 @@ function Write-Log {
     param (
         [string]$Message
     )
-    Add-Content -Path $config.LogFile -Value "$(Get-Date) - $Message"
+    Add-Content -Path $LogFile -Value "$(Get-Date) - $Message"
 }
 
 # Check for required Powershell Modules
