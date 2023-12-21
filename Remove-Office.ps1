@@ -1,6 +1,13 @@
 Start-Sleep -Seconds 5
 
+# Download Procmon
+$ProgressPreference = 'SilentlyContinue'
+$ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
+$ProcmonFile = "c:\temp\Procmon.exe"
+Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
+Start-Sleep -Seconds 2
 Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+
 # Move Procmon left
 Add-Type @"
     using System;
