@@ -147,7 +147,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
     Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
 }
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.\n")
+[Console]::Write(" done.")
 [Console]::ResetColor() 
 [Console]::WriteLine() 
 
@@ -168,7 +168,7 @@ Start-Sleep -Seconds 2
 
 
 # Stop & disable the Windows Update service
-Write-Host "Suspending windows Update during baseline..." -NoNewline
+[Console]::Write("Suspending windows Update during baseline...")
 Stop-Service -Name wuauserv -Force
 Set-Service -Name wuauserv -StartupType Disabled
 Start-Sleep -Seconds 3
