@@ -16,7 +16,6 @@ Write-Host " "
 Set-ExecutionPolicy -Scope process RemoteSigned -Force
 
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
-$LogFile = C:\temp\$env:COMPUTERNAME-baseline.log
 
 # Check if the system type is a laptop (Mobile or Notebook)
 $computerSystem = Get-WmiObject Win32_ComputerSystem
@@ -116,6 +115,22 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Install-PackageProvider -Name NuGet -Scope CurrentUser -Force -Confirm:$false
     Import-PackageProvider -Name NuGet -Force -Confirm:$false
     Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted -Confirm:$false
+}
+
+
+
+
+
+
+# Stop & disable the Windows Update service
+Stop-Service -Name wuauserv -Force
+Set-Service -Name wuauserv -StartupType Disabled
+Start-Sleep -Seconds 3
+$service = Get-Service -Name wuauserv
+if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
+    Write-Host "The Windows Update service has been successfully stopped and disabled."
+} else {
+    Write-Host "Failed to stop and/or disable the Windows Update service."
 }
 
 # Check and install BurntToast Module if not found
@@ -794,6 +809,18 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Log "Bitlocker Recovery Key Password: $RecoveryKeyPW"
 }
 
+# Enable and start Windows Update Service
+Set-Service -Name wuauserv -StartupType Manual
+Start-Service -Name wuauserv
+Start-Sleep -Seconds 3
+$service = Get-Service -Name wuauserv
+if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
+    Write-Host "The Windows Update service has been successfully enabled and is running."
+} else {
+    Write-Host "Failed to start and/or enable the Windows Update service."
+}
+
+
 # Installing Windows Updates
 & $config.UpdateNotice
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/update_windows.ps1" -OutFile "c:\temp\update_windows.ps1"
@@ -811,10 +838,6 @@ if (Test-Path "c:\temp\update_windows.ps1") {
 # Notify device Baseline is complete and ready to join domain.
 $NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready for domain join!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
 Invoke-Expression -command $NTFY2 *> $null
-
-
-
-
 
 
 Write-Output " "
