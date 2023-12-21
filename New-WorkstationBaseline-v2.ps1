@@ -93,7 +93,7 @@ if ($computerSystem.PCSystemType -eq 2) {
 
 Write-Output " "
 Write-Output " "
-Write-Host "Starting workstation baseline...." -ForegroundColor "Yellow"   
+Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
 Write-Output " "
 Start-Sleep -Seconds 2
 
@@ -274,12 +274,12 @@ Write-Log "Power Profile set to 'Balanced'"
 Start-Sleep -Seconds 5
 
 # Set power button action to 'Shutdown'
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 Write-Host "Configuring power button action to shutdown..." -NoNewline
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PwrButton
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Power button action set to 'Shutdown'."
 Start-Sleep -Seconds 5
@@ -292,7 +292,7 @@ if ($deviceType -eq "Laptop") {
     powercfg /SETACTIVE SCHEME_CURRENT
     Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
     & $config.LidAction
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 1
     Write-Host " done." -ForegroundColor "Green"
     Start-Sleep -Seconds 5
 }
@@ -304,12 +304,13 @@ Start-Service W32Time
 Set-TimeZone -Id "Eastern Standard Time"
 Write-Log "Time zone set to Eastern Standard Time."
 Start-Sleep -Seconds 2
+& $config.timezone
 Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 3
 Write-Host "Syncing clock..." -NoNewline
 w32tm /resync -ErrorAction SilentlyContinue | out-null
 Start-Sleep -Seconds 2
-& $config.timezone
+
 Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"    
 Start-Sleep -Seconds 5
