@@ -140,6 +140,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 
 
 # Disable Notification Snooze
+Write-Host
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
 Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe" -OutFile "c:\temp\SendWKey.exe"
@@ -253,7 +254,7 @@ Start-Sleep -Seconds 2
 
 
 # Disable fast startup
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 3
 Write-Host "Disabling Fast Startup..." -NoNewline
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
@@ -340,67 +341,6 @@ Start-Sleep -Seconds 5
 #& $config.Checkpoint
 #Start-Sleep -Seconds 5
 
-
-# Download Procmon
-$ProgressPreference = 'SilentlyContinue'
-$ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
-$ProcmonFile = "c:\temp\Procmon.exe"
-Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
-
-# Launch Procmon and enable auto-scroll
-$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
-$wshell = New-Object -ComObject wscript.shell
-Start-Sleep -Seconds 3
-$wshell.SendKeys("^a")
-Start-Sleep -Seconds 2
-
-# Move Procmon left
-Add-Type @"
-    using System;
-    using System.Runtime.InteropServices;
-    public class WinAPI {
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-        [StructLayout(LayoutKind.Sequential)]
-        public struct RECT {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-        }
-    }
-"@
-
-function Move-ProcessWindowToTopLeft([string]$processName) {
-    $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
-    if ($process -eq $null) {
-        Write-Host "Process not found."
-        return
-    }
-
-    $hWnd = $process.MainWindowHandle
-    if ($hWnd -eq [IntPtr]::Zero) {
-        Write-Host "Window handle not found."
-        return
-    }
-
-    $windowRect = New-Object WinAPI+RECT
-    [WinAPI]::GetWindowRect($hWnd, [ref]$windowRect)
-    $windowWidth = $windowRect.Right - $windowRect.Left
-    $windowHeight = $windowRect.Bottom - $windowRect.Top
-
-    # Set coordinates to the top left corner of the screen
-    $x = 0
-    $y = 0
-
-    [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
-}
-
-Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
