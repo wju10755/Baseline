@@ -109,9 +109,9 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
 if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
     Install-Module -Name BurntToast -Scope CurrentUser -Force -WarningAction SilentlyContinue | Out-Null
     Import-Module BurntToast 
-    #Write-Host " done." -ForegroundColor Green
+    
 }
-
+Write-Host " done." -ForegroundColor Green
 
 # Stop & disable the Windows Update service
 Write-Host "Suspending windows Update during baseline process..." -NoNewline
@@ -125,14 +125,11 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
     Write-Host " failed." -ForegroundColor Red
 }
 
-# Check and install BurntToast Module if not found
-if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
-    Install-Module -Name BurntToast -Scope CurrentUser -Force -Confirm:$false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-}
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line
+
+#[Console]::ForegroundColor = [System.ConsoleColor]::Green
+#[Console]::Write(" done.")
+#[Console]::ResetColor() # Reset the color to default
+#[Console]::WriteLine() # Move to the next line
 
 # Stage Toast Notifications
 [Console]::Write("Staging notifications...")
