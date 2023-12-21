@@ -138,19 +138,6 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 [Console]::WriteLine() 
 
 
-# Stop & disable the Windows Update service
-Write-Host "Suspending windows Update during baseline process..." -NoNewline
-Stop-Service -Name wuauserv -Force
-Set-Service -Name wuauserv -StartupType Disabled
-Start-Sleep -Seconds 3
-$service = Get-Service -Name wuauserv
-if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
-    Write-Host " done." -ForegroundColor Green
-} else {
-    Write-Host " failed." -ForegroundColor Red
-}
-
-
 # Disable Notification Snooze
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
@@ -164,6 +151,19 @@ Start-Sleep -Seconds 2
 # Send the Space keystroke
 [System.Windows.Forms.SendKeys]::SendWait(' ')
 [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+
+
+# Stop & disable the Windows Update service
+Write-Host "Suspending windows Update during baseline..." -NoNewline
+Stop-Service -Name wuauserv -Force
+Set-Service -Name wuauserv -StartupType Disabled
+Start-Sleep -Seconds 3
+$service = Get-Service -Name wuauserv
+if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
+    Write-Host " done." -ForegroundColor Green
+} else {
+    Write-Host " failed." -ForegroundColor Red
+}
 
 
 # Start Baseline Notification
@@ -252,7 +252,7 @@ Start-Sleep -Seconds 2
 
 
 # Disable fast startup
-Start-Sleep -Seconds 1
+Start-Sleep -Seconds 2
 Write-Host "Disabling Fast Startup..." -NoNewline
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
