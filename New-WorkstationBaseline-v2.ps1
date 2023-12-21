@@ -91,9 +91,8 @@ if ($computerSystem.PCSystemType -eq 2) {
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
 
-Write-Output " "
-Write-Output " "
-Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"
+[Console]::Write(" ")
+[Console]::Write(" ")
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("Starting workstation baseline...")
 [Console]::ResetColor() # Reset the color to default
