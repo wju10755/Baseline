@@ -93,9 +93,11 @@ if ($computerSystem.PCSystemType -eq 2) {
 
 Write-Output " "
 Write-Output " "
-Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
+Write-Host "Starting workstation baseline...." -ForegroundColor "Yellow"   
 Write-Output " "
 Start-Sleep -Seconds 2
+
+
 Write-Host "Installing required powershell modules..." -NoNewline
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
