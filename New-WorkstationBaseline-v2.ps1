@@ -17,40 +17,6 @@ Set-ExecutionPolicy -Scope process RemoteSigned -Force
 
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
-# Check if the system type is a laptop (Mobile or Notebook)
-$computerSystem = Get-WmiObject Win32_ComputerSystem
-$manufacturer = $computerSystem.Manufacturer
-
-# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
-if ($computerSystem.PCSystemType -eq 2) {
-    # It's a laptop, run the specified command
-    Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
-} else {
-    # It's not a laptop, continue to the next part of the script
-    Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
-}
-
-Write-Output " "
-Write-Output " "
-Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
-Write-Output " "
-Start-Sleep -Seconds 2
-Write-Host "Installing required powershell modules...`n" -NoNewline
-# Check and Install NuGet Provider if not found
-if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
-    Import-PackageProvider -Name NuGet -Force | Out-Null
-    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
-    
-}
-
-# Check and install BurntToast Module if not found
-if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
-    Install-Module -Name BurntToast -Scope CurrentUser -Force -WarningAction SilentlyContinue | Out-Null
-    Import-Module BurntToast 
-    Write-Host " done." -ForegroundColor Green
-}
-
 
 # Central Configuration
 $config = @{
@@ -112,6 +78,40 @@ function Write-Log {
     Add-Content -Path $config.LogFile -Value "$(Get-Date) - $Message"
 }
 
+# Check if the system type is a laptop (Mobile or Notebook)
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
+if ($computerSystem.PCSystemType -eq 2) {
+    # It's a laptop, run the specified command
+    Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
+} else {
+    # It's not a laptop, continue to the next part of the script
+    #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
+}
+
+Write-Output " "
+Write-Output " "
+Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
+Write-Output " "
+Start-Sleep -Seconds 2
+Write-Host "Installing required powershell modules..." -NoNewline
+# Check and Install NuGet Provider if not found
+if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
+    Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
+    Import-PackageProvider -Name NuGet -Force | Out-Null
+    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
+    
+}
+
+# Check and install BurntToast Module if not found
+if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
+    Install-Module -Name BurntToast -Scope CurrentUser -Force -WarningAction SilentlyContinue | Out-Null
+    Import-Module BurntToast 
+    
+}
+Write-Host " done." -ForegroundColor Green
 
 # Stop & disable the Windows Update service
 Write-Host "Suspending windows Update during baseline process..." -NoNewline
