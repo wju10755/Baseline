@@ -110,27 +110,17 @@ function Write-Log {
     Add-Content -Path $config.LogFile -Value "$(Get-Date) - $Message"
 }
 
-# Check for required Powershell Modules
-if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet -Scope CurrentUser -Force -Confirm:$false
-    Import-PackageProvider -Name NuGet -Force -Confirm:$false
-    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted -Confirm:$false
-}
-
-
-
-
-
 
 # Stop & disable the Windows Update service
+Write-Host "Suspending windows Update during baseline process..." -NoNewline
 Stop-Service -Name wuauserv -Force
 Set-Service -Name wuauserv -StartupType Disabled
 Start-Sleep -Seconds 3
 $service = Get-Service -Name wuauserv
 if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
-    Write-Host "The Windows Update service has been successfully stopped and disabled."
+    Write-Host " done." -ForegroundColor Green
 } else {
-    Write-Host "Failed to stop and/or disable the Windows Update service."
+    Write-Host " failed." -ForegroundColor Red
 }
 
 # Check and install BurntToast Module if not found
