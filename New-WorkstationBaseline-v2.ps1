@@ -91,13 +91,10 @@ if ($computerSystem.PCSystemType -eq 2) {
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
 
-[Console]::Write(" ")
-[Console]::Write(" ")
-[Console]::ForegroundColor = [System.ConsoleColor]::Yellow
-[Console]::Write("Starting workstation baseline...")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line   
-
+Write-Output " "
+Write-Output " "
+Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
+Write-Output " "
 Start-Sleep -Seconds 2
 Write-Host "Installing required powershell modules..." -NoNewline
 # Check and Install NuGet Provider if not found
@@ -106,7 +103,7 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Import-PackageProvider -Name NuGet -Force | Out-Null
     Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
     
-} 
+}
 
 # Check and install BurntToast Module if not found
 if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
