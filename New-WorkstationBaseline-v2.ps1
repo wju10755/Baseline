@@ -59,7 +59,9 @@ Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 Set-ExecutionPolicy -Scope process RemoteSigned -Force
 
+# Start baseline transcript log
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
+
 
 # Create temp directory and baseline log
 function Initialize-Environment {
@@ -71,7 +73,8 @@ function Initialize-Environment {
     }
 }
 
-# Baseline Log
+
+# Baseline Operatoins Log
 function Write-Log {
     param (
         [string]$Message
@@ -79,11 +82,11 @@ function Write-Log {
     Add-Content -Path $config.LogFile -Value "$(Get-Date) - $Message"
 }
 
+
 # Check if the system type is a laptop (Mobile or Notebook)
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
 $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
-
-# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
 if ($computerSystem.PCSystemType -eq 2) {
     # It's a laptop, run the specified command
     Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
@@ -92,12 +95,19 @@ if ($computerSystem.PCSystemType -eq 2) {
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
 
-Write-Output " "
-Write-Output " "
-Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
-Write-Output " "
-Start-Sleep -Seconds 2
+#Write-Output " "
+#Write-Output " "
+#Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
+#Write-Output " "
+#Start-Sleep -Seconds 2
 
+[Console]::Write(" ")
+[Console]::Write(" ")
+[Console]::ForegroundColor = [System.ConsoleColor]::Yellow
+[Console]::Write("Starting workstation baseline...")
+[Console]::ResetColor() # Reset the color to default
+[Console]::WriteLine() # Move to the next line
+Start-Sleep -Seconds 2
 
 Write-Host "Installing required powershell modules..." -NoNewline
 # Check and Install NuGet Provider if not found
