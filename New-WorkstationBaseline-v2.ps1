@@ -490,7 +490,7 @@ if(Test-Path $RemoveOfficeSpinner) {
     & $config.ScrubOffice
     &$RemoveOfficeSpinner
 }
-taskkill /f /im procmon64.exe *> $null
+#taskkill /f /im procmon64.exe *> $null
 
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
