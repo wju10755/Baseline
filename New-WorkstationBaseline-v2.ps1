@@ -108,6 +108,8 @@ if ($computerSystem.PCSystemType -eq 2) {
 [Console]::Write("`b`bStarting workstation baseline...")
 [Console]::ResetColor() # Reset the color to default
 [Console]::WriteLine() # Move to the next line
+[Console]::Write("`n")
+
 Start-Sleep -Seconds 2
 
 Write-Host "Installing required powershell modules..." -NoNewline
