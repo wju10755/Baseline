@@ -1,21 +1,6 @@
 Clear-Host
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningActionPreference = 'SilentlyContinue'
-function Print-Middle($Message, $Color = "White") {
-    Write-Host (" " * [System.Math]::Floor(([System.Console]::BufferWidth / 2) - ($Message.Length / 2))) -NoNewline;
-    Write-Host -ForegroundColor $Color $Message;
-}
-
-# Print Script Title
-#################################
-$Padding = ("=" * [System.Console]::BufferWidth);
-Write-Host -ForegroundColor "Red" $Padding -NoNewline;
-Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor "Red" -NoNewline $Padding;
-Write-Host " "
-Set-ExecutionPolicy -Scope process RemoteSigned -Force
-
-Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
 
 # Central Configuration
@@ -59,6 +44,22 @@ $config = @{
     Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
 }
 
+
+function Print-Middle($Message, $Color = "White") {
+    Write-Host (" " * [System.Math]::Floor(([System.Console]::BufferWidth / 2) - ($Message.Length / 2))) -NoNewline;
+    Write-Host -ForegroundColor $Color $Message;
+}
+
+# Print Script Title
+#################################
+$Padding = ("=" * [System.Console]::BufferWidth);
+Write-Host -ForegroundColor "Red" $Padding -NoNewline;
+Print-Middle "MITS - New Workstation Baseline Utility";
+Write-Host -ForegroundColor "Red" -NoNewline $Padding;
+Write-Host " "
+Set-ExecutionPolicy -Scope process RemoteSigned -Force
+
+Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
 # Create temp directory and baseline log
 function Initialize-Environment {
