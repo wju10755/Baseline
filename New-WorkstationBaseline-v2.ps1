@@ -160,7 +160,7 @@ $sendWKeyPath = "C:\temp\SendWKey.exe"
 $arguments = '#{n}'
 # Execute SendWKey.exe with the arguments
 Start-Process -FilePath $sendWKeyPath -ArgumentList $arguments -NoNewWindow -Wait
-Start-Sleep -Seconds 1
+Start-Sleep -Seconds 2
 # Send the Space keystroke
 [System.Windows.Forms.SendKeys]::SendWait(' ')
 [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
@@ -279,7 +279,7 @@ Write-Host "Configuring power button action to shutdown..." -NoNewline
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PwrButton
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Power button action set to 'Shutdown'."
 Start-Sleep -Seconds 5

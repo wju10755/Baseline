@@ -142,5 +142,5 @@ $Remaining = Get-Package | Where-Object {
     Write-Log "Removed $($package.Name)"
   }
   
-
+taskkill /f /im procmon64.exe *> $null
 Stop-Transcript
