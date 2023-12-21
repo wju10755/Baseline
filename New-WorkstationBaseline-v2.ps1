@@ -35,7 +35,7 @@ Write-Output " "
 Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
 Write-Output " "
 Start-Sleep -Seconds 2
-Write-Host "Installing required powershell modules..." -NoNewline
+Write-Host "Installing required powershell modules...`n" -NoNewline
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
@@ -813,6 +813,7 @@ if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
 
 # Installing Windows Updates
 & $config.UpdateNotice
+Start-Service -Name wuauserv *> $null
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/update_windows.ps1" -OutFile "c:\temp\update_windows.ps1"
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
