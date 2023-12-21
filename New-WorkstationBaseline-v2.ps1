@@ -147,7 +147,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
     Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
 }
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
+[Console]::Write(" done.\n")
 [Console]::ResetColor() 
 [Console]::WriteLine() 
 
