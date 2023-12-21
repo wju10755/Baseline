@@ -101,8 +101,8 @@ if ($computerSystem.PCSystemType -eq 2) {
 #Write-Output " "
 #Start-Sleep -Seconds 2
 
-[Console]::Write(" ")
-[Console]::Write(" ")
+[Console]::WriteLine()
+[Console]::WriteLine()
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("Starting workstation baseline...")
 [Console]::ResetColor() # Reset the color to default
