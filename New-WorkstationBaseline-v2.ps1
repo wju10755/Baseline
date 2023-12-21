@@ -106,7 +106,7 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Import-PackageProvider -Name NuGet -Force | Out-Null
     Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
     
-}
+} 
 
 # Check and install BurntToast Module if not found
 if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
