@@ -151,9 +151,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 [Console]::ResetColor() 
 
 
-
 # Disable Notification Snooze
-Write-Host
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
 Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe" -OutFile "c:\temp\SendWKey.exe"
