@@ -153,6 +153,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 
 
 # Disable Notification Snooze
+[Console]::Write("Disabling notification snooze...")
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
 Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe" -OutFile "c:\temp\SendWKey.exe"
@@ -165,7 +166,10 @@ Start-Sleep -Seconds 2
 # Send the Space keystroke
 [System.Windows.Forms.SendKeys]::SendWait(' ')
 [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
-
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor() 
+[Console]::WriteLine() 
 
 # Stop & disable the Windows Update service
 [Console]::Write("Suspending windows Update during baseline...")
@@ -174,9 +178,11 @@ Set-Service -Name wuauserv -StartupType Disabled
 Start-Sleep -Seconds 3
 $service = Get-Service -Name wuauserv
 if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
-    Write-Host " done." -ForegroundColor Green
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
 } else {
-    Write-Host " failed." -ForegroundColor Red
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" failed.")
 }
 
 
