@@ -49,6 +49,7 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
     Install-Module -Name BurntToast -Scope CurrentUser -Force -WarningAction SilentlyContinue | Out-Null
     Import-Module BurntToast 
 }
+Write-Host " done." -ForegroundColor Green
 
 # Central Configuration
 $config = @{
