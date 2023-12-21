@@ -91,12 +91,7 @@ if ($computerSystem.PCSystemType -eq 2) {
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
 
-[Console]::Write(" ")
-[Console]::Write(" ")
-[Console]::ForegroundColor = [System.ConsoleColor]::Yellow
-[Console]::Write("Starting workstation baseline...")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line   
+
 
 Start-Sleep -Seconds 2
 Write-Host "Installing required powershell modules..." -NoNewline
