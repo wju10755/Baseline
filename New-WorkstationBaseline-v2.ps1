@@ -226,9 +226,18 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 } elseif (Test-Path $agentPath) {
     Write-Output "The LabTech agent files are present, but the service is not installed."
 } else {
-    Write-Host "Installing ConnectWise Automate Agent..." -NoNewline
+    
+    [Console]::Write("Downloading Connectwise Automate Agent...")
+    Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
+    # Verify dowload
+    if (Test-Path $file) {
+    [Console]::Write("Installing Connectwise Automate Agent...")
     Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
-
+    } else {
+        Write-Host " failed!" -ForegroundColor Red
+        Write-Log "The file [$file] download failed."
+        exit
+}
     # Wait for the installation to complete
     Start-Sleep -Seconds 45
 
