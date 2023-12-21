@@ -93,8 +93,12 @@ if ($computerSystem.PCSystemType -eq 2) {
 
 Write-Output " "
 Write-Output " "
-Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
-Write-Output " "
+Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"
+[Console]::ForegroundColor = [System.ConsoleColor]::Yellow
+[Console]::Write("Starting workstation baseline...")
+[Console]::ResetColor() # Reset the color to default
+[Console]::WriteLine() # Move to the next line   
+
 Start-Sleep -Seconds 2
 Write-Host "Installing required powershell modules..." -NoNewline
 # Check and Install NuGet Provider if not found
@@ -113,6 +117,29 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 }
 Write-Host " done." -ForegroundColor Green
 
+#[Console]::ForegroundColor = [System.ConsoleColor]::Green
+#[Console]::Write(" done.")
+#[Console]::ResetColor() # Reset the color to default
+#[Console]::WriteLine() # Move to the next line
+
+# Stage Toast Notifications
+[Console]::Write("Staging notifications...")
+$ProgressPreference = 'Continue'
+$url = $config.PSNoticeURL
+$filePath = $config.PSNoticeFile
+if (-not (Test-Path -Path $filePath -PathType Leaf)) {
+    Invoke-WebRequest -Uri $url -OutFile $filePath
+} else {
+}
+if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
+    Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
+}
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor() 
+[Console]::WriteLine() 
+
+
 # Stop & disable the Windows Update service
 Write-Host "Suspending windows Update during baseline process..." -NoNewline
 Stop-Service -Name wuauserv -Force
@@ -126,48 +153,20 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
 }
 
 
-#[Console]::ForegroundColor = [System.ConsoleColor]::Green
-#[Console]::Write(" done.")
-#[Console]::ResetColor() # Reset the color to default
-#[Console]::WriteLine() # Move to the next line
-
-# Stage Toast Notifications
-[Console]::Write("Staging notifications...")
-$ProgressPreference = 'Continue'
-$url = $config.PSNoticeURL
-$filePath = $config.PSNoticeFile
-
-if (-not (Test-Path -Path $filePath -PathType Leaf)) {
-    Invoke-WebRequest -Uri $url -OutFile $filePath
-} else {
-}
-
-if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
-    Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
-}
-
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() 
-[Console]::WriteLine() 
-
 # Disable Notification Snooze
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
 Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe" -OutFile "c:\temp\SendWKey.exe"
 $sendWKeyPath = "C:\temp\SendWKey.exe"
-
 # Define the arguments for SendWKey.exe
 $arguments = '#{n}'
-
 # Execute SendWKey.exe with the arguments
 Start-Process -FilePath $sendWKeyPath -ArgumentList $arguments -NoNewWindow -Wait
-
 Start-Sleep -Seconds 1
-
 # Send the Space keystroke
 [System.Windows.Forms.SendKeys]::SendWait(' ')
 [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+
 
 # Start Baseline Notification
 & $config.StartBaseline | Out-Null
