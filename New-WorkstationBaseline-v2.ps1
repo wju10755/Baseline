@@ -147,7 +147,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor() 
-[Console]::WriteLine() 
+#[Console]::WriteLine() 
 
 
 # Disable Notification Snooze
