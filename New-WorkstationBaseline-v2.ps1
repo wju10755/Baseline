@@ -410,7 +410,7 @@ if ($deviceType -eq "Laptop") {
 
 # Set the time zone to 'Eastern Standard Time'
 $EST = "Setting EST as default timezone..."
-foreach ($Char in $Notice.ToCharArray()) {
+foreach ($Char in $EST.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
@@ -427,6 +427,10 @@ Start-Sleep -Seconds 2
 
 Start-Sleep -Seconds 3
 $Sync = "Syncing system time..."
+foreach ($Char in $Sync.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
 w32tm /resync -ErrorAction SilentlyContinue | out-null
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -440,7 +444,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Syste
 
 # Enable system restore
 $Restore = "Enabling System Restore..."
-foreach ($Char in $Notice.ToCharArray()) {
+foreach ($Char in $Restore.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
@@ -709,6 +713,11 @@ Where-Object { $_.DisplayName -like "*Google Chrome*" }
 if ($Chrome) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
     [Console]::Write("Existing Google Chrome installation found.")
+    $FoundChrome = "Existing Google Chrome installation found, skipping install."
+    foreach ($Char in $FoundChrome.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
     [Console]::ResetColor()
     [Console]::WriteLine()  
 } else {
