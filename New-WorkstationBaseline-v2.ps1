@@ -411,7 +411,7 @@ taskkill /f /im procmon* *> $null
 
 
 # Remove Pre-Installed Office
-if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*Microsoft 365 - *"})) {
+if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
     goto os_check
 }
 
@@ -425,6 +425,7 @@ if(Test-Path $RemoveOfficeSpinner) {
     & $config.ScrubOffice
     &$RemoveOfficeSpinner
 }
+
 :os_check
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
@@ -638,7 +639,7 @@ if ($Chrome) {
         & $config.chromeNotification
         [Console]::Write("Installing Google Chrome...")
         Start-Process -FilePath $ChromePath -ArgumentList "/silent /install" -Wait
-        Write-Log "Google Chrome successfully installed."
+        Write-Log "Google Chrome installed successfully."
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.")
         [Console]::ResetColor()
@@ -652,7 +653,7 @@ if ($Chrome) {
         & $config.chromeFailure
         Write-Log "Google Chrome download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write("Download failed. File size does not match.")
+        [Console]::Write("Download failed! File size does not match.")
         [Console]::ResetColor()
         [Console]::WriteLine() 
         Start-Sleep -Seconds 10
@@ -670,12 +671,12 @@ if ($Acrobat) {
     [Console]::ResetColor()
     [Console]::WriteLine()  
 } else {
-    $FilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
-    if (-not (Test-Path $FilePath)) {
+    $AcroFilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
+    if (-not (Test-Path $AcroFilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
         [Console]::Write("Downloading Adobe Acrobat Reader (277,900,248 bytes)...")
         & $config.acrobatDownload
-        Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
+        Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
         & $config.ClearPath
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.")
@@ -683,12 +684,12 @@ if ($Acrobat) {
         [Console]::WriteLine()       
     }
     # Validate successful download by checking the file size
-    $FileSize = (Get-Item $FilePath).Length
+    $FileSize = (Get-Item $AcroFilePath).Length
     $ExpectedSize = 277900248 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         [Console]::Write("Installing Adobe Acrobat Reader...")
         & $config.acrobatNotification
-        Start-Process -FilePath $FilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
+        Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
         & $config.acrobatComplete
         Write-Log "Adobe Acrobat installed successfully."
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -696,7 +697,7 @@ if ($Acrobat) {
         [Console]::ResetColor()
         [Console]::WriteLine()
         Start-Sleep -Seconds 2
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue | Out-Null
+        Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
     else {
         # Report download error
@@ -707,7 +708,7 @@ if ($Acrobat) {
         [Console]::WriteLine()    
         & $config.acrobatFailure
         Start-Sleep -Seconds 5
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue | Out-Null
+        Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
 
@@ -724,9 +725,9 @@ if ($O365) {
     [Console]::WriteLine()    
 } else {
     $OfficePath = "c:\temp\OfficeSetup.exe"
-    if (-not (Test-Path $FilePath)) {
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        Invoke-WebRequest -OutFile $FilePath -Uri $URL -UseBasicParsing
+    if (-not (Test-Path $OfficePath)) {
+        $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
+        Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $OfficePath).Length
@@ -735,13 +736,18 @@ if ($O365) {
         & $config.officeNotice
         [Console]::Write("Installing Office 365...")
         Start-Process -FilePath $OfficePath -Wait
-        Write-Log "Office 365 Installation Completed Successfully."
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-        [Console]::ResetColor()
-        [Console]::WriteLine()  
-        Start-Sleep -Seconds 10
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
+            Write-Log "Office 365 Installation Completed Successfully."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+            Start-Sleep -Seconds 10
+            Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
+            } else {
+            [Console]::Write("Office 365 installation failed")
+            }
+        
     }
     else {
         # Report download error
@@ -770,8 +776,8 @@ if ($SWNE) {
 } else {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
-        Invoke-WebRequest -OutFile $NEFilePath -Uri $URL -UseBasicParsing -TransferEncoding $transferEncoding
+        $NEURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
+        Invoke-WebRequest -OutFile $NEFilePath -Uri $NEURL -UseBasicParsing -TransferEncoding $transferEncoding
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $NEFilePath).Length
@@ -791,7 +797,7 @@ if ($SWNE) {
         # Report download error
         Write-Log "Sonicwall NetExtender download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write("Download failed. File does not exist or size does not match.")
+        [Console]::Write("Download failed! File does not exist or size does not match.")
         [Console]::ResetColor()
         [Console]::WriteLine()    
         Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
