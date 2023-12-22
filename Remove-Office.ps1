@@ -1,9 +1,3 @@
-if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*Microsoft 365 - *"})) {
-    [Console]::Write("Microsoft 365 Apps not found")
-    goto remove_onenote
-}
-
-
 Start-Sleep -Seconds 5
 
 # Download Procmon
