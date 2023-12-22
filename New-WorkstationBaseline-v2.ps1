@@ -714,10 +714,6 @@ if ($Acrobat) {
 
 
 # Install Office 365
-if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*Microsoft 365 - *"})) {
-    [Console]::Write("Microsoft 365 Apps not found")
-    goto NE_Install
-}
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
@@ -767,7 +763,6 @@ if ($O365) {
     }
 }
 
-:NE_Install
 # Install NetExtender
 $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
