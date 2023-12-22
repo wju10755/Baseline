@@ -278,7 +278,7 @@ Start-Sleep -Seconds 5
 
 # Disable sleep and hibernation modes
 Start-Sleep -Seconds 1
-[Console]::WriteLine("Disabling Sleep and Hibernation...")
+[Console]::Write("Disabling Sleep and Hibernation...")
 powercfg /change standby-timeout-ac 0
 powercfg /change hibernate-timeout-ac 0
 powercfg /h off
