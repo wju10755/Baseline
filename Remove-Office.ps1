@@ -1,3 +1,9 @@
+if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*Microsoft 365 - *"})) {
+    [Console]::Write("Microsoft 365 Apps not found")
+    goto remove_onenote
+}
+
+
 Start-Sleep -Seconds 5
 
 # Download Procmon
@@ -79,6 +85,11 @@ taskkill /f /im procmon* *> $null
 
 
 Start-Sleep -Seconds 5
+
+if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*Microsoft OneNote - *"})) {
+    [Console]::Write("Microsoft OneNote not found")
+    break
+}
 
 # Start Procmon
 $ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
