@@ -6,7 +6,6 @@ $ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Pr
 $ProcmonFile = "c:\temp\Procmon.exe"
 Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
 Start-Sleep -Seconds 2
-Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
 $ProgressPreference = 'Continue'
 # Launch Procmon and enable auto-scroll
 $ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal

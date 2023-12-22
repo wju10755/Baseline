@@ -201,6 +201,7 @@ $Remaining = Get-Package | Where-Object {
     Write-Host " done." -ForegroundColor "Green"
     Write-Log "Removed $($package.Name)"
   }
-  
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2  
 taskkill /f /im procmon* *> $null
 Stop-Transcript
