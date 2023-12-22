@@ -100,6 +100,11 @@ foreach ($Char in $Baseline.ToCharArray()) {
     Start-Sleep -Milliseconds 50
 }
 
+[Console]::Write(" ")
+[Console]::ResetColor() 
+[Console]::WriteLine()
+[Console]::Write("`n")
+
 Start-Sleep -Seconds 2
 
 $ModChk = "Installing required powershell modules..."
