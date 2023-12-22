@@ -1,7 +1,6 @@
 Clear-Host
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningActionPreference = 'SilentlyContinue'
-$transferEncoding = "chunked; length=1048576"
 
 
 # Central Configuration
@@ -135,7 +134,7 @@ $ProgressPreference = 'Continue'
 $url = $config.PSNoticeURL
 $filePath = $config.PSNoticeFile
 if (-not (Test-Path -Path $filePath -PathType Leaf)) {
-    Invoke-WebRequest -Uri $url -OutFile $filePath -TransferEncoding $transferEncoding
+    Invoke-WebRequest -Uri $url -OutFile $filePath
 } else {
 }
 if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
@@ -477,7 +476,7 @@ if (Is-Windows10) {
     try {
         $MITSDebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
         $MITSDebloatFile = "c:\temp\MITS-Debloat.zip"
-        Invoke-WebRequest -Uri $MITSDebloatURL -OutFile $MITSDebloatFile -UseBasicParsing -TransferEncoding $transferEncoding -ErrorAction Stop 
+        Invoke-WebRequest -Uri $MITSDebloatURL -OutFile $MITSDebloatFile -UseBasicParsing -ErrorAction Stop 
         Start-Sleep -seconds 2
         Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
         Start-Sleep -Seconds 2
@@ -630,7 +629,7 @@ if ($Chrome) {
     if (-not (Test-Path $FilePath)) {
         $ProgressPreference = 'Continue'
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
-        Invoke-WebRequest -OutFile c:\temp\ChromeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe" -UseBasicParsing -TransferEncoding $transferEncoding
+        Invoke-WebRequest -OutFile c:\temp\ChromeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe" -UseBasicParsing
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
@@ -676,7 +675,7 @@ if ($Acrobat) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
         [Console]::Write("Downloading Adobe Acrobat Reader (277,900,248 bytes)...")
         & $config.acrobatDownload
-        Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing -TransferEncoding $transferEncoding
+        Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
         & $config.ClearPath
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.")
@@ -727,7 +726,7 @@ if ($O365) {
     $OfficePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $FilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        Invoke-WebRequest -OutFile $FilePath -Uri $URL -UseBasicParsing -TransferEncoding $transferEncoding
+        Invoke-WebRequest -OutFile $FilePath -Uri $URL -UseBasicParsing
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $OfficePath).Length
@@ -772,7 +771,7 @@ if ($SWNE) {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
-        Invoke-WebRequest -OutFile $NEFilePath -Uri $URL -UseBasicParsing -TransferEncoding $transferEncoding
+        Invoke-WebRequest -OutFile $NEFilePath -Uri $URL -UseBasicParsing
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $NEFilePath).Length
