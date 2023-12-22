@@ -336,43 +336,54 @@ Start-Sleep -Seconds 5
 # Set 'lid close action' to do nothing on laptops
 Start-Sleep -Seconds 1
 if ($deviceType -eq "Laptop") {
-    Write-Host "Setting Lid Close Action..." -NoNewline
+    [Console]::Write("Setting Lid Close Action...")
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
     Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
     & $config.LidAction
     Start-Sleep -Seconds 2
-    Write-Host " done." -ForegroundColor "Green"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
     Start-Sleep -Seconds 5
 }
 
 # Set the time zone to 'Eastern Standard Time'
-Write-Host "Setting EST as default timezone..." -NoNewline
+[Console]::Write("Setting EST as default timezone...")
 Start-Sleep -Seconds 2
 Start-Service W32Time
 Set-TimeZone -Id "Eastern Standard Time"
 Write-Log "Time zone set to Eastern Standard Time."
 Start-Sleep -Seconds 2
 & $config.timezone
-Write-Host " done." -ForegroundColor "Green"
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+
 Start-Sleep -Seconds 3
-Write-Host "Syncing clock..." -NoNewline
+[Console]::Write("Syncing clock...")
 w32tm /resync -ErrorAction SilentlyContinue | out-null
 Start-Sleep -Seconds 2
-
-Start-Sleep -Seconds 2
-Write-Host " done." -ForegroundColor "Green"    
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine()    
 Start-Sleep -Seconds 5
 
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
 
 # Enable system restore
-Write-Host "Enabling System Restore..." -NoNewLine
+[Console]::Write("Enabling System Restore...")
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System Restore Enabled."
-Write-Host " done." -ForegroundColor "Green"
 & $config.SystemRestore
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine()    
 Start-Sleep -Seconds 5
 
 # Create restore point
