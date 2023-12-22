@@ -237,7 +237,6 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     [Console]::ResetColor()    
     [Console]::WriteLine("Installing Connectwise Automate Agent...")
     Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
-    [Console]::Write(" done.")
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -266,36 +265,42 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 
 # Set power profile to 'Balanced'
 Write-Host "Setting Power Profile..." -NoNewLine
+[Console]::WriteLine("Setting Power Profile...")
 Start-Sleep -Seconds 3
 powercfg /S SCHEME_BALANCED
-#New-BurntToastNotification -Text "Power profile set to Balanced" -AppLogo "C:\temp\PSNotice\smallA.png"
 & $config.PowerProfile
-Write-Host " done." -ForegroundColor "Green"
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
 Write-Log "Power profile set to 'Balanced'."
 Start-Sleep -Seconds 5
 
 
 # Disable sleep and hibernation modes
 Start-Sleep -Seconds 1
-Write-Host "Disabling Sleep and Hibernation..." -NoNewline
+[Console]::WriteLine("Disabling Sleep and Hibernation...")
 powercfg /change standby-timeout-ac 0
 powercfg /change hibernate-timeout-ac 0
 powercfg /h off
 & $config.HiberSleep
-Start-Sleep -Seconds 1
-Write-Host " done." -ForegroundColor "Green"
+Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
 Write-Log "Disabled sleep and hibernation mode."
 Start-Sleep -Seconds 2
 
 
 # Disable fast startup
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 2
 Write-Host "Disabling Fast Startup..." -NoNewline
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
 Write-Log "Disabled fast startup."
 & $config.FastStartup
-Start-Sleep -Seconds 1
+Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Start-Sleep -Seconds 5
 
@@ -305,18 +310,18 @@ Write-Host "Configuring power profile..." -NoNewline
 powercfg /SETACTIVE SCHEME_CURRENT
 #New-BurntToastNotification -Text "Power profile set to 'Balanced'" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.PowerProfile
-Start-Sleep -Seconds 1
+Start-Sleep -Seconds 2
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Power Profile set to 'Balanced'"
 Start-Sleep -Seconds 5
 
 # Set power button action to 'Shutdown'
-Start-Sleep -Seconds 1
+Start-Sleep -Seconds 2
 Write-Host "Configuring power button action to shutdown..." -NoNewline
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PwrButton
-Start-Sleep -Seconds 1
+Start-Sleep -Seconds 3
 Write-Host " done." -ForegroundColor "Green"
 Write-Log "Power button action set to 'Shutdown'."
 Start-Sleep -Seconds 5
@@ -329,7 +334,7 @@ if ($deviceType -eq "Laptop") {
     powercfg /SETACTIVE SCHEME_CURRENT
     Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
     & $config.LidAction
-    Start-Sleep -Seconds 1
+    Start-Sleep -Seconds 2
     Write-Host " done." -ForegroundColor "Green"
     Start-Sleep -Seconds 5
 }
