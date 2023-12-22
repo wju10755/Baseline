@@ -1,3 +1,11 @@
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+
+if (!($computerSystem.Manufacturer -eq "Dell, Inc.")) {
+    [Console]::Write("This module is only eligible for genuine Dell systems.")
+    break
+}
+
 Start-Transcript -path c:\temp\$env:ComputerName-Dell_Uninstall.log
 # Instal Common Stuff 
 $moduleName = "CommonStuff"
