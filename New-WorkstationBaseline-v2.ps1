@@ -220,10 +220,13 @@ $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
     [Console]::Write("ConnectWise Automate agent is already installed.")
+    [Console]::ResetColor() 
+    [Console]::WriteLine() 
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
     [Console]::ResetColor() 
+    [Console]::WriteLine() 
 } else {
     [Console]::WriteLine("Downloading Connectwise Automate Agent...")
     Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
@@ -238,6 +241,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
+    [Console]::WriteLine() 
     } else {
         Write-Log "The file [$file] download failed."
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
