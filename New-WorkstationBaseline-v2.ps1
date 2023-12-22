@@ -23,6 +23,7 @@ $config = @{
     HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
     LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
     LogFile              = "C:\temp\baseline.log"
+    NEGui                = "C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NEGui.exe"
     NoSnooze             = "c:\temp\nosnooze.ps1"
     NoSnoozeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
     NoSnoozeZip          = "c:\temp\nosnooze.zip"
@@ -61,9 +62,6 @@ Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 Set-ExecutionPolicy -Scope process RemoteSigned -Force
 
-# Start baseline transcript log
-Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
-
 
 # Create temp directory and baseline log
 function Initialize-Environment {
@@ -85,25 +83,17 @@ function Write-Log {
 }
 
 
-# Check if the system type is a laptop (Mobile or Notebook)
-# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
-$computerSystem = Get-WmiObject Win32_ComputerSystem
-$manufacturer = $computerSystem.Manufacturer
-if ($computerSystem.PCSystemType -eq 2) {
-    # It's a laptop, run the specified command
-    Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
-} else {
-    # It's not a laptop, continue to the next part of the script
-    #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
-}
+# Start baseline transcript log
+Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
+
 
 # Start Baseline
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("`n")
 [Console]::Write("`n")
 [Console]::Write("`b`bStarting workstation baseline...")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line
+[Console]::ResetColor() 
+[Console]::WriteLine()
 [Console]::Write("`n")
 
 Start-Sleep -Seconds 2
@@ -127,6 +117,16 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 [Console]::Write(" done.")
 [Console]::ResetColor() # Reset the color to default
 [Console]::WriteLine() # Move to the next line
+
+# Device Identification
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+if ($computerSystem.PCSystemType -eq 2) {
+    Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
+} else {
+    #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
+}
 
 # Stage Toast Notifications
 [Console]::Write("Staging notifications...")
@@ -152,7 +152,9 @@ $filePath = $config.TempFolder
 [Console]::Write("Disabling notification snooze...")
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
+$ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -uri $url -OutFile $config.SendWKey
+$ProgressPreference = 'Continue'
 # Define the arguments for SendWKey.exe
 $arguments = '#{n}'
 # Execute SendWKey.exe with arguments
@@ -542,26 +544,83 @@ try {
 try {
     $TeamsMWI = Get-Package -Name 'Teams Machine*'
     if ($TeamsMWI) {
-        Write-Host "Removing Microsoft Teams Machine-Wide Installer..." -NoNewline
+        [Console]::Write("Removing Microsoft Teams Machine-Wide Installer...")
         Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
         $MWICheck = Get-Package -Name 'Teams Machine*'
         if (-not $MWICheck) {
-            Write-Host " done." -foregroundColor "Green"
             Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()   
         } else {
-            Write-Host "Failed to uninstall Teams Machine Wide Installer." -foregroundColor "Red"
             Write-Log "Failed to uninstall Teams Machine Wide Installer."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            [Console]::Write("Failed to uninstall Teams Machine Wide Installer.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()
         }
     } else {
-        Write-Host "Teams Machine Wide Installer not found." -foregroundColor "Red"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write("Teams Machine Wide Installer not found.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
     }
 } catch {
-    Write-Host "An error occurred: $_" -foregroundColor "Red"
+    [Console]::Write("An error occurred: $_")
 }
 
 
 Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+# Move Procmon left
+Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class WinAPI {
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+    }
+"@
+
+function Move-ProcessWindowToTopLeft([string]$processName) {
+    $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
+    if ($process -eq $null) {
+        Write-Host "Process not found."
+        return
+    }
+
+    $hWnd = $process.MainWindowHandle
+    if ($hWnd -eq [IntPtr]::Zero) {
+        Write-Host "Window handle not found."
+        return
+    }
+
+    $windowRect = New-Object WinAPI+RECT
+    [WinAPI]::GetWindowRect($hWnd, [ref]$windowRect)
+    $windowWidth = $windowRect.Right - $windowRect.Left
+    $windowHeight = $windowRect.Bottom - $windowRect.Top
+
+    # Set coordinates to the top left corner of the screen
+    $x = 0
+    $y = 0
+
+    [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
+}
+
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
+
+Start-Sleep -Seconds 2
 
 
 # Install Google Chrome
@@ -570,7 +629,10 @@ $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentV
 Where-Object { $_.DisplayName -like "*Google Chrome*" }
 
 if ($Chrome) {
-    Write-Host "Existing Google Chrome installation found." -ForegroundColor "Cyan"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    [Console]::Write("Existing Google Chrome installation found.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
 } else {
     $FilePath = "c:\temp\ChromeSetup.exe"
     if (-not (Test-Path $FilePath)) {
@@ -583,10 +645,13 @@ if ($Chrome) {
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
         & $config.chromeNotification
-        Write-Host "Installing Google Chrome..." -NoNewline
+        [Console]::Write("Installing Google Chrome...")
         Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
-        Write-Host " done." -ForegroundColor "Green"
         Write-Log "Google Chrome successfully installed."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
         & $config.chromeComplete
         Start-Sleep -Seconds 15
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
@@ -594,8 +659,11 @@ if ($Chrome) {
     else {
         # Report download error
         & $config.chromeFailure
-        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Google Chrome download failed!"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write("Download failed. File size does not match.")
+        [Console]::ResetColor()
+        [Console]::WriteLine() 
         Start-Sleep -Seconds 10
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
@@ -606,34 +674,46 @@ $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\Current
                                   HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
 if ($Acrobat) {
-    Write-Host "Existing Acrobat Reader installation found." -ForegroundColor "Cyan"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    [Console]::Write("Existing Acrobat Reader installation found.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
 } else {
     $FilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
     if (-not (Test-Path $FilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
-        Write-Host "Downloading Adobe Acrobat Reader (277,900,248 bytes)..." -NoNewline
+        [Console]::Write("Downloading Adobe Acrobat Reader (277,900,248 bytes)...")
         & $config.acrobatDownload
         Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
-        & $config.ClearPath   
+        & $config.ClearPath
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()       
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
     $ExpectedSize = 277900248 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
+        [Console]::Write("Installing Adobe Acrobat Reader...")
         & $config.acrobatNotification
         Start-Process -FilePath $FilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
         & $config.acrobatComplete
-        Write-Host " done." -ForegroundColor "Green"
         Write-Log "Adobe Acrobat installed successfully."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
         Start-Sleep -Seconds 2
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
     else {
         # Report download error
-        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Download failed. File size does not match."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write("Download failed. File size does not match.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
         & $config.acrobatFailure
         Start-Sleep -Seconds 5
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue | Out-Null
@@ -647,32 +727,41 @@ $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVer
 Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
 
 if ($O365) {
-    Write-Host "Existing Microsoft Office installation found." -ForegroundColor "Yellow"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    [Console]::Write("Existing Microsoft Office installation found.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
 } else {
-    $FilePath = "c:\temp\OfficeSetup.exe"
+    $OfficePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $FilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        Invoke-WebRequest -OutFile c:\temp\OfficeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe" -UseBasicParsing
+        Invoke-WebRequest -OutFile $FilePath -Uri $URL -UseBasicParsing
     }
     # Validate successful download by checking the file size
-    $FileSize = (Get-Item $FilePath).Length
+    $FileSize = (Get-Item $OfficePath).Length
     $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         & $config.officeNotice
-        Write-Host "Installing Office 365..." -NoNewline
-        Start-Process -FilePath "C:\temp\Officesetup.exe" -Wait
-        Write-Host " done." -ForegroundColor "Green"
+        [Console]::Write("Installing Office 365...")
+        Start-Process -FilePath $OfficePath -Wait
         Write-Log "Office 365 Installation Completed Successfully."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()  
         Start-Sleep -Seconds 10
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
     else {
         # Report download error
         & $config.officeFailure
-        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Office download failed!"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write("Download failed. File size does not match.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
         Start-Sleep -Seconds 10
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
     }
 }
 
@@ -683,37 +772,48 @@ $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVer
 Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
 
 if ($SWNE) {
-    Write-Host "Existing NetExtender installation found." -ForegroundColor "Cyan"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    [Console]::Write("Existing NetExtender installation found.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
 } else {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
-        Invoke-WebRequest -OutFile c:\temp\NXSetupU-x64-10.2.337.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe" -UseBasicParsing
+        Invoke-WebRequest -OutFile $NEFilePath -Uri $URL -UseBasicParsing
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $NEFilePath).Length
     $ExpectedSize = 4788816 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
-        Write-Host "Installing Sonicwall NetExtender..." -NoNewline
-        start-process -filepath "C:\temp\NXSetupU-x64-10.2.337.exe" /S -Wait
-        Write-Host " done." -ForegroundColor "Green"
-        Write-Log "Sonicwall NetExtender installation completed successfully."
-        Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
-    }
-    else {
+        [Console]::Write("Installing Sonicwall NetExtender...")
+        start-process -filepath $NEFilePath /S -Wait
+        if (Test-Path $config.NEGui) {
+            Write-Log "Sonicwall NetExtender installation completed successfully."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+            Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
+        }
+    } else {
         # Report download error
-        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Sonicwall NetExtender download failed!"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write("Download failed. File does not exist or size does not match.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
         Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
     }
 }
 
+
 # Stop Procmon
 taskkill /f /im procmon64.exe *> $null
 
-Write-Output " "
-Write-Host "Starting Bitlocker Configuration..."
-Write-Output " "
+[Console]::Write("`n")
+[Console]::Write("Starting Bitlocker Configuration...")
+[Console]::Write("`n")
 
 # Check if TPM module is enabled
 $TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | Where-Object {$_.IsEnabled().Isenabled -eq 'True'} -ErrorAction SilentlyContinue
@@ -749,25 +849,34 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
     # Retrieve and Output the Recovery Key Password
     $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
-    Write-Log "Bitlocker Recovery Key Password: $RecoveryKeyPW"
+    Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
 }
 
 # Enable and start Windows Update Service
+[Console]::Write("Enabling Windows Update Service...")
 Set-Service -Name wuauserv -StartupType Manual
 Start-Service -Name wuauserv
 Start-Sleep -Seconds 3
 $service = Get-Service -Name wuauserv
 if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
-    Write-Host "The Windows Update service has been successfully enabled and is running."
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
 } else {
-    Write-Host "Failed to start and/or enable the Windows Update service."
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" failed.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
 }
 
 
 # Installing Windows Updates
 & $config.UpdateNotice
 Start-Service -Name wuauserv *> $null
+$ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/update_windows.ps1" -OutFile "c:\temp\update_windows.ps1"
+$ProgressPreference = 'Continue'
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
     Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
@@ -784,10 +893,12 @@ $NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready for 
 Invoke-Expression -command $NTFY2 *> $null
 
 
-Write-Output " "
-Write-Output "Starting Domain/Azure AD Join Function..."
+[Console]::Write("`n")
+[Console]::Write("Starting Domain/Azure AD Join Function...")
+$ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
-Write-Output " "
+$ProgressPreference = 'Continue'
+[Console]::Write("`n")
 # Prompt the user to connect to SSL VPN
 $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? Enter Y or N"
 
@@ -795,29 +906,35 @@ if ($choice -eq "Y" -or $choice -eq "N") {
     if ($choice -eq "Y") {
                 
         if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
-            Write-Output 'NetExtender detected successfully, starting connection...'
+            [Console]::Write("NetExtender detected successfully, starting connection...")
             start C:\temp\ssl-vpn.bat
             Start-Sleep -Seconds 3
             Read-Host -Prompt "Press Enter once connected to SSL VPN to continue."
         } else {
-            Write-Output " "
-            Write-Output 'NetExtender not found! Exiting Script...'
-            break
+            [Console]::Write("`n")
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            [Console]::Write("NetExtender not found!")
+            [Console]::ResetColor()
+            [Console]::WriteLine()   
+            goto continue_script
         }
     } else {
         # Skip the VPN connection setup
-        Write-Output " "
-        Write-Output "Skipping VPN Connection Setup..."
-        Write-Output " "
+        [Console]::Write("`n")
+        [Console]::Write("Skipping VPN Connection Setup...")
+        [Console]::Write("`n")
+
     }
 } else {
     # Display an error message if the user input is invalid
     Write-Error "Invalid choice. Please enter Y or N."
     Write-Log "Invalid response received."
-    break
+    goto continue_script
 }
 
+:continue_script
 # Prompt the user to choose between standard domain join or Azure AD join
+[Console]::Write("`n")
 $choice = Read-Host -Prompt "Do you want to perform a standard domain join (S) or join Azure AD (A)? Enter S or A"
 
 # Validate the user input
