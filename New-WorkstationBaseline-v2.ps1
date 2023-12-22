@@ -97,13 +97,7 @@ if ($computerSystem.PCSystemType -eq 2) {
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
 
-#Write-Output " "
-#Write-Output " "
-#Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
-#Write-Output " "
-#Start-Sleep -Seconds 2
-
-
+# Start Baseline
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("`n")
 [Console]::Write("`n")
@@ -385,15 +379,20 @@ Write-Log "System Restore Enabled."
 Start-Sleep -Seconds 5
 
 # Create restore point
-#Write-Host "Creating System Restore Checkpoint..." -nonewline
+#[Console]::Write("Creating System Restore Checkpoint...")
 #Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_SETTINGS'
 #$restorePoint = Get-ComputerRestorePoint | Sort-Object -Property "CreationTime" -Descending | Select-Object -First 1
 #if ($restorePoint -ne $null) {
-#    Write-Host " done." -ForegroundColor "Green"
-#    Write-Log "Restore Checkpoint Created Successfully."
+# [Console]::ForegroundColor = [System.ConsoleColor]::Green
+#[Console]::Write(" done.")
+#[Console]::ResetColor()
+#[Console]::WriteLine()   
+#Write-Log "Restore Checkpoint Created Successfully."
 #} else {
-#    Write-Host "Failed to create restore point" -ForegroundColor "Red"
-#}
+#}[Console]::ForegroundColor = [System.ConsoleColor]::Red
+#[Console]::Write(" failed.")
+#[Console]::ResetColor()
+#[Console]::WriteLine()    
 #& $config.Checkpoint
 #Start-Sleep -Seconds 5
 
@@ -511,23 +510,32 @@ else {
 try {
     $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
     if ($OneDriveProduct) {
-        Write-Host "Removing Microsoft OneDrive (Personal)..." -NoNewline
+        [Console]::Write("Removing Microsoft OneDrive (Personal)...")
         $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
         # Recheck if OneDrive is uninstalled
         $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
         if (-not $OneDriveProduct) {
-            Write-Host " done." -foregroundColor "Green"
             Write-Log "OneDrive has been successfully removed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()    
         } else {
-            Write-Host "Failed to remove OneDrive." -foregroundColor "Red"
             Write-Log "Failed to remove OneDrive."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            [Console]::Write(" Failed to remove OneDrive.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()    
         }
     } else {
-        Write-Host " "
-        Write-Host "OneDrive installation not found." -foregroundColor "Red"
+        [Console]::Write("`n")
+        [Console]::Write("OneDrive installation not found.")
     }
 } catch {
-    Write-Host "An error occurred: $_" -foregroundColor "Red"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write("An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 }
 
 # Remove Microsoft Teams Machine-Wide Installer
