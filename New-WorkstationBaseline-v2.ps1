@@ -411,7 +411,7 @@ taskkill /f /im procmon* *> $null
 
 
 # Remove Pre-Installed Office
-if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
+if ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
     goto os_check
 }
 
@@ -722,7 +722,8 @@ if ($O365) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
     [Console]::Write("Existing Microsoft Office installation found.")
     [Console]::ResetColor()
-    [Console]::WriteLine()    
+    [Console]::WriteLine()
+    goto NE_Install    
 } else {
     $OfficePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $OfficePath)) {
@@ -762,7 +763,7 @@ if ($O365) {
     }
 }
 
-
+:NE_Install
 # Install NetExtender
 $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
