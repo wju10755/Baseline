@@ -547,6 +547,7 @@ try {
         }
     } else {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write("`n")
         [Console]::WriteLine("Teams Machine Wide Installer not found.")
         [Console]::ResetColor()
         [Console]::WriteLine()    
@@ -771,7 +772,7 @@ if ($SWNE) {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
-        Invoke-WebRequest -OutFile $NEFilePath -Uri $URL -UseBasicParsing
+        Invoke-WebRequest -OutFile $NEFilePath -Uri $URL -UseBasicParsing -TransferEncoding $transferEncoding
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $NEFilePath).Length
