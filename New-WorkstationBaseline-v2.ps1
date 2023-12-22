@@ -294,7 +294,7 @@ Start-Sleep -Seconds 2
 
 # Disable fast startup
 Start-Sleep -Seconds 2
-[Console]::WriteLine("Disabling Fast Startup...")
+[Console]::Write("Disabling Fast Startup...")
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
 Write-Log "Disabled fast startup."
@@ -308,7 +308,7 @@ Start-Sleep -Seconds 5
 
 # Set power profile
 Start-Sleep -Seconds 1
-[Console]::WriteLine("Configuring power profile...")
+[Console]::Write("Configuring power profile...")
 powercfg /SETACTIVE SCHEME_CURRENT
 #New-BurntToastNotification -Text "Power profile set to 'Balanced'" -AppLogo "c:\temp\PSNotice\smallA.png"
 & $config.PowerProfile
@@ -322,7 +322,7 @@ Start-Sleep -Seconds 5
 
 # Set power button action to 'Shutdown'
 Start-Sleep -Seconds 2
-[Console]::WriteLine("Configuring power button action to shutdown...")
+[Console]::Write("Configuring power button action to shutdown...")
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PwrButton
