@@ -644,7 +644,7 @@ if ($Chrome) {
         [Console]::ResetColor()
         [Console]::WriteLine()    
         & $config.chromeComplete
-        Start-Sleep -Seconds 15
+        Start-Sleep -Seconds 10
         Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
     else {
