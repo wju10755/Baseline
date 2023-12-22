@@ -110,7 +110,7 @@ Start-Sleep -Seconds 2
 $ModChk = "Installing required powershell modules..."
 
 foreach ($Char in $ModChk.ToCharArray()) {
-    [Console]::WriteLine("$Char")
+    [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
 
