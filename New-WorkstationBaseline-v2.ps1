@@ -113,10 +113,6 @@ foreach ($Char in $ModChk.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
-[Console]::Write(" ")
-[Console]::ResetColor() 
-[Console]::WriteLine()
-[Console]::Write("`n")
 
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
@@ -152,10 +148,6 @@ foreach ($Char in $Notice.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
-[Console]::Write(" ")
-[Console]::ResetColor() 
-[Console]::WriteLine()
-[Console]::Write("`n")
 
 $ProgressPreference = 'Continue'
 $url = $config.PSNoticeURL
@@ -183,11 +175,6 @@ foreach ($Char in $Snooze.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
-[Console]::Write(" ")
-[Console]::ResetColor() 
-[Console]::WriteLine()
-[Console]::Write("`n")
-
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
 $ProgressPreference = 'SilentlyContinue'
