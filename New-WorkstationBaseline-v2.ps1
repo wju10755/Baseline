@@ -548,7 +548,7 @@ try {
     } else {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         [Console]::Write("`n")
-        [Console]::WriteLine("Teams Machine Wide Installer not found.")
+        [Console]::Write("Teams Machine Wide Installer not found.")
         [Console]::ResetColor()
         [Console]::WriteLine()    
     }
