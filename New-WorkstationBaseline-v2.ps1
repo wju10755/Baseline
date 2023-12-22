@@ -353,7 +353,7 @@ Start-Sleep -Seconds 2
 
 # Disable fast startup
 Start-Sleep -Seconds 2
-$FStart = "Disabling Fast Startup"
+$FStart = "Disabling Fast Startup...."
 foreach ($Char in $FStart.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
