@@ -315,7 +315,11 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 
 
 # Set power profile to 'Balanced'
-[Console]::Write("Setting Power Profile...")
+$Pwr = "Setting Power Profile to 'Balanced'..."
+foreach ($Char in $PWR.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
 Start-Sleep -Seconds 3
 powercfg /S SCHEME_BALANCED
 & $config.PowerProfile
@@ -329,7 +333,11 @@ Start-Sleep -Seconds 5
 
 # Disable sleep and hibernation modes
 Start-Sleep -Seconds 1
-[Console]::Write("Disabling Sleep and Hibernation...")
+$HibSlp = "Disabling Sleep & Hibernation..."
+foreach ($Char in $HibSlp.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
 powercfg /change standby-timeout-ac 0
 powercfg /change hibernate-timeout-ac 0
 powercfg /h off
@@ -345,7 +353,11 @@ Start-Sleep -Seconds 2
 
 # Disable fast startup
 Start-Sleep -Seconds 2
-[Console]::Write("Disabling Fast Startup...")
+$FStart = "Disabling Fast Startup"
+foreach ($Char in $FStart.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
 Write-Log "Disabled fast startup."
@@ -360,7 +372,11 @@ Start-Sleep -Seconds 5
 
 # Set power button action to 'Shutdown'
 Start-Sleep -Seconds 2
-[Console]::Write("Configuring power button shutdown action...")
+$PwrBtn = "Configuring power button action 'Shutdown'..."
+foreach ($Char in $PwrBtn.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PwrButton
@@ -375,7 +391,11 @@ Start-Sleep -Seconds 5
 # Set 'lid close action' to do nothing on laptops
 Start-Sleep -Seconds 1
 if ($deviceType -eq "Laptop") {
-    [Console]::Write("Setting Lid Close Action...")
+    $Lid = "Setting Lid Close Action 'Do Nothing'..."
+    foreach ($Char in $Lid.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
     Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
@@ -389,7 +409,11 @@ if ($deviceType -eq "Laptop") {
 }
 
 # Set the time zone to 'Eastern Standard Time'
-[Console]::Write("Setting EST as default timezone...")
+$EST = "Setting EST as default timezone..."
+foreach ($Char in $Notice.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
 Start-Sleep -Seconds 2
 Start-Service W32Time
 Set-TimeZone -Id "Eastern Standard Time"
@@ -402,7 +426,7 @@ Start-Sleep -Seconds 2
 [Console]::WriteLine() 
 
 Start-Sleep -Seconds 3
-[Console]::Write("Syncing clock...")
+$Sync = "Syncing system time..."
 w32tm /resync -ErrorAction SilentlyContinue | out-null
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -415,7 +439,11 @@ Start-Sleep -Seconds 5
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
 
 # Enable system restore
-[Console]::Write("Enabling System Restore...")
+$Restore = "Enabling System Restore..."
+foreach ($Char in $Notice.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System Restore Enabled."
 & $config.SystemRestore
