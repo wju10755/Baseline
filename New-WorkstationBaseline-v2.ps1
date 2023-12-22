@@ -184,7 +184,8 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" failed.")
-    [Console]::ResetColor() 
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
 }
 
 
@@ -201,6 +202,7 @@ Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write(" $deviceType")
 [Console]::ResetColor() 
+[Console]::WriteLine() 
 Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
 
 
@@ -212,11 +214,9 @@ $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/
 
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Host "The LabTech agent is already installed." -ForegroundColor Cyan
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
     [Console]::WriteLine("ConnectWise Automate agent is already installed.")
 } elseif (Test-Path $agentPath) {
-    Write-Output "The LabTech agent files are present, but the service is not installed."
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::WriteLine("ConnectWise Automate agent files are present, but the service is not installed")
     [Console]::ResetColor() 
@@ -230,11 +230,16 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     [Console]::ResetColor()    
     [Console]::WriteLine("Installing Connectwise Automate Agent...")
     Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
+    [Console]::Write(" done.")
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
     } else {
         Write-Log "The file [$file] download failed."
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         [Console]::Write(" failed.")
-        [Console]::ResetColor()   
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
         exit
 }
     # Wait for the installation to complete
