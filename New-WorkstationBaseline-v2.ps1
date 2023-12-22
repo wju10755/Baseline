@@ -255,6 +255,8 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50
     }
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     #[Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
@@ -263,9 +265,6 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50
     }
-    [Console]::Write(" ")
-    [Console]::ResetColor() 
-    [Console]::WriteLine()
     [Console]::Write("`n")
     [Console]::ResetColor() 
     [Console]::WriteLine() 
