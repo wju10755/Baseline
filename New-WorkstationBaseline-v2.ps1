@@ -114,7 +114,7 @@ if ($computerSystem.PCSystemType -eq 2) {
 
 Start-Sleep -Seconds 2
 
-Write-Host "Installing required powershell modules..." -NoNewline
+[Console]::Write("Installing required powershell modules...")
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
@@ -129,12 +129,10 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
     Import-Module BurntToast 
     
 }
-Write-Host " done." -ForegroundColor Green
-
-#[Console]::ForegroundColor = [System.ConsoleColor]::Green
-#[Console]::Write(" done.")
-#[Console]::ResetColor() # Reset the color to default
-#[Console]::WriteLine() # Move to the next line
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor() # Reset the color to default
+[Console]::WriteLine() # Move to the next line
 
 # Stage Toast Notifications
 [Console]::Write("Staging notifications...")
