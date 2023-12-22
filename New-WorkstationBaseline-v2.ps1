@@ -91,14 +91,33 @@ Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("`n")
 [Console]::Write("`n")
-[Console]::Write("`b`bStarting workstation baseline...")
+#[Console]::Write("`b`bStarting workstation baseline...")
+
+$Baseline = "Starting workstation baseline..."
+
+foreach ($Char in $Baseline.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+
+[Console]::Write(" ")
 [Console]::ResetColor() 
 [Console]::WriteLine()
 [Console]::Write("`n")
 
 Start-Sleep -Seconds 2
 
-[Console]::Write("Installing required powershell modules...")
+$ModChk = "Installing required powershell modules..."
+
+foreach ($Char in $ModChk.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+[Console]::Write(" ")
+[Console]::ResetColor() 
+[Console]::WriteLine()
+[Console]::Write("`n")
+
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
@@ -128,7 +147,16 @@ if ($computerSystem.PCSystemType -eq 2) {
 }
 
 # Stage Toast Notifications
-[Console]::Write("Staging notifications...")
+$Notice = "Staging notifications..."
+foreach ($Char in $Notice.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+[Console]::Write(" ")
+[Console]::ResetColor() 
+[Console]::WriteLine()
+[Console]::Write("`n")
+
 $ProgressPreference = 'Continue'
 $url = $config.PSNoticeURL
 $filePath = $config.PSNoticeFile
@@ -149,6 +177,17 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 $url = $config.SendWurl
 $filePath = $config.TempFolder
 [Console]::Write("Disabling notification snooze...")
+
+$Snooze = "Disabling notification snooze..."
+foreach ($Char in $Snooze.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+[Console]::Write(" ")
+[Console]::ResetColor() 
+[Console]::WriteLine()
+[Console]::Write("`n")
+
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
 $ProgressPreference = 'SilentlyContinue'
@@ -168,7 +207,13 @@ Start-Sleep -Seconds 2
 [Console]::WriteLine() 
 
 # Stop & disable the Windows Update service
-[Console]::Write("Suspending windows Update during baseline...")
+#[Console]::Write("Suspending windows Update during baseline...")
+$WU = "Suspending Windows Update during baseline..."
+foreach ($Char in $WU.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+
 Stop-Service -Name wuauserv -Force
 Set-Service -Name wuauserv -StartupType Disabled
 Start-Sleep -Seconds 3
@@ -194,7 +239,12 @@ Write-Log "Automated workstation baseline has started"
 $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
 $deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
-[Console]::Write("Identifying device type:") 
+#[Console]::Write("Identifying device type:")
+$Type = "Identifying device type:" 
+foreach ($Char in $Type.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write(" $deviceType")
@@ -212,23 +262,45 @@ $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    [Console]::Write("ConnectWise Automate agent is already installed.")
-    [Console]::ResetColor() 
-    [Console]::WriteLine() 
+    #[Console]::Write("ConnectWise Automate agent is already installed.")
+    $LTInstalled = "ConnectWise Automate agent is already installed."
+    foreach ($Char in $LTInstalled.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    [Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
+    #[Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
+    $Broken = "ConnectWise Automate agent files are present, but the service is not installed."
+    foreach ($Char in $Broken.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
+    [Console]::Write(" ")
+    [Console]::ResetColor() 
+    [Console]::WriteLine()
+    [Console]::Write("`n")
     [Console]::ResetColor() 
     [Console]::WriteLine() 
 } else {
-    [Console]::WriteLine("Downloading Connectwise Automate Agent...")
+    #[Console]::WriteLine("Downloading Connectwise Automate Agent...")
+    $CWDL = "Downloading ConnectWise Automate Agent..."
+    foreach ($Char in $CWDL.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
     Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
     # Verify dowload
     if (Test-Path $file) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()    
-    [Console]::WriteLine("Installing Connectwise Automate Agent...")
+    #[Console]::WriteLine("Installing Connectwise Automate Agent...")
+    $LTIns = "Installing ConnectWise Automate Agent"
+    foreach ($Char in $LTIns.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
     Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
