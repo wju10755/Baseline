@@ -107,7 +107,7 @@ foreach ($Char in $Baseline.ToCharArray()) {
 
 Start-Sleep -Seconds 2
 
-$ModChk = "Installing required powershell modules..."
+$ModChk = "Installing required powershell modules...."
 
 foreach ($Char in $ModChk.ToCharArray()) {
     [Console]::Write("$Char")
