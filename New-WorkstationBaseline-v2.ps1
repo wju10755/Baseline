@@ -587,7 +587,7 @@ Add-Type @"
 
 function Move-ProcessWindowToTopLeft([string]$processName) {
     $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
-    if ($process -eq $null) {
+    if ($null -eq $process) {
         Write-Host "Process not found."
         return
     }
