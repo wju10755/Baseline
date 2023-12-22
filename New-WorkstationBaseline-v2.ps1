@@ -782,7 +782,7 @@ if ($SWNE) {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
         $NEURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
-        Invoke-WebRequest -OutFile $NEFilePath -Uri $NEURL -UseBasicParsing -TransferEncoding $transferEncoding
+        Invoke-WebRequest -OutFile $NEFilePath -Uri $NEURL -UseBasicParsing
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $NEFilePath).Length
