@@ -300,22 +300,10 @@ Start-Sleep -Seconds 2
 [Console]::WriteLine() 
 Start-Sleep -Seconds 5
 
-# Set power profile
-Start-Sleep -Seconds 1
-[Console]::Write("Configuring power profile...")
-powercfg /SETACTIVE SCHEME_CURRENT
-& $config.PowerProfile
-Start-Sleep -Seconds 2
-Write-Log "Power Profile set to 'Balanced'"
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor()
-[Console]::WriteLine() 
-Start-Sleep -Seconds 5
 
 # Set power button action to 'Shutdown'
 Start-Sleep -Seconds 2
-[Console]::Write("Configuring power button action to shutdown...")
+[Console]::Write("Configuring power button shutdown action...")
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PwrButton
@@ -398,7 +386,7 @@ Start-Sleep -Seconds 5
 #& $config.Checkpoint
 #Start-Sleep -Seconds 5
 
-
+Stop-Transcript *> $null
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
     # Set the URL and file path variables
@@ -412,18 +400,15 @@ if ($manufacturer -eq "Dell Inc.") {
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
 
     if (Test-Path -Path $SpinnerFile) {
-    Stop-Transcript *> $null
     & $config.DellBloatware
     & $SpinnerFile
         }
-    
+
 } else {
     Write-Warning "Skipping Dell debloat module due to device not meeting hardware requirements."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
 taskkill /f /im procmon* *> $null
-
-
 
 
 # Remove Pre-Installed Office

@@ -7,6 +7,13 @@ $ProcmonFile = "c:\temp\Procmon.exe"
 Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
 Start-Sleep -Seconds 2
 Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+$ProgressPreference = 'Continue'
+# Launch Procmon and enable auto-scroll
+$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+$wshell = New-Object -ComObject wscript.shell
+Start-Sleep -Seconds 3
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2
 
 # Move Procmon left
 Add-Type @"
@@ -58,6 +65,7 @@ Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
 Start-Sleep -Seconds 5
 
+# Trigger uninstall of all pre-installed versions of Microsoft 365 Apps
 $OfficeUninstallStrings = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*Microsoft 365 - *"} | Select UninstallString).UninstallString
         ForEach ($UninstallString in $OfficeUninstallStrings) {
             $UninstallEXE = ($UninstallString -split '"')[1]
@@ -65,11 +73,21 @@ $OfficeUninstallStrings = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\Cur
             Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
         } 
 
+# Stop auto-scroll and exit procmon        
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2
 taskkill /f /im procmon* *> $null
+
 
 Start-Sleep -Seconds 5
 
-Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+# Start Procmon
+$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+$wshell = New-Object -ComObject wscript.shell
+Start-Sleep -Seconds 3
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2
+
 # Move Procmon left
 Add-Type @"
     using System;
@@ -118,7 +136,7 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
-
+# Trigger uninstall of all pre-installed versions of Microsoft OneNote Apps
 $OneNoteUninstallStrings = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*Microsoft OneNote - *"} | Select UninstallString).UninstallString
         ForEach ($UninstallString in $OneNoteUninstallStrings) {
             $UninstallEXE = ($UninstallString -split '"')[1]
@@ -126,5 +144,8 @@ $OneNoteUninstallStrings = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\Cu
             Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
             
         }
-taskkill /f /im procmon* *> $null
 
+# Stop auto-scroll and exit procmon        
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2
+taskkill /f /im procmon* *> $null
