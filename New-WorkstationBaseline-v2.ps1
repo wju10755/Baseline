@@ -294,7 +294,7 @@ Start-Sleep -Seconds 2
 
 # Disable fast startup
 Start-Sleep -Seconds 2
-[Console]::Write("Disabling Fast Startup...")
+[Console]::WriteLine("Disabling Fast Startup...")
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
 Write-Log "Disabled fast startup."
