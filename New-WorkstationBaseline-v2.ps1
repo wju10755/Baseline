@@ -264,7 +264,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 
 
 # Set power profile to 'Balanced'
-[Console]::WriteLine("Setting Power Profile...")
+[Console]::Write("Setting Power Profile...")
 Start-Sleep -Seconds 3
 powercfg /S SCHEME_BALANCED
 & $config.PowerProfile
