@@ -97,7 +97,7 @@ $Baseline = "Starting workstation baseline..."
 
 foreach ($Char in $Baseline.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 51
 }
 
 [Console]::Write(" ")
