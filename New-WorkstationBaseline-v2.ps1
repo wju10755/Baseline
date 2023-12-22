@@ -277,11 +277,11 @@ powercfg /change hibernate-timeout-ac 0
 powercfg /h off
 & $config.HiberSleep
 Start-Sleep -Seconds 2
+Write-Log "Disabled sleep and hibernation mode."
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-Write-Log "Disabled sleep and hibernation mode."
 Start-Sleep -Seconds 2
 
 
@@ -411,20 +411,21 @@ taskkill /f /im procmon* *> $null
 
 
 # Remove Pre-Installed Office
+if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*Microsoft 365 - *"})) {
+    goto os_check
+}
+
 $RemoveOfficeURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
 $RemoveOfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
 $RemoveOfficeScript = "c:\temp\Remove-Office.ps1"
 $RemoveOfficeSpinner = "c:\temp\Remove-Office-Spinner.ps1"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1" -OutFile "c:\temp\Remove-Office.ps1"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1" -OutFile "c:\temp\Remove-Office-Spinner.ps1"
-Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
-Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 if(Test-Path $RemoveOfficeSpinner) {
     & $config.ScrubOffice
     &$RemoveOfficeSpinner
 }
-#taskkill /f /im procmon64.exe *> $null
-
+:os_check
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
 
@@ -492,6 +493,63 @@ else {
 }
 
 
+# Launch Procmon and enable auto-scroll
+$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+$wshell = New-Object -ComObject wscript.shell
+Start-Sleep -Seconds 3
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2
+
+# Move Procmon left
+Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class WinAPI {
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+    }
+"@
+
+function Move-ProcessWindowToTopLeft([string]$processName) {
+    $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
+    if ($null -eq $process) {
+        Write-Host "Process not found."
+        return
+    }
+
+    $hWnd = $process.MainWindowHandle
+    if ($hWnd -eq [IntPtr]::Zero) {
+        Write-Host "Window handle not found."
+        return
+    }
+
+    $windowRect = New-Object WinAPI+RECT
+    [WinAPI]::GetWindowRect($hWnd, [ref]$windowRect)
+    $windowWidth = $windowRect.Right - $windowRect.Left
+    $windowHeight = $windowRect.Bottom - $windowRect.Top
+
+    # Set coordinates to the top left corner of the screen
+    $x = 0
+    $y = 0
+
+    [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
+}
+
+Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
+
+Start-Sleep -Seconds 2
+
 # Remove Microsoft OneDrive
 try {
     $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
@@ -556,64 +614,6 @@ try {
 }
 
 
-# Launch Procmon and enable auto-scroll
-$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
-$wshell = New-Object -ComObject wscript.shell
-Start-Sleep -Seconds 3
-$wshell.SendKeys("^a")
-Start-Sleep -Seconds 2
-
-# Move Procmon left
-Add-Type @"
-    using System;
-    using System.Runtime.InteropServices;
-    public class WinAPI {
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-        [StructLayout(LayoutKind.Sequential)]
-        public struct RECT {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-        }
-    }
-"@
-
-function Move-ProcessWindowToTopLeft([string]$processName) {
-    $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
-    if ($null -eq $process) {
-        Write-Host "Process not found."
-        return
-    }
-
-    $hWnd = $process.MainWindowHandle
-    if ($hWnd -eq [IntPtr]::Zero) {
-        Write-Host "Window handle not found."
-        return
-    }
-
-    $windowRect = New-Object WinAPI+RECT
-    [WinAPI]::GetWindowRect($hWnd, [ref]$windowRect)
-    $windowWidth = $windowRect.Right - $windowRect.Left
-    $windowHeight = $windowRect.Bottom - $windowRect.Top
-
-    # Set coordinates to the top left corner of the screen
-    $x = 0
-    $y = 0
-
-    [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
-}
-
-Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
-
-Start-Sleep -Seconds 2
-
-
 # Install Google Chrome
 $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
@@ -625,19 +625,19 @@ if ($Chrome) {
     [Console]::ResetColor()
     [Console]::WriteLine()  
 } else {
-    $FilePath = "c:\temp\ChromeSetup.exe"
-    if (-not (Test-Path $FilePath)) {
+    $ChromePath = "c:\temp\ChromeSetup.exe"
+    if (-not (Test-Path $ChromePath)) {
         $ProgressPreference = 'Continue'
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
-        Invoke-WebRequest -OutFile c:\temp\ChromeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe" -UseBasicParsing
+        $ChromeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
+        Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
     }
     # Validate successful download by checking the file size
-    $FileSize = (Get-Item $FilePath).Length
+    $FileSize = (Get-Item $ChromePath).Length
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
         & $config.chromeNotification
         [Console]::Write("Installing Google Chrome...")
-        Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
+        Start-Process -FilePath $ChromePath -ArgumentList "/silent /install" -Wait
         Write-Log "Google Chrome successfully installed."
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.")
@@ -645,7 +645,7 @@ if ($Chrome) {
         [Console]::WriteLine()    
         & $config.chromeComplete
         Start-Sleep -Seconds 10
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
     }
     else {
         # Report download error
@@ -656,7 +656,7 @@ if ($Chrome) {
         [Console]::ResetColor()
         [Console]::WriteLine() 
         Start-Sleep -Seconds 10
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        #Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
     }
 }
 
