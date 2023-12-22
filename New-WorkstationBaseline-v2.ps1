@@ -34,6 +34,8 @@ $config = @{
     PSNoticePath         = "c:\temp\PSNotice"
     PSNoticeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
     ScrubOffice          = "C:\temp\psnotice\scruboffice\New-ToastNotification.ps1"
+    SendWKey             = "C:\temp\sendwkey.exe"
+    SendWurl             = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe"
     StartBaseline        = "C:\temp\psnotice\BaselineStart\New-ToastNotification.ps1"
     SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
     TempFolder           = "C:\temp"
@@ -153,17 +155,18 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 
 
 # Disable Notification Snooze
-[Console]::Write("Disabling notification snooze...")
+$url = $config.SendWurl
+$filePath = $config.TempFolder
+[Console]::WriteLine("Disabling notification snooze...")
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
-Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe" -OutFile "c:\temp\SendWKey.exe"
-$sendWKeyPath = "C:\temp\SendWKey.exe"
+Invoke-WebRequest -uri $url -OutFile $config.SendWKey
 # Define the arguments for SendWKey.exe
 $arguments = '#{n}'
-# Execute SendWKey.exe with the arguments
-Start-Process -FilePath $sendWKeyPath -ArgumentList $arguments -NoNewWindow -Wait
+# Execute SendWKey.exe with arguments
+Start-Process -FilePath $config.SendWKey -ArgumentList $arguments -NoNewWindow -Wait
 Start-Sleep -Seconds 2
-# Send the Space keystroke
+# Send Space keystroke
 [System.Windows.Forms.SendKeys]::SendWait(' ')
 [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -172,7 +175,7 @@ Start-Sleep -Seconds 2
 [Console]::WriteLine() 
 
 # Stop & disable the Windows Update service
-[Console]::Write("Suspending windows Update during baseline...")
+[Console]::WriteLine("Suspending windows Update during baseline...")
 Stop-Service -Name wuauserv -Force
 Set-Service -Name wuauserv -StartupType Disabled
 Start-Sleep -Seconds 3
@@ -180,7 +183,8 @@ $service = Get-Service -Name wuauserv
 if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
-    [Console]::ResetColor() 
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" failed.")
