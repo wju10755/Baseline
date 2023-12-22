@@ -180,9 +180,11 @@ $service = Get-Service -Name wuauserv
 if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
+    [Console]::ResetColor() 
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" failed.")
+    [Console]::ResetColor() 
 }
 
 
@@ -194,9 +196,11 @@ Write-Log "Automated workstation baseline has started"
 $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
 $deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
-Write-Host "Identifying device type: " -NoNewline
+[Console]::WriteLine("Identifying device type:") 
 Start-Sleep -Seconds 2
-Write-Host $deviceType -ForegroundColor "Yellow"
+[Console]::ForegroundColor = [System.ConsoleColor]::Yellow
+[Console]::Write(" $deviceType")
+[Console]::ResetColor() 
 Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
 
 
@@ -205,37 +209,32 @@ $file = 'c:\temp\Warehouse-Agent_Install.MSI'
 $agentName = "LTService"
 $agentPath = "C:\Windows\LTSvc\"
 $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
-#& $config.ClearPath
-if (-not (Test-Path $file)) {
-    #Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline
-    Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
-}
-
-# Verify dowload
-if (Test-Path $file) {
-    #Write-Host " done." -ForegroundColor Green
-} else {
-    Write-Host " failed!" -ForegroundColor Red
-    Write-Log "The file [$file] download failed."
-    exit
-}
 
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     Write-Host "The LabTech agent is already installed." -ForegroundColor Cyan
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    [Console]::WriteLine("ConnectWise Automate agent is already installed.")
 } elseif (Test-Path $agentPath) {
     Write-Output "The LabTech agent files are present, but the service is not installed."
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::WriteLine("ConnectWise Automate agent files are present, but the service is not installed")
+    [Console]::ResetColor() 
 } else {
-    
-    [Console]::Write("Downloading Connectwise Automate Agent...")
+    [Console]::WriteLine("Downloading Connectwise Automate Agent...")
     Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
     # Verify dowload
     if (Test-Path $file) {
-    [Console]::Write("Installing Connectwise Automate Agent...")
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()    
+    [Console]::WriteLine("Installing Connectwise Automate Agent...")
     Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
     } else {
-        Write-Host " failed!" -ForegroundColor Red
         Write-Log "The file [$file] download failed."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" failed.")
+        [Console]::ResetColor()   
         exit
 }
     # Wait for the installation to complete
@@ -243,15 +242,11 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 
     # Automate Agent Installation Check
     if (Test-Path $agentPath) {
-        Write-Host " done." -ForegroundColor Green
         Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
         & $config.AutomateSuccess
     } else {
-        Write-Host " failed!" -ForegroundColor Red
         Write-Log "ConnectWise Automate Agent installation failed!"
         & $config.AutomateFailure
-        Start-Sleep -Seconds 5
-        & $config.ClearPath
     }
 }
 
