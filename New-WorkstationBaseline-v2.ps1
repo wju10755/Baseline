@@ -168,7 +168,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 # Disable Notification Snooze
 $url = $config.SendWurl
 $filePath = $config.TempFolder
-[Console]::Write("Disabling notification snooze...")
+#[Console]::Write("Disabling notification snooze...")
 
 $Snooze = "Disabling notification snooze..."
 foreach ($Char in $Snooze.ToCharArray()) {
