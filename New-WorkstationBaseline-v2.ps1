@@ -157,7 +157,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 # Disable Notification Snooze
 $url = $config.SendWurl
 $filePath = $config.TempFolder
-[Console]::WriteLine("Disabling notification snooze...")
+[Console]::Write("Disabling notification snooze...")
 Add-Type -AssemblyName System.Windows.Forms
 Start-Sleep -Seconds 5
 Invoke-WebRequest -uri $url -OutFile $config.SendWKey
@@ -175,7 +175,7 @@ Start-Sleep -Seconds 2
 [Console]::WriteLine() 
 
 # Stop & disable the Windows Update service
-[Console]::WriteLine("Suspending windows Update during baseline...")
+[Console]::Write("Suspending windows Update during baseline...")
 Stop-Service -Name wuauserv -Force
 Set-Service -Name wuauserv -StartupType Disabled
 Start-Sleep -Seconds 3
@@ -201,13 +201,13 @@ Write-Log "Automated workstation baseline has started"
 $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
 $deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
-[Console]::WriteLine("Identifying device type:") 
+[Console]::Write("Identifying device type:") 
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write(" $deviceType")
 [Console]::ResetColor() 
 [Console]::WriteLine() 
-Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
+Write-Log "Manufacturer: $manufacturer - Device Type: $deviceType."
 
 
 # ConnectWise Automate Agent Installation
@@ -219,10 +219,10 @@ $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    [Console]::WriteLine("ConnectWise Automate agent is already installed.")
+    [Console]::Write("ConnectWise Automate agent is already installed.")
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    [Console]::WriteLine("ConnectWise Automate agent files are present, but the service is not installed")
+    [Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
     [Console]::ResetColor() 
 } else {
     [Console]::WriteLine("Downloading Connectwise Automate Agent...")
