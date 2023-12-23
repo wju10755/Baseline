@@ -712,7 +712,6 @@ Where-Object { $_.DisplayName -like "*Google Chrome*" }
 
 if ($Chrome) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    [Console]::Write("Existing Google Chrome installation found.")
     $FoundChrome = "Existing Google Chrome installation found, skipping install."
     foreach ($Char in $FoundChrome.ToCharArray()) {
         [Console]::Write("$Char")

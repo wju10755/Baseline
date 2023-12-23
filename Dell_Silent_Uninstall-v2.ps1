@@ -2,7 +2,12 @@ $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
 
 if (!($computerSystem.Manufacturer -eq "Dell, Inc.")) {
-    [Console]::Write("This module is only eligible for genuine Dell systems.")
+    #[Console]::Write("This module is only eligible for genuine Dell systems.")
+    $DellOnly = "This module is only elibible for genuine Dell systems."
+    foreach ($Char in $DellOnly.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
     break
 }
 
