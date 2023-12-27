@@ -585,6 +585,12 @@ else {
 
 
 # Launch Procmon and enable auto-scroll
+$ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
+$ProcmonFile = "c:\temp\Procmon.exe"
+Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
+Start-Sleep -Seconds 2
+
+# Launch Procmon
 $ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
 $wshell = New-Object -ComObject wscript.shell
 Start-Sleep -Seconds 3
@@ -645,7 +651,12 @@ Start-Sleep -Seconds 2
 try {
     $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
     if ($OneDriveProduct) {
-        [Console]::Write("Removing Microsoft OneDrive (Personal)...")
+        $ROD = "Removing Microsoft OneDrive (Personal)..."
+        foreach ($Char in $ROD.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
+
         $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
         # Recheck if OneDrive is uninstalled
         $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
@@ -665,13 +676,26 @@ try {
     } else {
         [Console]::Write("`n")
         [Console]::Write("OneDrive installation not found.")
+        [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
+        $ODNF = "OneDrive installation not found"
+        foreach ($Char in $ODNF.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+
+
     }
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write("An error occurred: $_")
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
+
+
+
+
 
 # Remove Microsoft Teams Machine-Wide Installer
 try {
