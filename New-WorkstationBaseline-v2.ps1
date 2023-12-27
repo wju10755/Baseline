@@ -679,7 +679,7 @@ try {
         }
     } else {
         [Console]::Write("`n")
-        [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
         $ODINF = "OneDrive installation not found."
         foreach ($Char in $ODINF.ToCharArray()) {
             [Console]::Write("$Char")
@@ -700,9 +700,6 @@ try {
 }
 
 
-
-
-
 # Remove Microsoft Teams Machine-Wide Installer
 try {
     $TeamsMWI = Get-Package -Name 'Teams Machine*'
@@ -711,9 +708,9 @@ try {
         foreach ($Char in $RTMWI.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50
-    }
-    [Console]::ResetColor()
-    [Console]::WriteLine()
+        }
+        [Console]::ResetColor()
+        [Console]::WriteLine()
         Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
         $MWICheck = Get-Package -Name 'Teams Machine*'
         if (-not $MWICheck) {
@@ -737,7 +734,7 @@ try {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         [Console]::Write("`n")
         $TMWINF = "Teams machine wide installer not found."
-        foreach ($Char in $RTMWI.ToCharArray()) {
+        foreach ($Char in $TMWINF.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50    
         }
