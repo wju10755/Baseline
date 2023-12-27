@@ -253,7 +253,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     $LTInstalled = "ConnectWise Automate agent is already installed."
     foreach ($Char in $LTInstalled.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Seconds 1
     }
     [Console]::ResetColor()
     [Console]::WriteLine()
