@@ -284,7 +284,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     #[Console]::WriteLine("Installing Connectwise Automate Agent...")
     $LTIns = "Installing ConnectWise Automate Agent"
     foreach ($Char in $LTIns.ToCharArray()) {
-        [Console]::Write("$Char")
+        [Console]::WriteLine("$Char")
         Start-Sleep -Milliseconds 50
     }
     Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
