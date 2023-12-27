@@ -272,7 +272,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     #[Console]::WriteLine("Downloading Connectwise Automate Agent...")
     $CWDL = "Downloading ConnectWise Automate Agent..."
     foreach ($Char in $CWDL.ToCharArray()) {
-        [Console]::Write("$Char")
+        [Console]::WriteLine("$Char")
         Start-Sleep -Milliseconds 50
     }
     Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
