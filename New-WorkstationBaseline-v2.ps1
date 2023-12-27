@@ -195,7 +195,7 @@ Start-Sleep -Seconds 2
 
 # Stop & disable the Windows Update service
 #[Console]::Write("Suspending windows Update during baseline...")
-$WU = "Suspending Windows Update during baseline..."
+$WU = "Suspending Windows Update..."
 foreach ($Char in $WU.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
