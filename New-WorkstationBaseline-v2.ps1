@@ -503,20 +503,39 @@ if ($manufacturer -eq "Dell Inc.") {
     Write-Warning "Skipping Dell debloat module due to device not meeting hardware requirements."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
+
+# Kill procmon 
 taskkill /f /im procmon* *> $null
 
 
-# Remove Pre-Installed Office
-if ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
-    
-}
-Invoke-WebRequest -Uri $config.RemoveOfficeURL -OutFile $config.RemoveOfficeScript
-Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
-if(Test-Path $RemoveOfficeSpinner) {
-    & $config.ScrubOffice
-    & $config.RemoveOfficeSpinner
+# Registry Check
+$OfficeUninstallStrings = (Get-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft 365 - *"} | Select-Object -ExpandProperty UninstallString)
+
+# Registry Check for Pre-Installed Office
+if ($null -ne $OfficeUninstallStrings) {
+    $RPIO = "Removing Pre-Installed Office 365 Applications..."
+    foreach ($Char in $RPIO.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
+
+    # Set the URL and file path variables
+    Invoke-WebRequest -Uri $config.RemoveOfficeURL -OutFile $config.RemoveOfficeScript
+    Start-Sleep -seconds 2
+    Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
+
+    if (Test-Path -Path $config.RemoveOfficeSpinner) {
+        & $config.ScrubOffice
+        & $RemoveOfficeSpinner
+        }
+
+} else {
+    Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
 }
 
+# Restart transcript
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
 
