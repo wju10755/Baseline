@@ -192,7 +192,7 @@ Start-Sleep -Seconds 2
 [Console]::Write(" done.")
 [Console]::ResetColor() 
 [Console]::WriteLine() 
-
+<#
 # Stop & disable the Windows Update service
 #[Console]::Write("Suspending windows Update during baseline...")
 $WU = "Suspending Windows Update..."
@@ -996,7 +996,7 @@ if ($SWNE) {
 
 # Stop Procmon
 taskkill /f /im procmon64.exe *> $null
-
+#>
 [Console]::Write("`n")
 $SBLC = "Configuring Bitlocker disk encryption..."
 foreach ($Char in $SBLC.ToCharArray()) {
