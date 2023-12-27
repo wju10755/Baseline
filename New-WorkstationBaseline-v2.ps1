@@ -998,7 +998,7 @@ if ($SWNE) {
 taskkill /f /im procmon64.exe *> $null
 
 [Console]::Write("`n")
-$SBLC = "Starting Bitlocker disk encryption configuration..."
+$SBLC = "Configuring Bitlocker disk encryption..."
 foreach ($Char in $SBLC.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50    
@@ -1040,6 +1040,10 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     # Retrieve and Output the Recovery Key Password
     $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
     Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 }
 
 # Enable and start Windows Update Service
