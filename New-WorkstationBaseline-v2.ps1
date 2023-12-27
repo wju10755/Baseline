@@ -679,7 +679,7 @@ try {
         }
     } else {
         [Console]::Write("`n")
-        [Console]::Write("OneDrive installation not found.")
+        [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
         $ODINF = "OneDrive installation not found."
         foreach ($Char in $ODINF.ToCharArray()) {
             [Console]::Write("$Char")
@@ -725,7 +725,6 @@ try {
         } else {
             Write-Log "Failed to uninstall Teams Machine Wide Installer."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            [Console]::Write("Failed to uninstall Teams Machine Wide Installer.")
             $FTMWU = "Failed to uninstall Teams machine wide installer."
             foreach ($Char in $FTMWU.ToCharArray()) {
                 [Console]::Write("$Char")
@@ -737,7 +736,6 @@ try {
     } else {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         [Console]::Write("`n")
-        [Console]::Write("Teams Machine Wide Installer not found.")
         $TMWINF = "Teams machine wide installer not found."
         foreach ($Char in $RTMWI.ToCharArray()) {
         [Console]::Write("$Char")
@@ -747,7 +745,12 @@ try {
         [Console]::WriteLine()    
     }
 } catch {
-    [Console]::Write("An error occurred: $_")
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    $RTMWIE = "An error occurred: $_"
+    foreach ($Char in $RTMWI.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
 }
 
 
@@ -777,7 +780,11 @@ if ($Chrome) {
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
         & $config.chromeNotification
-        [Console]::Write("Installing Google Chrome...")
+        $IGC = "Installing Google Chrome..."
+        foreach ($Char in $IGC.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         Start-Process -FilePath $ChromePath -ArgumentList "/silent /install" -Wait
         Write-Log "Google Chrome installed successfully."
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -793,11 +800,15 @@ if ($Chrome) {
         & $config.chromeFailure
         Write-Log "Google Chrome download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write("Download failed! File size does not match.")
+        $GCDE = "Download failed! file not found or size does not match"
+        foreach ($Char in $GCDE.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         [Console]::ResetColor()
         [Console]::WriteLine() 
         Start-Sleep -Seconds 10
-        #Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
     }
 }
 
@@ -807,14 +818,22 @@ $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\Current
 Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
 if ($Acrobat) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    [Console]::Write("Existing Acrobat Reader installation found.")
+    $EAAIF = "Existing Acrobat Reader installation found."
+    foreach ($Char in $EAAIF.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
     [Console]::ResetColor()
     [Console]::WriteLine()  
 } else {
     $AcroFilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
     if (-not (Test-Path $AcroFilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
-        [Console]::Write("Downloading Adobe Acrobat Reader (277,900,248 bytes)...")
+        $DLAAR = "Downloading Adove Acrobat Reader (277,900,248 bytes...)"
+        foreach ($Char in $DLAAR.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         & $config.acrobatDownload
         Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
         & $config.ClearPath
@@ -827,7 +846,11 @@ if ($Acrobat) {
     $FileSize = (Get-Item $AcroFilePath).Length
     $ExpectedSize = 277900248 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        [Console]::Write("Installing Adobe Acrobat Reader...")
+        $IAAR = "Installing Adobe Acrobat Reader..."
+        foreach ($Char in $IAAR.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         & $config.acrobatNotification
         Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
         & $config.acrobatComplete
@@ -843,7 +866,11 @@ if ($Acrobat) {
         # Report download error
         Write-Log "Download failed. File size does not match."
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write("Download failed. File size does not match.")
+        $AARDE = "Download failed or file size does not match."
+        foreach ($Char in $AARDE.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         [Console]::ResetColor()
         [Console]::WriteLine()    
         & $config.acrobatFailure
@@ -860,7 +887,11 @@ Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*
 
 if ($O365) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    [Console]::Write("Existing Microsoft Office installation found.")
+    $EMOIF = "Existing Microsoft Office installation found."
+    foreach ($Char in $EMOIF.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
     [Console]::ResetColor()
     [Console]::WriteLine()
     goto NE_Install    
@@ -875,7 +906,11 @@ if ($O365) {
     $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         & $config.officeNotice
-        [Console]::Write("Installing Office 365...")
+        $IO365 = "Installing Microsoft Office 365..."
+        foreach ($Char in $IO365.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         Start-Process -FilePath $OfficePath -Wait
         if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
             Write-Log "Office 365 Installation Completed Successfully."
@@ -886,7 +921,11 @@ if ($O365) {
             Start-Sleep -Seconds 10
             Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
             } else {
-            [Console]::Write("Office 365 installation failed")
+            $MO365IF = "Microsoft Office 365 installation failed."
+            foreach ($Char in $MO365IF.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 50    
+                }
             }
         
     }
@@ -895,7 +934,11 @@ if ($O365) {
         & $config.officeFailure
         Write-Log "Office download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write("Download failed. File size does not match.")
+        $O365DLF = "Download failed or file size does not match"
+        foreach ($Char in $O365DLF.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         [Console]::ResetColor()
         [Console]::WriteLine()
         Start-Sleep -Seconds 10
@@ -910,7 +953,11 @@ Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
 
 if ($SWNE) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    [Console]::Write("Existing NetExtender installation found.")
+    $ENEIF = "Existing NetExtender installation found."
+    foreach ($Char in $ENEIF.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
     [Console]::ResetColor()
     [Console]::WriteLine()    
 } else {
@@ -938,6 +985,11 @@ if ($SWNE) {
         Write-Log "Sonicwall NetExtender download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         [Console]::Write("Download failed! File does not exist or size does not match.")
+        $NEDF = "Download failed! File does not exist or size does not match"
+        foreach ($Char in $NEDF.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         [Console]::ResetColor()
         [Console]::WriteLine()    
         Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
@@ -949,7 +1001,11 @@ if ($SWNE) {
 taskkill /f /im procmon64.exe *> $null
 
 [Console]::Write("`n")
-[Console]::Write("Starting Bitlocker Configuration...")
+$SBLC = "Starting Bitlocker disk encryption configuration..."
+foreach ($Char in $SBLC.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50    
+    }
 [Console]::Write("`n")
 
 # Check if TPM module is enabled
@@ -990,7 +1046,13 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 }
 
 # Enable and start Windows Update Service
-[Console]::Write("Enabling Windows Update Service...")
+$EWUS = "Enabling Windows Update Services..."
+foreach ($Char in $EWUS.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50    
+    }
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 Set-Service -Name wuauserv -StartupType Manual
 Start-Service -Name wuauserv
 Start-Sleep -Seconds 3
@@ -1021,7 +1083,11 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
 } else {
-    Write-host "Windows update execution failed!" -ForegroundColor Red
+    $WUEF = "Windows Update execution failed!"
+    foreach ($Char in $WUEF.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
 }
 
 
@@ -1031,7 +1097,11 @@ Invoke-Expression -command $NTFY2 *> $null
 
 
 [Console]::Write("`n")
-[Console]::Write("Starting Domain/Azure AD Join Function...")
+$SDJF = "Starting Domain/Azure AD Join Function..."
+foreach ($Char in $SDJF.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50    
+    }
 $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 $ProgressPreference = 'Continue'
@@ -1050,7 +1120,11 @@ if ($choice -eq "Y" -or $choice -eq "N") {
         } else {
             [Console]::Write("`n")
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            [Console]::Write("NetExtender not found!")
+            $NENF = "SonicWall NetExtender not found"
+            foreach ($Char in $NENF.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 50    
+                }
             [Console]::ResetColor()
             [Console]::WriteLine()   
             goto continue_script
@@ -1058,8 +1132,14 @@ if ($choice -eq "Y" -or $choice -eq "N") {
     } else {
         # Skip the VPN connection setup
         [Console]::Write("`n")
-        [Console]::Write("Skipping VPN Connection Setup...")
-        [Console]::Write("`n")
+        $SVPNS = "Skipping VPN Connection Setup..."
+        foreach ($Char in $SVPNS.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+            [Console]::Write("`n")
 
     }
 } else {
@@ -1089,16 +1169,34 @@ if ($choice -eq "A" -or $choice -eq "S") {
         # Check if the output contains the warning message
         if ($joinOutput -notlike "*Warning: The changes will take effect after you restart the computer*") {
             Write-Host " "
-            Write-Host "Domain join completed successfully." -ForegroundColor Green
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            $DJCS = "Domain join operation completed successfully."
+            foreach ($Char in $DJCS.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 50    
+                }
+                [Console]::ResetColor()
+                [Console]::WriteLine()
             Write-Log "$env:COMPUTERNAME joined to $domain successfully"
         } else {
             Write-Host " "
-            Write-Host "Domain join completed but requires a restart." -ForegroundColor Yellow
+            [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
+            $DJCSRR = "Domain join operation completed successfully, restart is required!"
+            foreach ($Char in $DJCSRR.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 50    
+                }
+                [Console]::ResetColor()
+                [Console]::WriteLine()
             Write-Log "$env:COMPUTERNAME joined to $domain but requires a restart."
         }
     } else {
         # Join the system to Azure AD using Work or school account
-        Write-Output "Starting Azure AD Join using Work or school account..."
+        $SAADJ = "Starting Azure AD Join operation using Work or School account..."
+        foreach ($Char in $SAADJ.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         Start-Sleep -Seconds 2
         Start-Process "ms-settings:workplace"
         # Run dsregcmd /status and capture its output
@@ -1110,7 +1208,11 @@ if ($choice -eq "A" -or $choice -eq "S") {
 
         # Display the extracted value
         Write-Host " "
-        Write-Host "AzureAdJoined: $azureAdJoinedValue"
+        $AADJV = "AzureADJoined: $azureADJoinedValue"
+        foreach ($Char in $AADJV.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
         Write-Log "$env:COMPUTERNAME joined to Azure AD."
     }
 } else {
@@ -1124,6 +1226,13 @@ if ($choice -eq "A" -or $choice -eq "S") {
 # Final log entry
 & $config.baselineComplete
 Write-Log "Baseline configuration completed successfully."
+$BCCS = "Baseline configuration completed successfully!"
+foreach ($Char in $BCCS.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50    
+    }
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 Write-Host " "
 Stop-Transcript  
 Start-Sleep -seconds 1
