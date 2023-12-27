@@ -677,7 +677,7 @@ try {
             [Console]::WriteLine()    
         }
     } else {
-        [Console]::Write("`n")
+        #[Console]::Write("`n")
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         $ODINF = "OneDrive installation not found."
         foreach ($Char in $ODINF.ToCharArray()) {
@@ -731,7 +731,7 @@ try {
         }
     } else {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write("`n")
+        #[Console]::Write("`n")
         $TMWINF = "Teams machine wide installer not found."
         foreach ($Char in $TMWINF.ToCharArray()) {
         [Console]::Write("$Char")
