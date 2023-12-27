@@ -501,7 +501,7 @@ taskkill /f /im procmon* *> $null
 
 # Remove Pre-Installed Office
 if ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
-    goto os_check
+    
 }
 
 $RemoveOfficeURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
