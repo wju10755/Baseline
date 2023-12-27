@@ -996,19 +996,17 @@ if ($SWNE) {
 # Stop Procmon
 taskkill /f /im procmon64.exe *> $null
 
-#[Console]::Write("`n")
-$SBLC = "Configuring Bitlocker disk encryption..."
+$ErrorActionPreference = "SilentlyContinue"
+$SBLC = "Configuring Bitlocker disk encryption... "
 foreach ($Char in $SBLC.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50    
     }
-# Check if TPM module is enabled
-$TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | Where-Object {$_.IsEnabled().Isenabled -eq 'True'} -ErrorAction SilentlyContinue
 
-# Check if Windows version and BitLocker-ready drive are present
+# Check Bitlocker Compatibility
 $WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
+$TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
 $BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
-
 if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
     # Ensure the output directory exists
@@ -1037,14 +1035,17 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     # Retrieve and Output the Recovery Key Password
     $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
     Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
-    
-    
-}
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
     [Console]::WriteLine()
     
+} else {
+    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+}
+
+
 # Enable and start Windows Update Service
 $EWUS = "Enabling Windows Update Services..."
 foreach ($Char in $EWUS.ToCharArray()) {
