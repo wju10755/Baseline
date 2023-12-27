@@ -426,7 +426,7 @@ Start-Sleep -Seconds 2
 [Console]::WriteLine() 
 
 Start-Sleep -Seconds 3
-$Sync = "Syncing system time..."
+$Sync = "Syncing system clock..."
 foreach ($Char in $Sync.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
@@ -1100,6 +1100,7 @@ foreach ($Char in $SDJF.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50    
     }
+    [Console]::Write("`n")
 $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 $ProgressPreference = 'Continue'
