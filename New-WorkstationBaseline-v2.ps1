@@ -1002,9 +1002,7 @@ $SBLC = "Configuring Bitlocker disk encryption..."
 foreach ($Char in $SBLC.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50    
-    }
-#[Console]::Write("`n")
-
+    
 # Check if TPM module is enabled
 $TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | Where-Object {$_.IsEnabled().Isenabled -eq 'True'} -ErrorAction SilentlyContinue
 
@@ -1040,6 +1038,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     # Retrieve and Output the Recovery Key Password
     $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
     Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
+    }
     
 }
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
