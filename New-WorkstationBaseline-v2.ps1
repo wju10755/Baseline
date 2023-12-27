@@ -34,6 +34,10 @@ $config = @{
     PSNoticeFile         = "c:\temp\psnotice.zip"
     PSNoticePath         = "c:\temp\PSNotice"
     PSNoticeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
+    RemoveOfficeURL      = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
+    RemoveOfficeSpinURL  = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
+    RemoveOfficeScript   = "c:\temp\Remove-Office.ps1"
+    RemoveOfficeSpinner  = "c:\temp\Remove-Office-Spinner.ps1"
     ScrubOffice          = "C:\temp\psnotice\scruboffice\New-ToastNotification.ps1"
     SendWKey             = "C:\temp\sendwkey.exe"
     SendWurl             = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe"
@@ -46,6 +50,8 @@ $config = @{
     Win10                = "C:\temp\psnotice\win10\New-ToastNotification.ps1"
     Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
 }
+
+
 
 
 function Print-Middle($Message, $Color = "White") {
@@ -503,19 +509,13 @@ taskkill /f /im procmon* *> $null
 if ((Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
     
 }
-
-$RemoveOfficeURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
-$RemoveOfficeSpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
-$RemoveOfficeScript = "c:\temp\Remove-Office.ps1"
-$RemoveOfficeSpinner = "c:\temp\Remove-Office-Spinner.ps1"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1" -OutFile "c:\temp\Remove-Office.ps1"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1" -OutFile "c:\temp\Remove-Office-Spinner.ps1"
+Invoke-WebRequest -Uri $config.RemoveOfficeURL -OutFile $config.RemoveOfficeScript
+Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
 if(Test-Path $RemoveOfficeSpinner) {
     & $config.ScrubOffice
-    &$RemoveOfficeSpinner
+    & $config.RemoveOfficeSpinner
 }
 
-:os_check
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
 
