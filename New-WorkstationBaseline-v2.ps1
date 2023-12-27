@@ -1051,8 +1051,6 @@ foreach ($Char in $EWUS.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50    
     }
-    [Console]::ResetColor()
-    [Console]::WriteLine()
 Set-Service -Name wuauserv -StartupType Manual
 Start-Service -Name wuauserv
 Start-Sleep -Seconds 3
