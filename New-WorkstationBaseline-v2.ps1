@@ -997,7 +997,7 @@ if ($SWNE) {
 taskkill /f /im procmon64.exe *> $null
 
 $ErrorActionPreference = "SilentlyContinue"
-$SBLC = "Configuring Bitlocker disk encryption... "
+$SBLC = "Configuring Bitlocker encryption... "
 foreach ($Char in $SBLC.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50    
