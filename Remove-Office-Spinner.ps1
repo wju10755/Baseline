@@ -42,5 +42,5 @@ function Show-Spinner {
 }
 
 # Call the function Show-Spinner with the command and a label
-Show-Spinner -Script {& 'C:\temp\Remove-Office.ps1'} -Message "Removing Pre-Installed Office 365 Applications..."
+Show-Spinner -Script {& 'C:\temp\Remove-Office.ps1'}
 Start-Sleep -Seconds 3
