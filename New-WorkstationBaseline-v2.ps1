@@ -669,7 +669,6 @@ try {
         } else {
             Write-Log "Failed to remove OneDrive."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            [Console]::Write(" Failed to remove OneDrive.")
             $FROD = " Failed to remove OneDrive"
             foreach ($Char in $FROD.ToCharArray()) {
                 [Console]::Write("$Char")
@@ -681,6 +680,13 @@ try {
     } else {
         [Console]::Write("`n")
         [Console]::Write("OneDrive installation not found.")
+        $ODINF = "OneDrive installation not found."
+        foreach ($Char in $ODINF.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
+            [Console]::ResetColor()
+            [Console]::WriteLine()
     }
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
