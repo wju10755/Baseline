@@ -670,6 +670,11 @@ try {
             Write-Log "Failed to remove OneDrive."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
             [Console]::Write(" Failed to remove OneDrive.")
+            $FROD = " Failed to remove OneDrive"
+            foreach ($Char in $FROD.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 50    
+                }
             [Console]::ResetColor()
             [Console]::WriteLine()    
         }
@@ -679,7 +684,11 @@ try {
     }
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    [Console]::Write("An error occurred: $_")
+    $ODE = "An error occurred: $_"
+    foreach ($Char in $ODE.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
@@ -711,6 +720,11 @@ try {
             Write-Log "Failed to uninstall Teams Machine Wide Installer."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
             [Console]::Write("Failed to uninstall Teams Machine Wide Installer.")
+            $FTMWU = "Failed to uninstall Teams machine wide installer."
+            foreach ($Char in $FTMWU.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 50    
+                }
             [Console]::ResetColor()
             [Console]::WriteLine()
         }
@@ -718,6 +732,11 @@ try {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         [Console]::Write("`n")
         [Console]::Write("Teams Machine Wide Installer not found.")
+        $TMWINF = "Teams machine wide installer not found."
+        foreach ($Char in $RTMWI.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
         [Console]::ResetColor()
         [Console]::WriteLine()    
     }
