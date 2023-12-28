@@ -1152,12 +1152,14 @@ Invoke-Expression -command $NTFY2 *> $null
 
 [Console]::Write("`n")
 [Console]::Write("Starting Domain/Azure AD Join Function...")
+[Console]::Write(" ")
+Start-Sleep -Seconds 1
 #$SDJF = "Starting Domain/Azure AD Join Function..."
 #foreach ($Char in $SDJF.ToCharArray()) {
 #    [Console]::Write("$Char")
 #    Start-Sleep -Milliseconds 50    
 #    }
-[Console]::Write("`n")
+
 $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 $ProgressPreference = 'Continue'
