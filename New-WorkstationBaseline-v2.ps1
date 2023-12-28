@@ -998,7 +998,7 @@ try {
     } else {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         #[Console]::Write("`n")
-        $TMWINF = "Teams machine wide installer not found."
+        $TMWINF = "Teams machine wide installation not found."
         foreach ($Char in $TMWINF.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50    
