@@ -667,10 +667,7 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 }
 
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor()
-[Console]::WriteLine() 
+
 
 
 Start-Sleep -Seconds 2
