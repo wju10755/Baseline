@@ -147,7 +147,7 @@ if ($computerSystem.PCSystemType -eq 2) {
 } else {
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
-
+<#
 # Stage Toast Notifications
 $Notice = "Staging notifications..."
 foreach ($Char in $Notice.ToCharArray()) {
@@ -1064,7 +1064,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     #Write-Log "Only Dell systems are eligible for this bloatware removal script."
 }
-
+#>
 
 # Enable and start Windows Update Service
 $EWUS = "Enabling Windows Update Services..."
@@ -1091,7 +1091,13 @@ if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
 
 # Installing Windows Updates
 & $config.UpdateNotice
-Start-Service -Name wuauserv *> $null
+$IWU = "Checking for updates..."
+foreach ($Char in $IWU.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+[Console]::ResetColor()
+[Console]::WriteLine()    
 $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/update_windows.ps1" -OutFile "c:\temp\update_windows.ps1"
 $ProgressPreference = 'Continue'
@@ -1101,12 +1107,19 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     Start-Sleep -seconds 2
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
 } else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
     $WUEF = "Windows Update execution failed!"
     foreach ($Char in $WUEF.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50    
         }
+        [Console]::ResetColor()
+        [Console]::WriteLine()  
 }
 
 
