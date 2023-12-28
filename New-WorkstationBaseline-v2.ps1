@@ -245,81 +245,6 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
 Write-Log "Automated workstation baseline has started"
 
 
-# ConnectWise Automate Agent Installation
-$file = 'c:\temp\Warehouse-Agent_Install.MSI'
-$agentName = "LTService"
-$agentPath = "C:\Windows\LTSvc\"
-$installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
-
-# Check for existing LabTech agent
-if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    #[Console]::Write("ConnectWise Automate agent is already installed.")
-    $LTInstalled = "ConnectWise Automate agent is already installed."
-    Start-Sleep -Seconds 1
-    foreach ($Char in $LTInstalled.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
-    }
-    [Console]::ResetColor()
-    [Console]::WriteLine()
-} elseif (Test-Path $agentPath) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    #[Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
-    $Broken = "ConnectWise Automate agent files are present, but the service is not installed."
-    foreach ($Char in $Broken.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
-    }
-    [Console]::Write("`n")
-    [Console]::ResetColor() 
-    [Console]::WriteLine() 
-} else {
-    #[Console]::WriteLine("Downloading Connectwise Automate Agent...")
-    $CWDL = "Downloading ConnectWise Automate Agent..."
-    foreach ($Char in $CWDL.ToCharArray()) {
-        [Console]::WriteLine("$Char")
-        Start-Sleep -Milliseconds 50
-    }
-    Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
-    # Verify dowload
-    if (Test-Path $file) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()    
-    #[Console]::WriteLine("Installing Connectwise Automate Agent...")
-    $LTIns = "Installing ConnectWise Automate Agent"
-    foreach ($Char in $LTIns.ToCharArray()) {
-        [Console]::WriteLine("$Char")
-        Start-Sleep -Milliseconds 50
-    }
-    Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine() 
-    } else {
-        Write-Log "The file [$file] download failed."
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write(" failed.")
-        [Console]::ResetColor()
-        [Console]::WriteLine()    
-        exit
-}
-    # Wait for the installation to complete
-    Start-Sleep -Seconds 45
-
-    # Automate Agent Installation Check
-    if (Test-Path $agentPath) {
-        Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
-        & $config.AutomateSuccess
-    } else {
-        Write-Log "ConnectWise Automate Agent installation failed!"
-        & $config.AutomateFailure
-    }
-}
-
-
 # Set power profile to 'Balanced'
 $Pwr = "Setting Power Profile to 'Balanced'..."
 foreach ($Char in $PWR.ToCharArray()) {
@@ -507,6 +432,8 @@ if ($manufacturer -eq "Dell Inc.") {
 # Kill procmon 
 taskkill /f /im procmon* *> $null
 
+# Restart transcript
+Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
 # Registry Check
 $OfficeUninstallStrings = (Get-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft 365 - *"} | Select-Object -ExpandProperty UninstallString)
@@ -535,71 +462,78 @@ if ($null -ne $OfficeUninstallStrings) {
     Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
 }
 
-# Restart transcript
-Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
+# ConnectWise Automate Agent Installation
+$file = 'c:\temp\Warehouse-Agent_Install.MSI'
+$agentName = "LTService"
+$agentPath = "C:\Windows\LTSvc\"
+$installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
 
-
-# Function to check if the OS is Windows 11
-function Is-Windows11 {
-    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
-    $osVersion = $osInfo.Version
-    $osProduct = $osInfo.Caption
-
-    # Check for Windows 11
-    return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
-}
-
-# Check if the OS is Windows 11
-if (Is-Windows11) {
-    try {
-        $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
-        $Win11DebloatFile = "c:\temp\MITS-Debloat.zip"
-        Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
-        Start-Sleep -seconds 2
-        Expand-Archive $Win11DebloatFile -DestinationPath 'c:\temp\MITS-Debloat'
-        Start-Sleep -Seconds 2
-        & $config.Win11
-        & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
-        Write-Log "Windows 11 Debloat completed successfully."
+# Check for existing LabTech agent
+if (Get-Service $agentName -ErrorAction SilentlyContinue) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    #[Console]::Write("ConnectWise Automate agent is already installed.")
+    $LTInstalled = "ConnectWise Automate agent is already installed."
+    Start-Sleep -Seconds 1
+    foreach ($Char in $LTInstalled.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
     }
-    catch {
-        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+} elseif (Test-Path $agentPath) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    #[Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
+    $Broken = "ConnectWise Automate agent files are present, but the service is not installed."
+    foreach ($Char in $Broken.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
     }
-}
-else {
-    #Write-Log "This script is intended to run only on Windows 11."
-}
-
-
-# Function to check if the OS is Windows 10
-function Is-Windows10 {
-    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
-    $osVersion = $osInfo.Version
-    $osProduct = $osInfo.Caption
-
-    # Check for Windows 10
-    return $osVersion -lt "10.0.22000" -and $osProduct -like "*Windows 10*"
-}
-
-# Trigger MITS Debloat for Windows 10
-if (Is-Windows10) {
-    try {
-        $MITSDebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
-        $MITSDebloatFile = "c:\temp\MITS-Debloat.zip"
-        Invoke-WebRequest -Uri $MITSDebloatURL -OutFile $MITSDebloatFile -UseBasicParsing -ErrorAction Stop 
-        Start-Sleep -seconds 2
-        Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
-        Start-Sleep -Seconds 2
-        & $config.win10
-        & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
-        Write-Log "Windows 10 Debloat completed successfully."
+    [Console]::Write("`n")
+    [Console]::ResetColor() 
+    [Console]::WriteLine() 
+} else {
+    #[Console]::WriteLine("Downloading Connectwise Automate Agent...")
+    $CWDL = "Downloading ConnectWise Automate Agent..."
+    foreach ($Char in $CWDL.ToCharArray()) {
+        [Console]::WriteLine("$Char")
+        Start-Sleep -Milliseconds 50
     }
-    catch {
-        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
+    # Verify dowload
+    if (Test-Path $file) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()    
+    #[Console]::WriteLine("Installing Connectwise Automate Agent...")
+    $LTIns = "Installing ConnectWise Automate Agent"
+    foreach ($Char in $LTIns.ToCharArray()) {
+        [Console]::WriteLine("$Char")
+        Start-Sleep -Milliseconds 50
     }
+    Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+    } else {
+        Write-Log "The file [$file] download failed."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" failed.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+        exit
 }
-else {
-    #Write-Host "This script is intended to run only on Windows 10."
+    # Wait for the installation to complete
+    Start-Sleep -Seconds 45
+
+    # Automate Agent Installation Check
+    if (Test-Path $agentPath) {
+        Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
+        & $config.AutomateSuccess
+    } else {
+        Write-Log "ConnectWise Automate Agent installation failed!"
+        & $config.AutomateFailure
+    }
 }
 
 
@@ -1017,6 +951,7 @@ if ($SWNE) {
 taskkill /f /im procmon64.exe *> $null
 
 
+
 # Enable and start Windows Update Service
 $EWUS = "Enabling Windows Update Services..."
 foreach ($Char in $EWUS.ToCharArray()) {
@@ -1072,54 +1007,67 @@ if (Test-Path "c:\temp\update_windows.ps1") {
         [Console]::WriteLine()  
 }
 
-# Configure Bitlocker
-$ErrorActionPreference = "SilentlyContinue"
-$SBLC = "Configuring Bitlocker... "
-foreach ($Char in $SBLC.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50    
+# Function to check if the OS is Windows 11
+function Is-Windows11 {
+    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
+    $osVersion = $osInfo.Version
+    $osProduct = $osInfo.Caption
+
+    # Check for Windows 11
+    return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
+}
+
+# Check if the OS is Windows 11
+if (Is-Windows11) {
+    try {
+        $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
+        $Win11DebloatFile = "c:\temp\MITS-Debloat.zip"
+        Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
+        Start-Sleep -seconds 2
+        Expand-Archive $Win11DebloatFile -DestinationPath 'c:\temp\MITS-Debloat'
+        Start-Sleep -Seconds 2
+        & $config.Win11
+        & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        Write-Log "Windows 11 Debloat completed successfully."
     }
-
-# Check Bitlocker Compatibility
-$WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
-$TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
-$BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
-if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
-
-    # Ensure the output directory exists
-    $outputDirectory = "C:\temp"
-    if (-not (Test-Path -Path $outputDirectory)) {
-        New-Item -Path $outputDirectory -ItemType Directory | Out-Null
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
     }
+}
+else {
+    #Write-Log "This script is intended to run only on Windows 11."
+}
 
-    # Create the recovery key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
 
-    # Add TPM key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector | Out-Null
-    Start-Sleep -Seconds 15 # Wait for the protectors to take effect
+# Function to check if the OS is Windows 10
+function Is-Windows10 {
+    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
+    $osVersion = $osInfo.Version
+    $osProduct = $osInfo.Caption
 
-    # Enable Encryption
-    Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait *> $null
+    # Check for Windows 10
+    return $osVersion -lt "10.0.22000" -and $osProduct -like "*Windows 10*"
+}
 
-    # Get Recovery Key GUID
-    $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
-
-    # Backup the Recovery to AD
-    manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID *> $null
-    manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
-
-    # Retrieve and Output the Recovery Key Password
-    $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
-    Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine()
-    
-} else {
-    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
-    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+# Trigger MITS Debloat for Windows 10
+if (Is-Windows10) {
+    try {
+        $MITSDebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
+        $MITSDebloatFile = "c:\temp\MITS-Debloat.zip"
+        Invoke-WebRequest -Uri $MITSDebloatURL -OutFile $MITSDebloatFile -UseBasicParsing -ErrorAction Stop 
+        Start-Sleep -seconds 2
+        Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
+        Start-Sleep -Seconds 2
+        & $config.win10
+        & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
+        Write-Log "Windows 10 Debloat completed successfully."
+    }
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    }
+}
+else {
+    #Write-Host "This script is intended to run only on Windows 10."
 }
 
 # Notify device Baseline is complete and ready to join domain.
