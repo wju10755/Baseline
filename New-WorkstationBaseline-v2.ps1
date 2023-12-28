@@ -147,7 +147,24 @@ if ($computerSystem.PCSystemType -eq 2) {
 } else {
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
-<#
+
+# Identify device manufacturer and chassis type
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+$deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
+#[Console]::Write("Identifying device type:")
+$Type = "Identifying device type:" 
+foreach ($Char in $Type.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Yellow
+[Console]::Write(" $deviceType")
+[Console]::ResetColor() 
+[Console]::WriteLine() 
+Write-Log "Manufacturer: $manufacturer - Device Type: $deviceType."
+
 # Stage Toast Notifications
 $Notice = "Staging notifications..."
 foreach ($Char in $Notice.ToCharArray()) {
@@ -226,23 +243,6 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
 # Start Baseline Notification
 & $config.StartBaseline | Out-Null
 Write-Log "Automated workstation baseline has started"
-
-# Identify device manufacturer and chassis type
-$computerSystem = Get-WmiObject Win32_ComputerSystem
-$manufacturer = $computerSystem.Manufacturer
-$deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
-#[Console]::Write("Identifying device type:")
-$Type = "Identifying device type:" 
-foreach ($Char in $Type.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
-}
-Start-Sleep -Seconds 2
-[Console]::ForegroundColor = [System.ConsoleColor]::Yellow
-[Console]::Write(" $deviceType")
-[Console]::ResetColor() 
-[Console]::WriteLine() 
-Write-Log "Manufacturer: $manufacturer - Device Type: $deviceType."
 
 
 # ConnectWise Automate Agent Installation
@@ -1016,55 +1016,6 @@ if ($SWNE) {
 # Stop Procmon
 taskkill /f /im procmon64.exe *> $null
 
-$ErrorActionPreference = "SilentlyContinue"
-$SBLC = "Configuring Bitlocker... "
-foreach ($Char in $SBLC.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50    
-    }
-
-# Check Bitlocker Compatibility
-$WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
-$TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
-$BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
-if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
-
-    # Ensure the output directory exists
-    $outputDirectory = "C:\temp"
-    if (-not (Test-Path -Path $outputDirectory)) {
-        New-Item -Path $outputDirectory -ItemType Directory | Out-Null
-    }
-
-    # Create the recovery key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
-
-    # Add TPM key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector | Out-Null
-    Start-Sleep -Seconds 15 # Wait for the protectors to take effect
-
-    # Enable Encryption
-    Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait *> $null
-
-    # Get Recovery Key GUID
-    $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
-
-    # Backup the Recovery to AD
-    manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID *> $null
-    manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
-
-    # Retrieve and Output the Recovery Key Password
-    $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
-    Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine()
-    
-} else {
-    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
-    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
-}
-#>
 
 # Enable and start Windows Update Service
 $EWUS = "Enabling Windows Update Services..."
@@ -1121,6 +1072,55 @@ if (Test-Path "c:\temp\update_windows.ps1") {
         [Console]::WriteLine()  
 }
 
+# Configure Bitlocker
+$ErrorActionPreference = "SilentlyContinue"
+$SBLC = "Configuring Bitlocker... "
+foreach ($Char in $SBLC.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50    
+    }
+
+# Check Bitlocker Compatibility
+$WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
+$TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
+$BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
+if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
+
+    # Ensure the output directory exists
+    $outputDirectory = "C:\temp"
+    if (-not (Test-Path -Path $outputDirectory)) {
+        New-Item -Path $outputDirectory -ItemType Directory | Out-Null
+    }
+
+    # Create the recovery key
+    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
+
+    # Add TPM key
+    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector | Out-Null
+    Start-Sleep -Seconds 15 # Wait for the protectors to take effect
+
+    # Enable Encryption
+    Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait *> $null
+
+    # Get Recovery Key GUID
+    $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
+
+    # Backup the Recovery to AD
+    manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID *> $null
+    manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
+
+    # Retrieve and Output the Recovery Key Password
+    $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
+    Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    
+} else {
+    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+}
 
 # Notify device Baseline is complete and ready to join domain.
 $NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready for domain join!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
