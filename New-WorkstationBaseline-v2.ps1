@@ -1279,7 +1279,7 @@ if ($choice -eq "A" -or $choice -eq "S") {
             }
         Write-Log "$env:COMPUTERNAME joined to Azure AD."
     }
-} else {
+    } else {
     # Display an error message if the user input is invalid
     Write-Error "Invalid choice. Please enter A or S."
     Write-Log "Invalid domain join response received."
@@ -1303,4 +1303,4 @@ Start-Sleep -seconds 1
 Start-Process "appwiz.cpl"
 Write-Host " "
 Write-Host " "
-Read-Host -Prompt "Press Enter to exit."
+Read-Host -Prompt "Press Enter to exit"
