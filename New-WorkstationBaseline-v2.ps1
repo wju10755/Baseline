@@ -577,9 +577,9 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
     # Verify dowload
     if (Test-Path $file) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()    
+   # [Console]::ForegroundColor = [System.ConsoleColor]::Green
+   # [Console]::Write(" done.")
+   # [Console]::ResetColor()    
     #[Console]::WriteLine("Installing Connectwise Automate Agent...")
     $LTIns = "Installing ConnectWise Automate Agent"
     foreach ($Char in $LTIns.ToCharArray()) {
