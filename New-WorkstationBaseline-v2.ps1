@@ -1162,7 +1162,7 @@ $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 $ProgressPreference = 'Continue'
 # Prompt the user to connect to SSL VPN
-$SDJF = "Do you want to connect to SSL VPN? Enter Y or N"
+$SDJF = "Do you want to connect to SSL VPN? Enter Y or N?`n"
 foreach ($Char in $SDJF.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50    
