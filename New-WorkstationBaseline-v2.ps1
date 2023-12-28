@@ -425,7 +425,7 @@ if ($manufacturer -eq "Dell Inc.") {
 
 } else {
     Write-Warning "Skipping Dell debloat module due to device not meeting hardware requirements."
-    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+    Write-Log "Skipping Dell debloat module due to device not meeting hardware requirements."
 }
 
 # Kill procmon 
@@ -459,6 +459,7 @@ if ($null -ne $OfficeUninstallStrings) {
 
 } else {
     Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
+    Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
 }
 
 
@@ -505,7 +506,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     
 } else {
     Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
-    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+    Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
 }
 
 
