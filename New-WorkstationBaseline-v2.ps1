@@ -1085,7 +1085,7 @@ if (Is-Windows10) {
 else {
     #Write-Host "This script is intended to run only on Windows 10."
 }
-
+[Console]::Write(" ")
 # Enable and start Windows Update Service
 $EWUS = "Enabling Windows Update Service..."
 foreach ($Char in $EWUS.ToCharArray()) {
