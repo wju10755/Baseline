@@ -1,57 +1,57 @@
-Clear-Host
-$ErrorActionPreference = 'SilentlyContinue'
-$WarningActionPreference = 'SilentlyContinue'
+try {
+    Clear-Host
+    $ErrorActionPreference = 'SilentlyContinue'
+    $WarningActionPreference = 'SilentlyContinue'
 
-
-# Central Configuration
-$config = @{
-    AcrobatComplete      = "c:\temp\psnotice\appnotice\acrobat\AcrobatComplete.ps1"
-    AcrobatFailure       = "C:\temp\psnotice\appnotice\acrobat\failure\New-ToastNotification.ps1"
-    AcrobatInstaller     = "c:\temp\AcroRdrDC2300620360_en_US.exe"
-    AutomateFailure      = "C:\temp\psnotice\AppNotice\automate\failure\New-ToastNotification.ps1"
-    AutomateSuccess      = "C:\temp\psnotice\AppNotice\automate\"
-    BaselineComplete     = "C:\temp\psnotice\BaselineComplete\New-ToastNotification.ps1"
-    Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
-    ChromeInstaller      = "c:\temp\ChromeSetup.exe"
-    ChromeNotification   = "C:\temp\psnotice\appnotice\Chrome\New-ToastNotification.ps1"
-    ClearPath            = "C:\temp\psnotice\Clear-ToastNotification.ps1"
-    DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
-    DellBloatware        = "C:\temp\psnotice\DellNotice\New-ToastNotification.ps1"
-    DellHardware         = "C:\temp\psnotice\hardware-dell"
-    FastStartup          = "C:\temp\psnotice\FastStartup\New-ToastNotification.ps1"
-    HiberSleep           = "C:\temp\psnotice\HiberSleep\New-ToastNotification.ps1"
-    HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
-    LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
-    LogFile              = "C:\temp\baseline.log"
-    NEGui                = "C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NEGui.exe"
-    NoSnooze             = "c:\temp\nosnooze.ps1"
-    NoSnoozeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
-    NoSnoozeZip          = "c:\temp\nosnooze.zip"
-    OfficeComplete       = "C:\temp\psnotice\OfficeNotice\complete\New-ToastNotification.ps1"
-    OfficeFailure        = "C:\temp\psnotice\OfficeNotice\failure\New-ToastNotification.ps1"
-    OfficeInstaller      = "c:\temp\Office2016_ProPlus"
-    PowerProfile         = "C:\temp\psnotice\powerprofile\New-ToastNotification.ps1"
-    PSNoticeFile         = "c:\temp\psnotice.zip"
-    PSNoticePath         = "c:\temp\PSNotice"
-    ProcmonURL           = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
-    ProcmonFile          = "c:\temp\Procmon.exe"
-    PSNoticeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
-    RemoveOfficeURL      = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
-    RemoveOfficeSpinURL  = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
-    RemoveOfficeScript   = "c:\temp\Remove-Office.ps1"
-    RemoveOfficeSpinner  = "c:\temp\Remove-Office-Spinner.ps1"
-    ScrubOffice          = "C:\temp\psnotice\scruboffice\New-ToastNotification.ps1"
-    SendWKey             = "C:\temp\sendwkey.exe"
-    SendWurl             = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe"
-    StartBaseline        = "C:\temp\psnotice\BaselineStart\New-ToastNotification.ps1"
-    SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
-    TempFolder           = "C:\temp"
-    TimeZone             = "C:\temp\psnotice\TimeZone\New-ToastNotification.ps1"
-    UpdateComplete       = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
-    UpdateNotice         = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
-    Win10                = "C:\temp\psnotice\win10\New-ToastNotification.ps1"
-    Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
-}
+    # Central Configuration and other initial setup
+    $config = @{
+        AcrobatComplete      = "c:\temp\psnotice\appnotice\acrobat\AcrobatComplete.ps1"
+        AcrobatFailure       = "C:\temp\psnotice\appnotice\acrobat\failure\New-ToastNotification.ps1"
+        AcrobatInstaller     = "c:\temp\AcroRdrDC2300620360_en_US.exe"
+        AutomateFailure      = "C:\temp\psnotice\AppNotice\automate\failure\New-ToastNotification.ps1"
+        AutomateSuccess      = "C:\temp\psnotice\AppNotice\automate\"
+        BaselineComplete     = "C:\temp\psnotice\BaselineComplete\New-ToastNotification.ps1"
+        Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
+        ChromeInstaller      = "c:\temp\ChromeSetup.exe"
+        ChromeNotification   = "C:\temp\psnotice\appnotice\Chrome\New-ToastNotification.ps1"
+        ClearPath            = "C:\temp\psnotice\Clear-ToastNotification.ps1"
+        DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
+        DellBloatware        = "C:\temp\psnotice\DellNotice\New-ToastNotification.ps1"
+        DellHardware         = "C:\temp\psnotice\hardware-dell"
+        FastStartup          = "C:\temp\psnotice\FastStartup\New-ToastNotification.ps1"
+        HiberSleep           = "C:\temp\psnotice\HiberSleep\New-ToastNotification.ps1"
+        HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
+        LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
+        LogFile              = "C:\temp\baseline.log"
+        NEGui                = "C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NEGui.exe"
+        NoSnooze             = "c:\temp\nosnooze.ps1"
+        NoSnoozeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
+        NoSnoozeZip          = "c:\temp\nosnooze.zip"
+        OfficeComplete       = "C:\temp\psnotice\OfficeNotice\complete\New-ToastNotification.ps1"
+        OfficeFailure        = "C:\temp\psnotice\OfficeNotice\failure\New-ToastNotification.ps1"
+        OfficeInstaller      = "c:\temp\Office2016_ProPlus"
+        PowerProfile         = "C:\temp\psnotice\powerprofile\New-ToastNotification.ps1"
+        PSNoticeFile         = "c:\temp\psnotice.zip"
+        PSNoticePath         = "c:\temp\PSNotice"
+        ProcmonURL           = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
+        ProcmonFile          = "c:\temp\Procmon.exe"
+        PSNoticeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
+        RemoveOfficeURL      = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
+        RemoveOfficeSpinURL  = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
+        RemoveOfficeScript   = "c:\temp\Remove-Office.ps1"
+        RemoveOfficeSpinner  = "c:\temp\Remove-Office-Spinner.ps1"
+        ScrubOffice          = "C:\temp\psnotice\scruboffice\New-ToastNotification.ps1"
+        SendWKey             = "C:\temp\sendwkey.exe"
+        SendWurl             = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe"
+        StartBaseline        = "C:\temp\psnotice\BaselineStart\New-ToastNotification.ps1"
+        SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
+        TempFolder           = "C:\temp"
+        TimeZone             = "C:\temp\psnotice\TimeZone\New-ToastNotification.ps1"
+        UpdateComplete       = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
+        UpdateNotice         = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
+        Win10                = "C:\temp\psnotice\win10\New-ToastNotification.ps1"
+        Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
+    }
 
 
 # Set console formatting
@@ -1304,3 +1304,10 @@ Start-Process "appwiz.cpl"
 Write-Host " "
 Write-Host " "
 Read-Host -Prompt "Press Enter to exit"
+
+
+} finally {
+    # This block ensures that the transcript is stopped regardless of how the script terminates
+    Stop-Transcript
+    Write-Host "Transcript stopped."
+}
