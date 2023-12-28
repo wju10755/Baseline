@@ -1142,7 +1142,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
 }
 
 # Notify device Baseline is complete and ready to join domain.
-$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready for domain join!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
+$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready to join the domain!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
 Invoke-Expression -command $NTFY2 *> $null
 
 
