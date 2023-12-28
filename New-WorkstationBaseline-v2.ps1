@@ -1147,7 +1147,7 @@ Invoke-Expression -command $NTFY2 *> $null
 
 
 [Console]::Write(" ")
-[Console]::Write("`b`bStarting Domain/Azure AD Join Function...")
+[Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
 [Console]::Write(" ")
 Start-Sleep -Seconds 1
 #$SDJF = "Starting Domain/Azure AD Join Function..."
