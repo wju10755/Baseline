@@ -1,3 +1,4 @@
+cls
 # Script: UpdateWindows.ps1
 # Check if NuGet provider is installed
 if (!(Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
