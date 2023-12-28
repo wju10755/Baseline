@@ -177,6 +177,8 @@ foreach ($Char in $Notice.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
+
+# Download Procmon from LabTech server
 Invoke-WebRequest -Uri $config.ProcmonURL -OutFile $config.ProcmonFile *> $null
 
 if (Test-Path $config.ProcmonFile)
@@ -328,7 +330,7 @@ Start-Sleep -Seconds 5
 
 # Set power button action to 'Shutdown'
 Start-Sleep -Seconds 2
-$PwrBtn = "Configuring power button action 'Shutdown'..."
+$PwrBtn = "Configuring 'Shutdown' power button action..."
 foreach ($Char in $PwrBtn.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
@@ -347,7 +349,7 @@ Start-Sleep -Seconds 5
 # Set 'lid close action' to do nothing on laptops
 Start-Sleep -Seconds 1
 if ($deviceType -eq "Laptop") {
-    $Lid = "Setting Lid Close Action 'Do Nothing'..."
+    $Lid = "Setting 'Do Nothing' lid close action..."
     foreach ($Char in $Lid.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50
