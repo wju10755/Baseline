@@ -171,6 +171,30 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 [Console]::ResetColor()
 [Console]::WriteLine() 
 
+# Stage Procmon
+$Notice = "Staging Procmon..."
+foreach ($Char in $Notice.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+Invoke-WebRequest -Uri $config.ProcmonURL -OutFile $config.ProcmonFile *> $null
+
+if (Test-Path $config.ProcmonFile)
+{
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+    Start-Sleep -Seconds 2
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" failed.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+    Start-Sleep -Seconds 2
+}
+
+
 # Stage Toast Notifications
 $Notice = "Staging notifications..."
 foreach ($Char in $Notice.ToCharArray()) {
@@ -589,7 +613,6 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 
 # Launch Procmon and enable auto-scroll
 [Console]::Write("Downloading Procmon...")
-Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
 Start-Sleep -Seconds 2
 
 # Launch Procmon
