@@ -463,12 +463,6 @@ if ($null -ne $OfficeUninstallStrings) {
     Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
 }
 
-# Configure Bitlocker Drive Encryption
-$SBLC = "Configuring Bitlocker disk encryption..."
-foreach ($Char in $SBLC.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50    
-    }
 
 # Check Bitlocker Compatibility
 $WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
@@ -481,7 +475,11 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     if (-not (Test-Path -Path $outputDirectory)) {
         New-Item -Path $outputDirectory -ItemType Directory | Out-Null
     }
-
+    $SBLC = "Configuring Bitlocker disk encryption..."
+    foreach ($Char in $SBLC.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
     # Create the recovery key
     Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
 
