@@ -1211,7 +1211,13 @@ if ($choice -eq "Y" -or $choice -eq "N") {
 :continue_script
 # Prompt the user to choose between standard domain join or Azure AD join
 [Console]::Write("`n")
-$choice = Read-Host -Prompt "Do you want to perform a standard domain join (S) or join Azure AD (A)? Enter S or A"
+$JoinOp = "Do you want to perform a standard domain join (S) or join Azure AD (A)? Enter S or A?`n"
+foreach ($Char in $JoinOp.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50    
+    }
+
+$choice = Read-Host
 
 # Validate the user input
 if ($choice -eq "A" -or $choice -eq "S") {
