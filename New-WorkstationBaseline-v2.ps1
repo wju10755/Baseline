@@ -1189,7 +1189,7 @@ if ($choice -eq "Y" -or $choice -eq "N") {
         }
     } else {
         # Skip the VPN connection setup
-        [Console]::Write("`n")
+        #[Console]::Write("`n")
         $SVPNS = "Skipping VPN Connection Setup..."
         foreach ($Char in $SVPNS.ToCharArray()) {
             [Console]::Write("$Char")
@@ -1197,7 +1197,7 @@ if ($choice -eq "Y" -or $choice -eq "N") {
             }
             [Console]::ResetColor()
             [Console]::WriteLine()
-            [Console]::Write("`n")
+            #[Console]::Write("`n")
 
     }
 } else {
