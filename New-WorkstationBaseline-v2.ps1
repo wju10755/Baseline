@@ -247,7 +247,7 @@ Write-Log "Automated workstation baseline has started"
 
 
 # Set power profile to 'Balanced'
-$Pwr = "Setting Power Profile to 'Balanced'..."
+$Pwr = "Setting 'Balanced' Power Profile..."
 foreach ($Char in $PWR.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
@@ -539,6 +539,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 
 
 # Launch Procmon and enable auto-scroll
+[Console]::Write("Downloading Procmon...")
 $ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
 $ProcmonFile = "c:\temp\Procmon.exe"
 Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
@@ -598,6 +599,11 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 }
 
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+
 
 Start-Sleep -Seconds 2
 
