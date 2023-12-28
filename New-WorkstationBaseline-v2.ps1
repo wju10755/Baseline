@@ -1143,9 +1143,9 @@ $NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready to j
 Invoke-Expression -command $NTFY2 *> $null
 
 
-[Console]::Write(" ")
+Write-Output " "
 [Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
-[Console]::Write(" ")
+Write-Output " "
 Start-Sleep -Seconds 1
 #$SDJF = "Starting Domain/Azure AD Join Function..."
 #foreach ($Char in $SDJF.ToCharArray()) {
