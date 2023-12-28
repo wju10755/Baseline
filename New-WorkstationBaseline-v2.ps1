@@ -33,6 +33,8 @@ $config = @{
     PowerProfile         = "C:\temp\psnotice\powerprofile\New-ToastNotification.ps1"
     PSNoticeFile         = "c:\temp\psnotice.zip"
     PSNoticePath         = "c:\temp\PSNotice"
+    ProcmonURL           = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
+    ProcmonFile          = "c:\temp\Procmon.exe"
     PSNoticeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
     RemoveOfficeURL      = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
     RemoveOfficeSpinURL  = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
@@ -587,8 +589,6 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 
 # Launch Procmon and enable auto-scroll
 [Console]::Write("Downloading Procmon...")
-$ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
-$ProcmonFile = "c:\temp\Procmon.exe"
 Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
 Start-Sleep -Seconds 2
 
