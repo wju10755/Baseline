@@ -1096,8 +1096,7 @@ foreach ($Char in $IWU.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
-[Console]::ResetColor()
-[Console]::WriteLine()    
+   
 $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/update_windows.ps1" -OutFile "c:\temp\update_windows.ps1"
 $ProgressPreference = 'Continue'
