@@ -668,113 +668,7 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
-
-
 Start-Sleep -Seconds 2
-
-# Remove Microsoft OneDrive
-try {
-    $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
-    if ($OneDriveProduct) {
-        $ROD = "Removing Microsoft OneDrive (Personal)..."
-        foreach ($Char in $ROD.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
-    }
-
-        $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
-        # Recheck if OneDrive is uninstalled
-        $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
-        if (-not $OneDriveProduct) {
-            Write-Log "OneDrive has been successfully removed."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
-            [Console]::ResetColor()
-            [Console]::WriteLine()    
-        } else {
-            Write-Log "Failed to remove OneDrive."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            $FROD = " Failed to remove OneDrive"
-            foreach ($Char in $FROD.ToCharArray()) {
-                [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 50    
-                }
-            [Console]::ResetColor()
-            [Console]::WriteLine()    
-        }
-    } else {
-        #[Console]::Write("`n")
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        $ODINF = "OneDrive installation not found."
-        foreach ($Char in $ODINF.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
-            }
-            [Console]::ResetColor()
-            [Console]::WriteLine()
-    }
-} catch {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    $ODE = "An error occurred: $_"
-    foreach ($Char in $ODE.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
-        }
-    [Console]::ResetColor()
-    [Console]::WriteLine()
-}
-
-
-# Remove Microsoft Teams Machine-Wide Installer
-try {
-    $TeamsMWI = Get-Package -Name 'Teams Machine*'
-    if ($TeamsMWI) {
-        $RTMWI = "Removing Microsoft Teams Machine-Wide Installer..."
-        foreach ($Char in $RTMWI.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
-        }
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-        Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
-        $MWICheck = Get-Package -Name 'Teams Machine*'
-        if (-not $MWICheck) {
-            Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
-            [Console]::ResetColor()
-            [Console]::WriteLine()   
-        } else {
-            Write-Log "Failed to uninstall Teams Machine Wide Installer."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            $FTMWU = "Failed to uninstall Teams machine wide installer."
-            foreach ($Char in $FTMWU.ToCharArray()) {
-                [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 50    
-                }
-            [Console]::ResetColor()
-            [Console]::WriteLine()
-        }
-    } else {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        #[Console]::Write("`n")
-        $TMWINF = "Teams machine wide installer not found."
-        foreach ($Char in $TMWINF.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
-        }
-        [Console]::ResetColor()
-        [Console]::WriteLine()    
-    }
-} catch {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    $RTMWIE = "An error occurred: $_"
-    foreach ($Char in $RTMWI.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
-        }
-}
-
 
 # Install Google Chrome
 $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
@@ -1016,6 +910,109 @@ if ($SWNE) {
         [Console]::WriteLine()    
         Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
     }
+}
+
+# Remove Microsoft OneDrive
+try {
+    $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+    if ($OneDriveProduct) {
+        $ROD = "Removing Microsoft OneDrive (Personal)..."
+        foreach ($Char in $ROD.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
+
+        $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
+        # Recheck if OneDrive is uninstalled
+        $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+        if (-not $OneDriveProduct) {
+            Write-Log "OneDrive has been successfully removed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()    
+        } else {
+            Write-Log "Failed to remove OneDrive."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            $FROD = " Failed to remove OneDrive"
+            foreach ($Char in $FROD.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 50    
+                }
+            [Console]::ResetColor()
+            [Console]::WriteLine()    
+        }
+    } else {
+        #[Console]::Write("`n")
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        $ODINF = "OneDrive installation not found."
+        foreach ($Char in $ODINF.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 50    
+            }
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+    }
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    $ODE = "An error occurred: $_"
+    foreach ($Char in $ODE.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+
+# Remove Microsoft Teams Machine-Wide Installer
+try {
+    $TeamsMWI = Get-Package -Name 'Teams Machine*'
+    if ($TeamsMWI) {
+        $RTMWI = "Removing Microsoft Teams Machine-Wide Installer..."
+        foreach ($Char in $RTMWI.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+        }
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+        Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
+        $MWICheck = Get-Package -Name 'Teams Machine*'
+        if (-not $MWICheck) {
+            Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()   
+        } else {
+            Write-Log "Failed to uninstall Teams Machine Wide Installer."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            $FTMWU = "Failed to uninstall Teams machine wide installer."
+            foreach ($Char in $FTMWU.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 50    
+                }
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        }
+    } else {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        #[Console]::Write("`n")
+        $TMWINF = "Teams machine wide installer not found."
+        foreach ($Char in $TMWINF.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+    }
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    $RTMWIE = "An error occurred: $_"
+    foreach ($Char in $RTMWI.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
 }
 
 
