@@ -113,30 +113,6 @@ foreach ($Char in $Baseline.ToCharArray()) {
 
 Start-Sleep -Seconds 2
 
-$ModChk = "Installing required powershell modules..."
-
-foreach ($Char in $ModChk.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
-}
-
-# Check and Install NuGet Provider if not found
-if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
-    Import-PackageProvider -Name NuGet -Force | Out-Null
-    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
-}
-
-# Check and install BurntToast Module if not found
-if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
-    Install-Module -Name BurntToast -Scope CurrentUser -Force -WarningAction SilentlyContinue | Out-Null
-    Import-Module BurntToast 
-    
-}
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line
 
 # Device Identification
 # PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
@@ -164,6 +140,31 @@ Start-Sleep -Seconds 2
 [Console]::ResetColor() 
 [Console]::WriteLine() 
 Write-Log "Manufacturer: $manufacturer - Device Type: $deviceType."
+
+$ModChk = "Installing required powershell modules..."
+
+foreach ($Char in $ModChk.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+
+# Check and Install NuGet Provider if not found
+if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
+    Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
+    Import-PackageProvider -Name NuGet -Force | Out-Null
+    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
+}
+
+# Check and install BurntToast Module if not found
+if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
+    Install-Module -Name BurntToast -Scope CurrentUser -Force -WarningAction SilentlyContinue | Out-Null
+    Import-Module BurntToast 
+    
+}
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
 
 # Stage Toast Notifications
 $Notice = "Staging notifications..."
