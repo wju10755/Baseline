@@ -1123,7 +1123,7 @@ $ProgressPreference = 'Continue'
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
     Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
-    Start-Sleep -seconds 2
+    Start-Sleep -seconds 3
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
