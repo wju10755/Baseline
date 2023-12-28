@@ -613,10 +613,6 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
 }
 
 
-# Launch Procmon and enable auto-scroll
-[Console]::Write("Downloading Procmon...")
-Start-Sleep -Seconds 2
-
 # Launch Procmon
 $ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
 $wshell = New-Object -ComObject wscript.shell
