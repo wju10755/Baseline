@@ -113,6 +113,9 @@ foreach ($Char in $Baseline.ToCharArray()) {
 
 Start-Sleep -Seconds 2
 
+# Start Baseline Notification
+& $config.StartBaseline | Out-Null
+Write-Log "Automated workstation baseline has started"
 
 # Device Identification
 # PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
@@ -239,11 +242,6 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
     [Console]::ResetColor()
     [Console]::WriteLine()  
 }
-
-
-# Start Baseline Notification
-& $config.StartBaseline | Out-Null
-Write-Log "Automated workstation baseline has started"
 
 
 # Set power profile to 'Balanced'
