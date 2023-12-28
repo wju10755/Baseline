@@ -66,7 +66,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                   version 3.0";
+Write-Host -ForegroundColor DarkRed "                                                   version 9.5";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 Set-ExecutionPolicy -Scope process RemoteSigned -Force
