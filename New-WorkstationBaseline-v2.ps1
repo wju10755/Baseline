@@ -1023,62 +1023,6 @@ if ($SWNE) {
 taskkill /f /im procmon64.exe *> $null
 
 
-
-# Enable and start Windows Update Service
-$EWUS = "Enabling Windows Update Service..."
-foreach ($Char in $EWUS.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50    
-    }
-Set-Service -Name wuauserv -StartupType Manual
-Start-Service -Name wuauserv
-Start-Sleep -Seconds 3
-$service = Get-Service -Name wuauserv
-if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine() 
-} else {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    [Console]::Write(" failed.")
-    [Console]::ResetColor()
-    [Console]::WriteLine()    
-}
-
-
-# Installing Windows Updates
-& $config.UpdateNotice
-$IWU = "Checking for Windows Updates..."
-foreach ($Char in $IWU.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
-}
-   
-$ProgressPreference = 'SilentlyContinue'
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Update_Windows.ps1" -OutFile "c:\temp\update_windows.ps1"
-$ProgressPreference = 'Continue'
-if (Test-Path "c:\temp\update_windows.ps1") {
-    $updatePath = "C:\temp\Update_Windows.ps1"
-    Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
-    Start-Sleep -seconds 2
-    Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine()  
-} else {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    $WUEF = "Windows Update execution failed!"
-    foreach ($Char in $WUEF.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
-        }
-        [Console]::ResetColor()
-        [Console]::WriteLine()  
-}
-
 # Function to check if the OS is Windows 11
 function Is-Windows11 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
@@ -1142,12 +1086,67 @@ else {
     #Write-Host "This script is intended to run only on Windows 10."
 }
 
+# Enable and start Windows Update Service
+$EWUS = "Enabling Windows Update Service..."
+foreach ($Char in $EWUS.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50    
+    }
+Set-Service -Name wuauserv -StartupType Manual
+Start-Service -Name wuauserv
+Start-Sleep -Seconds 3
+$service = Get-Service -Name wuauserv
+if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" failed.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
+}
+
+
+# Installing Windows Updates
+& $config.UpdateNotice
+$IWU = "Checking for Windows Updates..."
+foreach ($Char in $IWU.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+   
+$ProgressPreference = 'SilentlyContinue'
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Update_Windows.ps1" -OutFile "c:\temp\update_windows.ps1"
+$ProgressPreference = 'Continue'
+if (Test-Path "c:\temp\update_windows.ps1") {
+    $updatePath = "C:\temp\Update_Windows.ps1"
+    Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
+    Start-Sleep -seconds 2
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    $WUEF = "Windows Update execution failed!"
+    foreach ($Char in $WUEF.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50    
+        }
+        [Console]::ResetColor()
+        [Console]::WriteLine()  
+}
+
 # Notify device Baseline is complete and ready to join domain.
 $NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready for domain join!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
 Invoke-Expression -command $NTFY2 *> $null
 
 
-[Console]::Write("`n")
+[Console]::Write(" ")
 [Console]::Write("Starting Domain/Azure AD Join Function...")
 [Console]::Write(" ")
 Start-Sleep -Seconds 1
