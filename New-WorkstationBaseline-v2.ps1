@@ -1006,7 +1006,7 @@ taskkill /f /im procmon64.exe *> $null
 
 
 # Enable and start Windows Update Service
-$EWUS = "Enabling Windows Update Services..."
+$EWUS = "Enabling Windows Update Service..."
 foreach ($Char in $EWUS.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50    
@@ -1030,7 +1030,7 @@ if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
 
 # Installing Windows Updates
 & $config.UpdateNotice
-$IWU = "Checking for updates..."
+$IWU = "Checking for Windows Updates..."
 foreach ($Char in $IWU.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
@@ -1139,7 +1139,12 @@ $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 $ProgressPreference = 'Continue'
 # Prompt the user to connect to SSL VPN
-$choice = Read-Host -Prompt "Do you want to connect to SSL VPN? Enter Y or N"
+$SDJF = "Do you want to connect to SSL VPN? Enter Y or N"
+foreach ($Char in $SDJF.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50    
+    }
+$choice = Read-Host
 
 if ($choice -eq "Y" -or $choice -eq "N") {
     if ($choice -eq "Y") {
