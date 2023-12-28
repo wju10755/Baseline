@@ -698,7 +698,6 @@ if ($choice -eq "Y" -or $choice -eq "N") {
         }
     } else {
         # Skip the VPN connection setup
-        Write-Output " "
         Write-Output "Skipping VPN Connection Setup..."
         Write-Output " "
     }
