@@ -57,6 +57,8 @@ if ($totalUpdates -gt 0) {
     }
     Write-Host "Windows Update Complete!."
     Start-Sleep -Seconds 3
+    Write-Host " "
 } else {
     Write-Host "No updates available."
+    Write-Host " "
 }
