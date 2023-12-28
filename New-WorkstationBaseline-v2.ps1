@@ -135,7 +135,7 @@ foreach ($Char in $Type.ToCharArray()) {
     Start-Sleep -Milliseconds 50
 }
 Start-Sleep -Seconds 2
-[Console]::ForegroundColor = [System.ConsoleColor]::Yellow
+[Console]::ForegroundColor = [System.ConsoleColor]::Cyan
 [Console]::Write(" $deviceType")
 [Console]::ResetColor() 
 [Console]::WriteLine() 
