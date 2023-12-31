@@ -695,6 +695,14 @@ if ($Chrome) {
     if (-not (Test-Path $ChromePath)) {
         $ProgressPreference = 'Continue'
         $ChromeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
+        $CWDL = "Downloading Google Chrome..."
+    foreach ($Char in $CWDL.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()    
         & $config.ChromeDownload
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
     }
