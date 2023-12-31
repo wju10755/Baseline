@@ -12,6 +12,7 @@ $config = @{
     AutomateSuccess      = "C:\temp\psnotice\AppNotice\automate\"
     BaselineComplete     = "C:\temp\psnotice\BaselineComplete\New-ToastNotification.ps1"
     Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
+    ChromeDownload       = "C:\temp\psnotice\AppNotice\Chrome\download\New-ToastNotification.ps1"
     ChromeInstaller      = "c:\temp\ChromeSetup.exe"
     ChromeNotification   = "C:\temp\psnotice\appnotice\Chrome\New-ToastNotification.ps1"
     ClearPath            = "C:\temp\psnotice\Clear-ToastNotification.ps1"
@@ -692,6 +693,7 @@ if ($Chrome) {
     if (-not (Test-Path $ChromePath)) {
         $ProgressPreference = 'Continue'
         $ChromeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
+        & $config.ChromeDownload
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
     }
     # Validate successful download by checking the file size
