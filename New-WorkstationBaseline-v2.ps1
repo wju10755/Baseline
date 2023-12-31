@@ -461,8 +461,6 @@ if ($manufacturer -eq "Dell Inc.") {
 # Kill procmon 
 taskkill /f /im procmon* *> $null
 
-# Restart transcript
-Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
 # Registry Check
 $OfficeUninstallStrings = (Get-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft 365 - *"} | Select-Object -ExpandProperty UninstallString)
@@ -492,6 +490,10 @@ if ($null -ne $OfficeUninstallStrings) {
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
+
+
+# Restart transcript
+Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
 
 # Check Bitlocker Compatibility
