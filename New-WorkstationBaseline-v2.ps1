@@ -210,10 +210,7 @@ if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
 # Disable Notification Snooze
 $url = $config.SendWurl
 $filePath = $config.TempFolder
-#[Console]::Write("Disabling notification snooze...")
-
-
-# Check if the OS is Windows 11 before running the specific code block
+# Check if the OS is Windows 11 before running code block
 $osVersion = (Get-CimInstance Win32_OperatingSystem).Version
 if ($osVersion -gt "10.0.22000*") {
     # The code that should only run on Windows 11
