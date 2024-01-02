@@ -264,7 +264,7 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
 }
 
 
-
+<#
 # Set power profile to 'Balanced'
 $Pwr = "Setting 'Balanced' Power Profile..."
 foreach ($Char in $PWR.ToCharArray()) {
@@ -535,7 +535,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Start-Sleep -Seconds 1
 }
 
-
+#>
 # ConnectWise Automate Agent Installation
 $file = 'c:\temp\Warehouse-Agent_Install.MSI'
 $agentName = "LTService"
@@ -562,7 +562,6 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50
     }
-    [Console]::Write("`n")
     [Console]::ResetColor() 
     [Console]::WriteLine() 
 } else {
@@ -576,7 +575,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     # Verify dowload
     if (Test-Path $file) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
+    [Console]::Write(" done.`n")
     [Console]::ResetColor()    
     #[Console]::WriteLine("`n")
     $LTIns = "Installing ConnectWise Automate Agent..."
