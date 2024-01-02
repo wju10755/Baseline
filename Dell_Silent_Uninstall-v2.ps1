@@ -1,5 +1,6 @@
 $computerSystem = Get-WmiObject Win32_ComputerSystem
 $manufacturer = $computerSystem.Manufacturer
+Set-Executionpolicy RemoteSigned -Force *> $null
 
 if (!($computerSystem.Manufacturer -eq "Dell, Inc.")) {
     #[Console]::Write("This module is only eligible for genuine Dell systems.")
@@ -22,7 +23,7 @@ if (-not (Get-Module -ListAvailable -Name $moduleName)) {
     # Attempt to install the module from the PowerShell Gallery
     # This requires administrative privileges
     try {
-        Install-Module -Name $moduleName -Scope CurrentUser -Force -ErrorAction Stop
+        Install-Module -Name $moduleName -Scope CurrentUser -AllowClobber -Force -ErrorAction Stop
         #Write-Host "Module '$moduleName' installed successfully."
     } catch {
         Write-Error "Failed to install module '$moduleName': $_"

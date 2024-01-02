@@ -1,7 +1,7 @@
 Clear-Host
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningActionPreference = 'SilentlyContinue'
-
+Set-Executionpolicy RemoteSigned -Force *> $null
 
 # Central Configuration
 $config = @{
@@ -117,7 +117,7 @@ foreach ($Char in $Baseline.ToCharArray()) {
 Start-Sleep -Seconds 2
 
 # Start Baseline Notification
-& $config.StartBaseline | Out-Null
+#& $config.StartBaseline | Out-Null
 Write-Log "Automated workstation baseline has started"
 
 # Device Identification

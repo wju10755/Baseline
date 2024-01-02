@@ -1,3 +1,5 @@
+Set-Executionpolicy RemoteSigned -Force *> $null
+
 if (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "*Microsoft 365 - *" }) {
     # Start-Sleep -Seconds 5
     # Download Procmon
