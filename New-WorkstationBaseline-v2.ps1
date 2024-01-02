@@ -106,7 +106,7 @@ $Baseline = "Starting workstation baseline..."
 
 foreach ($Char in $Baseline.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 51
+    Start-Sleep -Milliseconds 50
 }
 
 [Console]::Write(" ")
@@ -130,22 +130,7 @@ if ($computerSystem.PCSystemType -eq 2) {
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
 
-# Identify device manufacturer and chassis type
-$computerSystem = Get-WmiObject Win32_ComputerSystem
-$manufacturer = $computerSystem.Manufacturer
-$deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
-#[Console]::Write("Identifying device type:")
-$Type = "Identifying device type:" 
-foreach ($Char in $Type.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
-}
-Start-Sleep -Seconds 2
-[Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-[Console]::Write(" $deviceType")
-[Console]::ResetColor() 
-[Console]::WriteLine() 
-Write-Log "Manufacturer: $manufacturer - Device Type: $deviceType."
+
 
 $ModChk = "Installing required powershell modules..."
 
@@ -171,6 +156,7 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
+
 
 # Stage Procmon
 $Notice = "Staging Procmon..."
@@ -226,28 +212,36 @@ $url = $config.SendWurl
 $filePath = $config.TempFolder
 #[Console]::Write("Disabling notification snooze...")
 
-$Snooze = "Disabling notification snooze..."
-foreach ($Char in $Snooze.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+
+# Check if the OS is Windows 11 before running the specific code block
+$osVersion = (Get-CimInstance Win32_OperatingSystem).Version
+if ($osVersion -like "10.0.22000*") {
+    # The code that should only run on Windows 11
+    $Snooze = "Disabling notification snooze..."
+    foreach ($Char in $Snooze.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
+    Add-Type -AssemblyName System.Windows.Forms
+    Start-Sleep -Seconds 5
+    $ProgressPreference = 'SilentlyContinue'
+    Invoke-WebRequest -uri $url -OutFile $config.SendWKey
+    $ProgressPreference = 'Continue'
+    # Define the arguments for SendWKey.exe
+    $arguments = '#{n}'
+    # Execute SendWKey.exe with arguments
+    Start-Process -FilePath $config.SendWKey -ArgumentList $arguments -NoNewWindow -Wait
+    Start-Sleep -Seconds 2
+    # Send Space keystroke
+    [System.Windows.Forms.SendKeys]::SendWait(' ')
+    [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor() 
+    [Console]::WriteLine()
+} else {
+    Write-Host "This part of the script is designed to run only on Windows 11."
 }
-Add-Type -AssemblyName System.Windows.Forms
-Start-Sleep -Seconds 5
-$ProgressPreference = 'SilentlyContinue'
-Invoke-WebRequest -uri $url -OutFile $config.SendWKey
-$ProgressPreference = 'Continue'
-# Define the arguments for SendWKey.exe
-$arguments = '#{n}'
-# Execute SendWKey.exe with arguments
-Start-Process -FilePath $config.SendWKey -ArgumentList $arguments -NoNewWindow -Wait
-Start-Sleep -Seconds 2
-# Send Space keystroke
-[System.Windows.Forms.SendKeys]::SendWait(' ')
-[System.Windows.Forms.SendKeys]::SendWait('{ESC}')
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() 
-[Console]::WriteLine() 
 
 # Stop & disable the Windows Update service
 $WU = "Suspending Windows Update..."
@@ -271,6 +265,7 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
     [Console]::ResetColor()
     [Console]::WriteLine()  
 }
+
 
 
 # Set power profile to 'Balanced'
