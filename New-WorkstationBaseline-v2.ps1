@@ -212,28 +212,36 @@ $url = $config.SendWurl
 $filePath = $config.TempFolder
 #[Console]::Write("Disabling notification snooze...")
 
-$Snooze = "Disabling notification snooze..."
-foreach ($Char in $Snooze.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+
+# Check if the OS is Windows 11 before running the specific code block
+$osVersion = (Get-CimInstance Win32_OperatingSystem).Version
+if ($osVersion -gt "10.0.22000*") {
+    # The code that should only run on Windows 11
+    $Snooze = "Disabling notification snooze..."
+    foreach ($Char in $Snooze.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 50
+    }
+    Add-Type -AssemblyName System.Windows.Forms
+    Start-Sleep -Seconds 5
+    $ProgressPreference = 'SilentlyContinue'
+    Invoke-WebRequest -uri $url -OutFile $config.SendWKey
+    $ProgressPreference = 'Continue'
+    # Define the arguments for SendWKey.exe
+    $arguments = '#{n}'
+    # Execute SendWKey.exe with arguments
+    Start-Process -FilePath $config.SendWKey -ArgumentList $arguments -NoNewWindow -Wait
+    Start-Sleep -Seconds 2
+    # Send Space keystroke
+    [System.Windows.Forms.SendKeys]::SendWait(' ')
+    [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor() 
+    [Console]::WriteLine()
+} else {
+    Write-Host "Notification Snooze function is only applicable to Windows 11."
 }
-Add-Type -AssemblyName System.Windows.Forms
-Start-Sleep -Seconds 5
-$ProgressPreference = 'SilentlyContinue'
-Invoke-WebRequest -uri $url -OutFile $config.SendWKey
-$ProgressPreference = 'Continue'
-# Define the arguments for SendWKey.exe
-$arguments = '#{n}'
-# Execute SendWKey.exe with arguments
-Start-Process -FilePath $config.SendWKey -ArgumentList $arguments -NoNewWindow -Wait
-Start-Sleep -Seconds 2
-# Send Space keystroke
-[System.Windows.Forms.SendKeys]::SendWait(' ')
-[System.Windows.Forms.SendKeys]::SendWait('{ESC}')
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() 
-[Console]::WriteLine() 
 
 # Stop & disable the Windows Update service
 $WU = "Suspending Windows Update..."
