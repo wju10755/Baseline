@@ -578,7 +578,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()    
-    [Console]::WriteLine("`n")
+    #[Console]::WriteLine("`n")
     $LTIns = "Installing ConnectWise Automate Agent..."
     foreach ($Char in $LTIns.ToCharArray()) {
         [Console]::Write("$Char")
