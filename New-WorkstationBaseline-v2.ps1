@@ -159,7 +159,7 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 
 
 # Stage Procmon
-$Notice = "Staging Procmon..."
+$Notice = "Staging Procmon.."
 foreach ($Char in $Notice.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
