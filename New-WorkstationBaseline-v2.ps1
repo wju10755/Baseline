@@ -263,8 +263,22 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
     [Console]::WriteLine()  
 }
 
+# Disable Offline File Sync
+# Set the path of the Offline Files registry key
+$registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
 
-<#
+# Check if the registry path exists, if not, create it
+if (-not (Test-Path -Path $registryPath)) {
+    New-Item -Path $registryPath -Force
+}
+
+# Set the value to disable Offline Files
+Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
+
+# Output the result
+Write-Host "Offline Files has been disabled. A system restart may be required for changes to take effect."
+
+
 # Set power profile to 'Balanced'
 $Pwr = "Setting 'Balanced' Power Profile..."
 foreach ($Char in $PWR.ToCharArray()) {
@@ -535,7 +549,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Start-Sleep -Seconds 1
 }
 
-#>
+
 # ConnectWise Automate Agent Installation
 $file = 'c:\temp\Warehouse-Agent_Install.MSI'
 $agentName = "LTService"
