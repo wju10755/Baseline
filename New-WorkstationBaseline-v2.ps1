@@ -526,7 +526,7 @@ if ($manufacturer -eq "Dell Inc.") {
     & $config.DellBloatware
     & $SpinnerFile
     } #else {
-    #rite-Warning "Skipping Dell debloat module due to device not meeting hardware requirements."
+    #Write-Warning "Skipping Dell debloat module due to device not meeting hardware requirements."
     #Write-Log "Skipping Dell debloat module due to device not meeting hardware requirements."
     #Start-Sleep -Seconds 1
 #}
