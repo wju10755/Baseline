@@ -269,11 +269,11 @@ $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
 
 # Check if the registry path exists, if not, create it
 if (-not (Test-Path -Path $registryPath)) {
-    New-Item -Path $registryPath -Force
+    New-Item -Path $registryPath -Force *> $null
 }
 
 # Set the value to disable Offline Files
-Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
+Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 
 # Output the result
 Write-Host "Offline Files has been disabled. A system restart may be required for changes to take effect."
@@ -286,7 +286,7 @@ foreach ($Char in $PWR.ToCharArray()) {
     Start-Sleep -Milliseconds 50
 }
 Start-Sleep -Seconds 3
-powercfg /S SCHEME_BALANCED
+powercfg /S SCHEME_BALANCED *> $null
 & $config.PowerProfile
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
