@@ -507,11 +507,11 @@ if (Test-Win11) {
 else {
     #Write-Host "This script is intended to run only on Windows 11."
 }
-<#
+
 Stop-Transcript *> $null
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
-#>
+
     # Set the URL and file path variables
     $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
     $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
@@ -525,11 +525,13 @@ if ($manufacturer -eq "Dell Inc.") {
     if (Test-Path -Path $SpinnerFile) {
     & $config.DellBloatware
     & $SpinnerFile
-    } #else {
-    #Write-Warning "Skipping Dell debloat module due to device not meeting hardware requirements."
-    #Write-Log "Skipping Dell debloat module due to device not meeting hardware requirements."
-    #Start-Sleep -Seconds 1
-#}
+        }
+
+} else {
+    Write-Warning "Skipping Dell debloat module due to device not meeting hardware requirements."
+    Write-Log "Skipping Dell debloat module due to device not meeting hardware requirements."
+    Start-Sleep -Seconds 1
+}
 
 # Kill procmon 
 taskkill /f /im procmon* *> $null
@@ -773,7 +775,7 @@ if ($Chrome) {
         Start-Sleep -Milliseconds 50
     }
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.`n")
+    [Console]::Write(" done.")
     [Console]::ResetColor()    
         & $config.ChromeDownload
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
