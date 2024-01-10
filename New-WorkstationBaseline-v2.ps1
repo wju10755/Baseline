@@ -1,7 +1,7 @@
+Set-Executionpolicy RemoteSigned -Force *> $null
 Clear-Host
 $ErrorActionPreference = 'SilentlyContinue'
 $WarningActionPreference = 'SilentlyContinue'
-Set-Executionpolicy RemoteSigned -Force *> $null
 
 # Central Configuration
 $config = @{
@@ -100,24 +100,18 @@ Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("`n")
 [Console]::Write("`n")
-#[Console]::Write("`b`bStarting workstation baseline...")
-
 $Baseline = "Starting workstation baseline..."
-
 foreach ($Char in $Baseline.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
-
 [Console]::Write(" ")
 [Console]::ResetColor() 
 [Console]::WriteLine()
 [Console]::Write("`n")
-
 Start-Sleep -Seconds 2
 
-# Start Baseline Notification
-#& $config.StartBaseline | Out-Null
+# Start baseline log file
 Write-Log "Automated workstation baseline has started"
 
 # Device Identification
@@ -130,6 +124,8 @@ if ($computerSystem.PCSystemType -eq 2) {
     #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
 }
 
+# Start Baseline Notification
+#& $config.StartBaseline | Out-Null
 
 
 $ModChk = "Installing required powershell modules..."
@@ -191,7 +187,7 @@ foreach ($Char in $Notice.ToCharArray()) {
     Start-Sleep -Milliseconds 50
 }
 
-$ProgressPreference = 'Continue'
+#$ProgressPreference = 'Continue'
 $url = $config.PSNoticeURL
 $filePath = $config.PSNoticeFile
 if (-not (Test-Path -Path $filePath -PathType Leaf)) {
@@ -237,7 +233,7 @@ if ($osVersion -gt "10.0.22000*") {
     [Console]::ResetColor() 
     [Console]::WriteLine()
 } else {
-    Write-Host "Notification Snooze function is only applicable to Windows 11."
+    Write-Host "Disable notification snooze function is only applicable to Windows 11 OS."
 }
 
 # Stop & disable the Windows Update service
@@ -272,12 +268,18 @@ if (-not (Test-Path -Path $registryPath)) {
     New-Item -Path $registryPath -Force *> $null
 }
 
-# Set the value to disable Offline Files
-Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 
-# Output the result
-Write-Host "Offline File sync has been disabled."
-Write-Warning "A system restart may be required for changes to take effect."
+# Disable Offline File Sync
+$OfflineFiles = "Disabling Offline File Sync..."
+foreach ($Char in $OfflineFiles.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
 
 
 # Set power profile to 'Balanced'
@@ -286,7 +288,7 @@ foreach ($Char in $PWR.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 2
 powercfg /S SCHEME_BALANCED *> $null
 & $config.PowerProfile
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -346,7 +348,7 @@ foreach ($Char in $PwrBtn.ToCharArray()) {
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PwrButton
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 2
 Write-Log "Power button action set to 'Shutdown'."
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
@@ -508,10 +510,10 @@ else {
     #Write-Host "This script is intended to run only on Windows 11."
 }
 
-Stop-Transcript *> $null
+
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
-
+    Stop-Transcript *> $null
     # Set the URL and file path variables
     $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
     $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
@@ -539,8 +541,6 @@ taskkill /f /im procmon* *> $null
 
 # Registry Check
 $OfficeUninstallStrings = (Get-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft 365 - *"} | Select-Object -ExpandProperty UninstallString)
-
-# Registry Check for Pre-Installed Office
 if ($null -ne $OfficeUninstallStrings) {
     $RPIO = "Removing Pre-Installed Office 365 Applications..."
     foreach ($Char in $RPIO.ToCharArray()) {
@@ -549,26 +549,22 @@ if ($null -ne $OfficeUninstallStrings) {
     }
     [Console]::ResetColor()
     [Console]::WriteLine()    
-
-    # Set the URL and file path variables
     Invoke-WebRequest -Uri $config.RemoveOfficeURL -OutFile $config.RemoveOfficeScript
     Start-Sleep -seconds 2
     Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
-
     if (Test-Path -Path $config.RemoveOfficeSpinner) {
         & $config.ScrubOffice
         & $RemoveOfficeSpinner
         }
-
 } else {
     Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
 
-
 # Restart transcript
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
+
 
 
 # Check Bitlocker Compatibility
