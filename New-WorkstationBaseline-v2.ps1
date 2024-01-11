@@ -284,13 +284,13 @@ Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 
 # Set power profile to 'Balanced'
 $Pwr = "Setting 'Balanced' Power Profile..."
-foreach ($Char in $PWR.ToCharArray()) {
+foreach ($Char in $Pwr.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
 Start-Sleep -Seconds 2
 powercfg /S SCHEME_BALANCED *> $null
-& $config.PowerProfile
+#& $config.PowerProfile
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
