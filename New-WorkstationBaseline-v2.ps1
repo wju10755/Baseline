@@ -770,7 +770,7 @@ if ($Chrome) {
         Start-Sleep -Milliseconds 50
     }
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
+    [Console]::Write(" done.`n")
     [Console]::ResetColor()    
         & $config.ChromeDownload
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
