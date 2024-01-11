@@ -5,6 +5,9 @@ function Show-Spinner {
         [string]$Message = "Please wait..." # The message to display
     )
 
+    # Import the required module for Start-Job cmdlet
+    Import-Module -Name Microsoft.PowerShell.Management
+
     # Define an array of characters to spin
     $chars = @('/', '-', '\', '|')
 

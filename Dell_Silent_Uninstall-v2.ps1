@@ -1,14 +1,17 @@
-$computerSystem = Get-WmiObject Win32_ComputerSystem
-$manufacturer = $computerSystem.Manufacturer
 Set-Executionpolicy RemoteSigned -Force *> $null
 
-if (!($computerSystem.Manufacturer -eq "Dell, Inc.")) {
-    #[Console]::Write("This module is only eligible for genuine Dell systems.")
-    $DellOnly = "This module is only elibible for genuine Dell systems."
+# Start script transcription
+Start-Transcript -path c:\temp\$env:ComputerName-Dell_Uninstall.log
+
+# Check if the system manufacturer is Dell
+$manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
+if ($manufacturer -notlike "*Dell*") {
+    $DellOnly = "This module is only eligible for genuine Dell systems."
     foreach ($Char in $DellOnly.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50
     }
+    Stop-Transcript
     break
 }
 
