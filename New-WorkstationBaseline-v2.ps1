@@ -768,12 +768,12 @@ if ($Chrome) {
     foreach ($Char in $CWDL.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 50
-    }
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.`n")
-    [Console]::ResetColor()    
+    }   
         & $config.ChromeDownload
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.`n")
+        [Console]::ResetColor() 
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $ChromePath).Length
