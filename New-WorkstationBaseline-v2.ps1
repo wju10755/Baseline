@@ -66,7 +66,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 9.6";
+Write-Host -ForegroundColor DarkRed "                                                      version 9.7";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 Set-ExecutionPolicy -Scope process RemoteSigned -Force
@@ -826,10 +826,13 @@ if ($Acrobat) {
     [Console]::ResetColor()
     [Console]::WriteLine()  
 } else {
-    $AcroFilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
+    #$AcroFilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
+    $AcroFilePath = "c:\temp\AcroRead.exe"
     if (-not (Test-Path $AcroFilePath)) {
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
-        $DLAAR = "Downloading Adove Acrobat Reader (277,900,248 bytes...)"
+        #$URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
+        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRead.exe"
+        #$DLAAR = "Downloading Adove Acrobat Reader (277,900,248 bytes...)"
+        $DLAAR = "Downloading Adove Acrobat Reader..."
         foreach ($Char in $DLAAR.ToCharArray()) {
             [Console]::Write("$Char")
             Start-Sleep -Milliseconds 50    
