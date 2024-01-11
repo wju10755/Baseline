@@ -306,9 +306,9 @@ foreach ($Char in $HibSlp.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 50
 }
-powercfg /change standby-timeout-ac 0
-powercfg /change hibernate-timeout-ac 0
-powercfg /h off
+powercfg /change standby-timeout-ac 0 *> $null
+powercfg /change hibernate-timeout-ac 0 *> $null
+powercfg /h off *> $null
 & $config.HiberSleep
 Start-Sleep -Seconds 2
 Write-Log "Disabled sleep and hibernation mode."
