@@ -812,6 +812,7 @@ if ($Chrome) {
     }
 }
 
+
 # Acrobat Installation
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                   HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
@@ -847,7 +848,7 @@ if ($Acrobat) {
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $AcroFilePath).Length
-    $ExpectedSize = 277900248 # in bytes
+    $ExpectedSize = 1452648 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         $IAAR = "Installing Adobe Acrobat Reader..."
         foreach ($Char in $IAAR.ToCharArray()) {
@@ -855,11 +856,30 @@ if ($Acrobat) {
             Start-Sleep -Milliseconds 50    
             }
         & $config.acrobatNotification
-        Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
+        $process = Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -wait
+        Start-Sleep -Seconds 5
+
+    # Minimize the Acrobat installer window
+    Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class WindowHandler {
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+    public static void MinimizeWindow(IntPtr hWnd) {
+    ShowWindowAsync(hWnd, 2); // 2 corresponds to SW_MINIMIZE
+        }
+    }
+"@
+
+# Find the window handle and minimize
+if ($process -and $process.MainWindowHandle -ne [IntPtr]::Zero) {
+    [WindowHandler]::MinimizeWindow($process.MainWindowHandle)
+}
         & $config.acrobatComplete
         Write-Log "Adobe Acrobat installed successfully."
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
+        [Console]::Write(" done.`n")
         [Console]::ResetColor()
         [Console]::WriteLine()
         Start-Sleep -Seconds 2
