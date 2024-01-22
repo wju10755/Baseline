@@ -812,91 +812,66 @@ if ($Chrome) {
     }
 }
 
-
 # Acrobat Installation
+$AcroFilePath = "c:\temp\AcroRead.exe"
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
+                            HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+          Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
+Start-Sleep -Seconds 1
+
 if ($Acrobat) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    $EAAIF = "Existing Acrobat Reader installation found."
-    foreach ($Char in $EAAIF.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
-    [Console]::ResetColor()
-    [Console]::WriteLine()  
+    Write-Host "Existing Acrobat Reader installation found." -ForegroundColor "Cyan"
 } else {
-    #$AcroFilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
-    $AcroFilePath = "c:\temp\AcroRead.exe"
     if (-not (Test-Path $AcroFilePath)) {
-        #$URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
+        # If not found, download it
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRead.exe"
-        #$DLAAR = "Downloading Adove Acrobat Reader (277,900,248 bytes...)"
-        $DLAAR = "Downloading Adove Acrobat Reader..."
-        foreach ($Char in $DLAAR.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
-        & $config.acrobatDownload
+        Write-Host "Downloading Adobe Acrobat Reader ( 1,452,648 bytes)..." -NoNewline
         Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
-        & $config.ClearPath
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-        [Console]::ResetColor()
-        [Console]::WriteLine()       
+        Write-Host " done." -ForegroundColor "Green"
     }
+
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $AcroFilePath).Length
     $ExpectedSize = 1452648 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        $IAAR = "Installing Adobe Acrobat Reader..."
-        foreach ($Char in $IAAR.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
-        & $config.acrobatNotification
-        $process = Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -wait
-        Start-Sleep -Seconds 5
+        # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
+        Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
+        Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -PassThru | Out-Null
+        Start-Sleep -Seconds 145
+        Write-Host " done." -ForegroundColor "Green"
+        Start-Sleep -Seconds 10
+        # Create a FileSystemWatcher to monitor the specified file
+        $watcher = New-Object System.IO.FileSystemWatcher
+        $watcher.Path = "C:\Program Files (x86)\Common Files\adobe\Reader\Temp\*"
+        $watcher.Filter = "installer.bin"
+        $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName
+        $watcher.EnableRaisingEvents = $true
 
-    # Minimize the Acrobat installer window
-    Add-Type @"
-    using System;
-    using System.Runtime.InteropServices;
-    public class WindowHandler {
-    [DllImport("user32.dll")]
-    public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-    public static void MinimizeWindow(IntPtr hWnd) {
-    ShowWindowAsync(hWnd, 2); // 2 corresponds to SW_MINIMIZE
+        # When installer.bin is deleted, kill the acroread.exe process
+        Register-ObjectEvent $watcher "Deleted" -Action {
+            Start-Sleep -Seconds 15
         }
-    }
-"@
 
-# Find the window handle and minimize
-if ($process -and $process.MainWindowHandle -ne [IntPtr]::Zero) {
-    [WindowHandler]::MinimizeWindow($process.MainWindowHandle)
-}
-        & $config.acrobatComplete
-        Write-Log "Adobe Acrobat installed successfully."
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.`n")
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-        Start-Sleep -Seconds 2
-        Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
-    }
-    else {
+        function Check-MsiexecSession {
+            $msiexecProcesses = Get-Process msiexec -ErrorAction SilentlyContinue
+            $hasSessionOne = $msiexecProcesses | Where-Object { $_.SessionId -eq 1 }
+        
+            return $hasSessionOne
+        }
+
+        # Loop to continually check the msiexec process
+        do {
+        Start-Sleep -Seconds 10  # Wait for 10 seconds before checking again
+        $msiexecSessionOne = Check-MsiexecSession
+        } while ($msiexecSessionOne)
+        # Once there are no msiexec processes with Session ID 1, kill acroread.exe
+        Start-Sleep 15
+        taskkill /f /im acroread.exe *> $null
+        #Write-Host "Adobe Acrobat installation complete." -ForegroundColor Green
+
+        } else {
         # Report download error
-        Write-Log "Download failed. File size does not match."
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        $AARDE = "Download failed or file size does not match."
-        foreach ($Char in $AARDE.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
-        [Console]::ResetColor()
-        [Console]::WriteLine()    
-        & $config.acrobatFailure
+        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Start-Sleep -Seconds 5
         Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
