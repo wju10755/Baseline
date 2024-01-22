@@ -280,7 +280,7 @@ Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-
+Start-Sleep -Seconds 3
 
 # Set power profile to 'Balanced'
 $Pwr = "Setting 'Balanced' Power Profile..."
@@ -384,10 +384,10 @@ foreach ($Char in $EST.ToCharArray()) {
 }
 Start-Sleep -Seconds 2
 Start-Service W32Time
-Set-TimeZone -Id "Eastern Standard Time"
+Set-TimeZone -Id "Eastern Standard Time" 
 Write-Log "Time zone set to Eastern Standard Time."
 Start-Sleep -Seconds 2
-& $config.timezone
+#& $config.timezone
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
@@ -847,11 +847,10 @@ if ($Acrobat) {
         $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName
         $watcher.EnableRaisingEvents = $true
 
-        # When installer.bin is deleted, kill the acroread.exe process
-        Register-ObjectEvent $watcher "Deleted" -Action {
+
+        Register-ObjectEvent $watcher "Deleted" -ErrorAction SilentlyContinue -Action | Out-Null {
             Start-Sleep -Seconds 15
         }
-
         function Check-MsiexecSession {
             $msiexecProcesses = Get-Process msiexec -ErrorAction SilentlyContinue
             $hasSessionOne = $msiexecProcesses | Where-Object { $_.SessionId -eq 1 }

@@ -1,5 +1,9 @@
+# Error Action Behavior
 $ErrorActionPreference = "SilentlyContinue"
 
+Clear-Host
+
+# Create temp directory
 if (!(Test-Path -Path C:\temp)) {
     New-Item -ItemType directory -Path C:\temp *> $null
 }
@@ -17,7 +21,7 @@ if ($Acrobat) {
     if (-not (Test-Path $AcroFilePath)) {
         # If not found, download it
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRead.exe"
-        Write-Host "Downloading Adobe Acrobat Reader ( 277,900,248 bytes)..." -NoNewline
+        Write-Host "Downloading Adobe Acrobat Reader ( 1,452,648 bytes)..." -NoNewline
         Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
         Write-Host " done." -ForegroundColor "Green"
     }
@@ -29,9 +33,7 @@ if ($Acrobat) {
         # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
         Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
         Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -PassThru | Out-Null
-        Start-Sleep -Seconds 145
-        Write-Host " done." -ForegroundColor "Green"
-        Start-Sleep -Seconds 10
+        Start-Sleep -Seconds 150
         # Create a FileSystemWatcher to monitor the specified file
         $watcher = New-Object System.IO.FileSystemWatcher
         $watcher.Path = "C:\Program Files (x86)\Common Files\adobe\Reader\Temp\*"
@@ -44,7 +46,7 @@ if ($Acrobat) {
             Start-Sleep -Seconds 15
             #& taskkill /f /im acroread.exe
             #Write-Host "acroread.exe process killed" -ForegroundColor "Green"
-        }
+        } | Out-Null
 
         function Check-MsiexecSession {
             $msiexecProcesses = Get-Process msiexec -ErrorAction SilentlyContinue
@@ -61,6 +63,7 @@ if ($Acrobat) {
         # Once there are no msiexec processes with Session ID 1, kill acroread.exe
         Start-Sleep 15
         taskkill /f /im acroread.exe *> $null
+        Write-Host " done." -ForegroundColor "Green"
         #Write-Host "Adobe Acrobat installation complete." -ForegroundColor Green
 
         } else {
