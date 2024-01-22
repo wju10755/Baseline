@@ -837,9 +837,7 @@ if ($Acrobat) {
         # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
         Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
         Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -PassThru | Out-Null
-        Start-Sleep -Seconds 145
-        Write-Host " done." -ForegroundColor "Green"
-        Start-Sleep -Seconds 10
+        Start-Sleep -Seconds 150
         # Create a FileSystemWatcher to monitor the specified file
         $watcher = New-Object System.IO.FileSystemWatcher
         $watcher.Path = "C:\Program Files (x86)\Common Files\adobe\Reader\Temp\*"
@@ -847,10 +845,13 @@ if ($Acrobat) {
         $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName
         $watcher.EnableRaisingEvents = $true
 
-
-        Register-ObjectEvent $watcher "Deleted" -ErrorAction SilentlyContinue -Action | Out-Null {
+        # When installer.bin is deleted, kill the acroread.exe process
+        Register-ObjectEvent $watcher "Deleted" -Action {
             Start-Sleep -Seconds 15
-        }
+            #& taskkill /f /im acroread.exe
+            #Write-Host "acroread.exe process killed" -ForegroundColor "Green"
+        } | Out-Null
+
         function Check-MsiexecSession {
             $msiexecProcesses = Get-Process msiexec -ErrorAction SilentlyContinue
             $hasSessionOne = $msiexecProcesses | Where-Object { $_.SessionId -eq 1 }
@@ -866,6 +867,7 @@ if ($Acrobat) {
         # Once there are no msiexec processes with Session ID 1, kill acroread.exe
         Start-Sleep 15
         taskkill /f /im acroread.exe *> $null
+        Write-Host " done." -ForegroundColor "Green"
         #Write-Host "Adobe Acrobat installation complete." -ForegroundColor Green
 
         } else {
