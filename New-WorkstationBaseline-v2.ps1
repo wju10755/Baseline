@@ -103,7 +103,7 @@ Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 $Baseline = "Starting workstation baseline..."
 foreach ($Char in $Baseline.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 [Console]::Write(" ")
 [Console]::ResetColor() 
@@ -132,7 +132,7 @@ $ModChk = "Installing required powershell modules..."
 
 foreach ($Char in $ModChk.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 
 # Check and Install NuGet Provider if not found
@@ -158,7 +158,7 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 $Notice = "Staging Procmon..."
 foreach ($Char in $Notice.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 
 # Download Procmon from LabTech server
@@ -184,7 +184,7 @@ if (Test-Path $config.ProcmonFile)
 $Notice = "Staging notifications..."
 foreach ($Char in $Notice.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 
 #$ProgressPreference = 'Continue'
@@ -213,7 +213,7 @@ if ($osVersion -gt "10.0.22000*") {
     $Snooze = "Disabling notification snooze..."
     foreach ($Char in $Snooze.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }
     Add-Type -AssemblyName System.Windows.Forms
     Start-Sleep -Seconds 5
@@ -240,7 +240,7 @@ if ($osVersion -gt "10.0.22000*") {
 $WU = "Suspending Windows Update..."
 foreach ($Char in $WU.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 
 Stop-Service -Name wuauserv -Force
@@ -273,7 +273,7 @@ if (-not (Test-Path -Path $registryPath)) {
 $OfflineFiles = "Disabling Offline File Sync..."
 foreach ($Char in $OfflineFiles.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -286,7 +286,7 @@ Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 $Pwr = "Setting 'Balanced' Power Profile..."
 foreach ($Char in $Pwr.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 Start-Sleep -Seconds 2
 powercfg /S SCHEME_BALANCED *> $null
@@ -304,7 +304,7 @@ Start-Sleep -Seconds 1
 $HibSlp = "Disabling Sleep & Hibernation..."
 foreach ($Char in $HibSlp.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 powercfg /change standby-timeout-ac 0 *> $null
 powercfg /change hibernate-timeout-ac 0 *> $null
@@ -324,7 +324,7 @@ Start-Sleep -Seconds 2
 $FStart = "Disabling Fast Startup...."
 foreach ($Char in $FStart.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
@@ -343,7 +343,7 @@ Start-Sleep -Seconds 2
 $PwrBtn = "Configuring 'Shutdown' power button action..."
 foreach ($Char in $PwrBtn.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
@@ -362,7 +362,7 @@ if ($deviceType -eq "Laptop") {
     $Lid = "Setting 'Do Nothing' lid close action..."
     foreach ($Char in $Lid.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
@@ -380,7 +380,7 @@ if ($deviceType -eq "Laptop") {
 $EST = "Setting EST as default timezone..."
 foreach ($Char in $EST.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 Start-Sleep -Seconds 2
 Start-Service W32Time
@@ -397,7 +397,7 @@ Start-Sleep -Seconds 3
 $Sync = "Syncing system clock..."
 foreach ($Char in $Sync.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 w32tm /resync -ErrorAction SilentlyContinue | out-null
 Start-Sleep -Seconds 2
@@ -414,7 +414,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Syste
 $Restore = "Enabling System Restore..."
 foreach ($Char in $Restore.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System Restore Enabled."
@@ -545,7 +545,7 @@ if ($null -ne $OfficeUninstallStrings) {
     $RPIO = "Removing Pre-Installed Office 365 Applications..."
     foreach ($Char in $RPIO.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }
     [Console]::ResetColor()
     [Console]::WriteLine()    
@@ -580,7 +580,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     $SBLC = "Configuring Bitlocker disk encryption..."
     foreach ($Char in $SBLC.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
+        Start-Sleep -Milliseconds 30    
         }
     # Create the recovery key
     Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
@@ -628,7 +628,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     Start-Sleep -Seconds 1
     foreach ($Char in $LTInstalled.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }
     [Console]::ResetColor()
     [Console]::WriteLine()
@@ -638,7 +638,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     $Broken = "ConnectWise Automate agent files are present, but the service is not installed."
     foreach ($Char in $Broken.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }
     [Console]::ResetColor() 
     [Console]::WriteLine() 
@@ -647,7 +647,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     $CWDL = "Downloading ConnectWise Automate Agent..."
     foreach ($Char in $CWDL.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }
     Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
     # Verify dowload
@@ -659,7 +659,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     $LTIns = "Installing ConnectWise Automate Agent..."
     foreach ($Char in $LTIns.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }
     Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -755,7 +755,7 @@ if ($Chrome) {
     $FoundChrome = "Existing Google Chrome installation found."
     foreach ($Char in $FoundChrome.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }
     [Console]::ResetColor()
     [Console]::WriteLine()  
@@ -767,7 +767,7 @@ if ($Chrome) {
         $CWDL = "Downloading Google Chrome..."
     foreach ($Char in $CWDL.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }   
         & $config.ChromeDownload
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
@@ -783,7 +783,7 @@ if ($Chrome) {
         $IGC = "Installing Google Chrome..."
         foreach ($Char in $IGC.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         Start-Process -FilePath $ChromePath -ArgumentList "/silent /install" -Wait
         Write-Log "Google Chrome installed successfully."
@@ -803,7 +803,7 @@ if ($Chrome) {
         $GCDE = "Download failed! file not found or size does not match"
         foreach ($Char in $GCDE.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         [Console]::ResetColor()
         [Console]::WriteLine() 
@@ -822,7 +822,7 @@ if ($Acrobat) {
     $EAAIF = "Existing Acrobat Reader installation found."
     foreach ($Char in $EAAIF.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
+        Start-Sleep -Milliseconds 30    
         }
     [Console]::ResetColor()
     [Console]::WriteLine()  
@@ -836,7 +836,7 @@ if ($Acrobat) {
         $DLAAR = "Downloading Adove Acrobat Reader..."
         foreach ($Char in $DLAAR.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         & $config.acrobatDownload
         Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
@@ -853,7 +853,7 @@ if ($Acrobat) {
         $IAAR = "Installing Adobe Acrobat Reader..."
         foreach ($Char in $IAAR.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         & $config.acrobatNotification
         $process = Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -wait
@@ -892,7 +892,7 @@ if ($process -and $process.MainWindowHandle -ne [IntPtr]::Zero) {
         $AARDE = "Download failed or file size does not match."
         foreach ($Char in $AARDE.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         [Console]::ResetColor()
         [Console]::WriteLine()    
@@ -913,7 +913,7 @@ if ($O365) {
     $EMOIF = "Existing Microsoft Office installation found."
     foreach ($Char in $EMOIF.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
+        Start-Sleep -Milliseconds 30    
         }
     [Console]::ResetColor()
     [Console]::WriteLine()
@@ -932,7 +932,7 @@ if ($O365) {
         $IO365 = "Installing Microsoft Office 365..."
         foreach ($Char in $IO365.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         Start-Process -FilePath $OfficePath -Wait
         if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
@@ -947,7 +947,7 @@ if ($O365) {
             $MO365IF = "Microsoft Office 365 installation failed."
             foreach ($Char in $MO365IF.ToCharArray()) {
                 [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 50    
+                Start-Sleep -Milliseconds 30    
                 }
             }
         
@@ -960,7 +960,7 @@ if ($O365) {
         $O365DLF = "Download failed or file size does not match"
         foreach ($Char in $O365DLF.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         [Console]::ResetColor()
         [Console]::WriteLine()
@@ -979,7 +979,7 @@ if ($SWNE) {
     $ENEIF = "Existing NetExtender installation found."
     foreach ($Char in $ENEIF.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
+        Start-Sleep -Milliseconds 30    
         }
     [Console]::ResetColor()
     [Console]::WriteLine()    
@@ -1011,7 +1011,7 @@ if ($SWNE) {
         $NEDF = "Download failed! File does not exist or size does not match"
         foreach ($Char in $NEDF.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         [Console]::ResetColor()
         [Console]::WriteLine()    
@@ -1026,7 +1026,7 @@ try {
         $ROD = "Removing Microsoft OneDrive (Personal)..."
         foreach ($Char in $ROD.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
     }
 
         $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
@@ -1044,7 +1044,7 @@ try {
             $FROD = " Failed to remove OneDrive"
             foreach ($Char in $FROD.ToCharArray()) {
                 [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 50    
+                Start-Sleep -Milliseconds 30    
                 }
             [Console]::ResetColor()
             [Console]::WriteLine()    
@@ -1055,7 +1055,7 @@ try {
         $ODINF = "OneDrive installation not found."
         foreach ($Char in $ODINF.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
             [Console]::ResetColor()
             [Console]::WriteLine()
@@ -1065,7 +1065,7 @@ try {
     $ODE = "An error occurred: $_"
     foreach ($Char in $ODE.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
+        Start-Sleep -Milliseconds 30    
         }
     [Console]::ResetColor()
     [Console]::WriteLine()
@@ -1079,7 +1079,7 @@ try {
         $RTMWI = "Removing Microsoft Teams Machine-Wide Installer..."
         foreach ($Char in $RTMWI.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50
+        Start-Sleep -Milliseconds 30
         }
         [Console]::ResetColor()
         [Console]::WriteLine()
@@ -1097,7 +1097,7 @@ try {
             $FTMWU = "Failed to uninstall Teams machine wide installer."
             foreach ($Char in $FTMWU.ToCharArray()) {
                 [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 50    
+                Start-Sleep -Milliseconds 30    
                 }
             [Console]::ResetColor()
             [Console]::WriteLine()
@@ -1108,7 +1108,7 @@ try {
         $TMWINF = "Teams machine wide installation not found."
         foreach ($Char in $TMWINF.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
+        Start-Sleep -Milliseconds 30    
         }
         [Console]::ResetColor()
         [Console]::WriteLine()    
@@ -1118,7 +1118,7 @@ try {
     $RTMWIE = "An error occurred: $_"
     foreach ($Char in $RTMWI.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
+        Start-Sleep -Milliseconds 30    
         }
 }
 
@@ -1194,7 +1194,7 @@ Write-Output " "
 $EWUS = "`bEnabling Windows Update Service..."
 foreach ($Char in $EWUS.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50    
+    Start-Sleep -Milliseconds 30    
     }
 Set-Service -Name wuauserv -StartupType Manual
 Start-Service -Name wuauserv
@@ -1218,7 +1218,7 @@ if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
 $IWU = "Checking for Windows Updates..."
 foreach ($Char in $IWU.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 30
 }
    
 $ProgressPreference = 'SilentlyContinue'
@@ -1239,7 +1239,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     $WUEF = "Windows Update execution failed!"
     foreach ($Char in $WUEF.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 50    
+        Start-Sleep -Milliseconds 30    
         }
         [Console]::ResetColor()
         [Console]::WriteLine()  
@@ -1257,7 +1257,7 @@ Start-Sleep -Seconds 1
 #$SDJF = "Starting Domain/Azure AD Join Function..."
 #foreach ($Char in $SDJF.ToCharArray()) {
 #    [Console]::Write("$Char")
-#    Start-Sleep -Milliseconds 50    
+#    Start-Sleep -Milliseconds 30    
 #    }
 
 $ProgressPreference = 'SilentlyContinue'
@@ -1267,7 +1267,7 @@ $ProgressPreference = 'Continue'
 $SDJF = "Do you want to connect to SSL VPN? Enter Y or N?`n"
 foreach ($Char in $SDJF.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50    
+    Start-Sleep -Milliseconds 30    
     }
 $choice = Read-Host
 
@@ -1285,7 +1285,7 @@ if ($choice -eq "Y" -or $choice -eq "N") {
             $NENF = "SonicWall NetExtender not found"
             foreach ($Char in $NENF.ToCharArray()) {
                 [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 50    
+                Start-Sleep -Milliseconds 30    
                 }
             [Console]::ResetColor()
             [Console]::WriteLine()   
@@ -1297,7 +1297,7 @@ if ($choice -eq "Y" -or $choice -eq "N") {
         $SVPNS = "Skipping VPN Connection Setup..."
         foreach ($Char in $SVPNS.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
             [Console]::ResetColor()
             [Console]::WriteLine()
@@ -1317,7 +1317,7 @@ if ($choice -eq "Y" -or $choice -eq "N") {
 $JoinOp = "Do you want to perform a standard domain join (S) or join Azure AD (A)? Enter S or A?`n"
 foreach ($Char in $JoinOp.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50    
+    Start-Sleep -Milliseconds 30    
     }
 
 $choice = Read-Host
@@ -1341,7 +1341,7 @@ if ($choice -eq "A" -or $choice -eq "S") {
             $DJCS = "Domain join operation completed successfully."
             foreach ($Char in $DJCS.ToCharArray()) {
                 [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 50    
+                Start-Sleep -Milliseconds 30    
                 }
                 [Console]::ResetColor()
                 [Console]::WriteLine()
@@ -1352,7 +1352,7 @@ if ($choice -eq "A" -or $choice -eq "S") {
             $DJCSRR = "Domain join operation completed successfully, restart is required!"
             foreach ($Char in $DJCSRR.ToCharArray()) {
                 [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 50    
+                Start-Sleep -Milliseconds 30    
                 }
                 [Console]::ResetColor()
                 [Console]::WriteLine()
@@ -1363,7 +1363,7 @@ if ($choice -eq "A" -or $choice -eq "S") {
         $SAADJ = "Starting Azure AD Join operation using Work or School account..."
         foreach ($Char in $SAADJ.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         Start-Sleep -Seconds 2
         Start-Process "ms-settings:workplace"
@@ -1379,7 +1379,7 @@ if ($choice -eq "A" -or $choice -eq "S") {
         $AADJV = "AzureADJoined: $azureADJoinedValue"
         foreach ($Char in $AADJV.ToCharArray()) {
             [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 50    
+            Start-Sleep -Milliseconds 30    
             }
         Write-Log "$env:COMPUTERNAME joined to Azure AD."
     }
@@ -1397,7 +1397,7 @@ Write-Log "Baseline configuration completed successfully."
 $BCCS = "Baseline configuration completed successfully!"
 foreach ($Char in $BCCS.ToCharArray()) {
     [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 50    
+    Start-Sleep -Milliseconds 30    
     }
     [Console]::ResetColor()
     [Console]::WriteLine()
