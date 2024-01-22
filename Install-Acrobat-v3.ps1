@@ -1,7 +1,7 @@
 $ErrorActionPreference = "SilentlyContinue"
 
 if (!(Test-Path -Path C:\temp)) {
-    New-Item -ItemType directory -Path C:\temp
+    New-Item -ItemType directory -Path C:\temp *> $null
 }
 
 # Acrobat Installation
@@ -50,7 +50,7 @@ if ($Acrobat) {
             $msiexecProcesses = Get-Process msiexec -ErrorAction SilentlyContinue
             $hasSessionOne = $msiexecProcesses | Where-Object { $_.SessionId -eq 1 }
         
-            return $hasSessionOne *> $null
+            return $hasSessionOne
         }
 
         # Loop to continually check the msiexec process
@@ -59,9 +59,9 @@ if ($Acrobat) {
         $msiexecSessionOne = Check-MsiexecSession
         } while ($msiexecSessionOne)
         # Once there are no msiexec processes with Session ID 1, kill acroread.exe
-        Start-Sleep 10
+        Start-Sleep 15
         taskkill /f /im acroread.exe *> $null
-        Write-Host "acroread.exe process killed" -ForegroundColor Green
+        #Write-Host "Adobe Acrobat installation complete." -ForegroundColor Green
 
         } else {
         # Report download error
@@ -70,14 +70,3 @@ if ($Acrobat) {
         Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
-
-Start-Sleep -Seconds 5
-
-$process = Get-Process msedge -ErrorAction SilentlyContinue
-if ($process) {
-    Stop-Process -Name msedge -Force
-    Write-Output "msedge.exe process was found and killed."
-} else {
-    Write-Output "msedge.exe process was not found."
-}
-
