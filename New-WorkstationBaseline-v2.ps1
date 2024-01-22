@@ -309,7 +309,7 @@ foreach ($Char in $HibSlp.ToCharArray()) {
 powercfg /change standby-timeout-ac 0 *> $null
 powercfg /change hibernate-timeout-ac 0 *> $null
 powercfg /h off *> $null
-& $config.HiberSleep
+#& $config.HiberSleep
 Start-Sleep -Seconds 2
 Write-Log "Disabled sleep and hibernation mode."
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -327,9 +327,9 @@ foreach ($Char in $FStart.ToCharArray()) {
     Start-Sleep -Milliseconds 30
 }
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
-Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
+Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
 Write-Log "Disabled fast startup."
-& $config.FastStartup
+#& $config.FastStartup
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
