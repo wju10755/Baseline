@@ -243,8 +243,7 @@ foreach ($Char in $WU.ToCharArray()) {
     Start-Sleep -Milliseconds 30
 }
 
-Stop-Service -Name wuauserv -Force
-Start-Sleep -Seconds 3
+
 Set-Service -Name wuauserv -StartupType Disabled
 Start-Sleep -Seconds 3
 $service = Get-Service -Name wuauserv
