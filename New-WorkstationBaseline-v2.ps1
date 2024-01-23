@@ -418,7 +418,7 @@ foreach ($Char in $Restore.ToCharArray()) {
 }
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System Restore Enabled."
-& $config.SystemRestore
+#& $config.SystemRestore
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
@@ -898,7 +898,13 @@ if ($O365) {
     $OfficePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $OfficePath)) {
         $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
+        $DLMOI = "Downloading Microsoft Office..."
+    foreach ($Char in $DLMOI.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30    
+        }
         Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
+        Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $OfficePath).Length
