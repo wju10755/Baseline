@@ -35,7 +35,7 @@ function Show-Spinner {
     Write-Host -NoNewline "done." -ForegroundColor Green
 
     # Move the cursor to the next line
-    #Write-Host ""
+    Write-Host ""
     
     # Remove the job
     Remove-Job -Name $job.Name
