@@ -544,10 +544,10 @@ taskkill /f /im procmon* *> $null
 # Registry Check
 $OfficeUninstallStrings = (Get-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft 365 - *"} | Select-Object -ExpandProperty UninstallString)
 if ($null -ne $OfficeUninstallStrings) {
-    $RPIO = "Removing Pre-Installed Office 365 Applications..."
-    foreach ($Char in $RPIO.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
+    #$RPIO = "Removing Pre-Installed Office 365 Applications..."
+    #foreach ($Char in $RPIO.ToCharArray()) {
+    #    [Console]::Write("$Char")
+    #    Start-Sleep -Milliseconds 30
     }
     [Console]::ResetColor()
     [Console]::WriteLine()    
