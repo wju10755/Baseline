@@ -549,7 +549,7 @@ if ($null -ne $OfficeUninstallStrings) {
     #foreach ($Char in $RPIO.ToCharArray()) {
     #    [Console]::Write("$Char")
     #    Start-Sleep -Milliseconds 30
-    }
+   # }
     [Console]::ResetColor()
     [Console]::WriteLine()    
     Invoke-WebRequest -Uri $config.RemoveOfficeURL -OutFile $config.RemoveOfficeScript
