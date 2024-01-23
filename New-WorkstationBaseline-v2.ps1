@@ -155,7 +155,7 @@ if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
 
 
 # Stage Procmon
-$Notice = "Staging Procmon..."
+$Notice = "Staging Process Monitor..."
 foreach ($Char in $Notice.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 30
@@ -275,6 +275,7 @@ foreach ($Char in $OfflineFiles.ToCharArray()) {
 }
 Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
+Start-Sleep -Seconds 2
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
@@ -465,7 +466,7 @@ if (Test-Win10) {
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
     # Output the result
     Write-Host "Offline Files has been disabled on Windows 10." -NoNewline
-    Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
+    # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
@@ -1167,7 +1168,8 @@ if (Is-Windows10) {
         Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
         Start-Sleep -Seconds 2
         #& $config.win10
-        & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
+        #& 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
+        Start-Process powershell -ArgumentList "-noexit","-Command Invoke-Expression -Command '& ''C:\temp\MITS-Debloat\MITS-Debloat.ps1'' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent'"
         Write-Log "Windows 10 Debloat completed successfully."
     }
     catch {
