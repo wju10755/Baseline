@@ -419,6 +419,7 @@ foreach ($Char in $Restore.ToCharArray()) {
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System Restore Enabled."
 #& $config.SystemRestore
+Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
@@ -465,7 +466,8 @@ if (Test-Win10) {
     # Set the value to disable Offline Files
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
     # Output the result
-    Write-Host "Offline Files has been disabled on Windows 10. A system restart may be required for changes to take effect."
+    Write-Host "Offline Files has been disabled on Windows 10." -NoNewline
+    Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
@@ -499,7 +501,8 @@ if (Test-Win11) {
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
 
     # Output the result
-    Write-Host "Offline Files has been disabled on Windows 10. A system restart may be required for changes to take effect."
+    Write-Host "Offline Files has been disabled on Windows 11." -NoNewline
+    Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
 
     }
     catch {
@@ -530,8 +533,8 @@ if ($manufacturer -eq "Dell Inc.") {
         }
 
 } else {
-    Write-Warning "Skipping Dell debloat module due to device not meeting hardware requirements."
-    Write-Log "Skipping Dell debloat module due to device not meeting hardware requirements."
+    Write-Warning "Skipping Dell debloat module due to device not meeting manufacturer requirements."
+    Write-Log "Skipping Dell debloat module due to device not meeting manufacturer requirements."
     Start-Sleep -Seconds 1
 }
 
