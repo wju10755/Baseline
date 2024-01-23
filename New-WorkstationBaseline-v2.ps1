@@ -1161,7 +1161,7 @@ if (Is-Windows10) {
         Start-Sleep -seconds 2
         Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
         Start-Sleep -Seconds 2
-        & $config.win10
+        #& $config.win10
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
         Write-Log "Windows 10 Debloat completed successfully."
     }
@@ -1197,7 +1197,7 @@ if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
 
 
 # Installing Windows Updates
-& $config.UpdateNotice
+#& $config.UpdateNotice
 $IWU = "Checking for Windows Updates..."
 foreach ($Char in $IWU.ToCharArray()) {
     [Console]::Write("$Char")
