@@ -681,10 +681,10 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     # Automate Agent Installation Check
     if (Test-Path $agentPath) {
         Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
-        & $config.AutomateSuccess
+        #& $config.AutomateSuccess
     } else {
         Write-Log "ConnectWise Automate Agent installation failed!"
-        & $config.AutomateFailure
+        #& $config.AutomateFailure
     }
 }
 
@@ -770,7 +770,7 @@ if ($Chrome) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30
     }   
-        & $config.ChromeDownload
+        #& $config.ChromeDownload
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.`n")
@@ -792,13 +792,13 @@ if ($Chrome) {
         [Console]::Write(" done.")
         [Console]::ResetColor()
         [Console]::WriteLine()    
-        & $config.chromeComplete
+        #& $config.chromeComplete
         Start-Sleep -Seconds 10
         Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
     }
     else {
         # Report download error
-        & $config.chromeFailure
+        #& $config.chromeFailure
         Write-Log "Google Chrome download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         $GCDE = "Download failed! file not found or size does not match"
@@ -911,7 +911,7 @@ if ($O365) {
     $FileSize = (Get-Item $OfficePath).Length
     $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        & $config.officeNotice
+        #& $config.officeNotice
         $IO365 = "Installing Microsoft Office 365..."
         foreach ($Char in $IO365.ToCharArray()) {
             [Console]::Write("$Char")
@@ -937,7 +937,7 @@ if ($O365) {
     }
     else {
         # Report download error
-        & $config.officeFailure
+        #& $config.officeFailure
         Write-Log "Office download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         $O365DLF = "Download failed or file size does not match"
