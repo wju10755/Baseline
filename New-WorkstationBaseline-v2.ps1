@@ -520,6 +520,7 @@ if ($manufacturer -eq "Dell Inc.") {
     $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
     $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall-v2.ps1"
     $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
+    Set-Location -Path "c:\temp"
     #& $config.DellHardware
     Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
     Start-Sleep -seconds 2
@@ -555,7 +556,7 @@ if ($null -ne $OfficeUninstallStrings) {
     Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
     if (Test-Path -Path $config.RemoveOfficeSpinner) {
         #& $config.ScrubOffice
-        & $RemoveOfficeSpinner
+        & $config.RemoveOfficeSpinner
         }
 } else {
     Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
@@ -663,6 +664,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
         Start-Sleep -Milliseconds 30
     }
     Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
+    Start-Sleep -Seconds 30
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -676,7 +678,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
         exit
 }
     # Wait for the installation to complete
-    Start-Sleep -Seconds 45
+    Start-Sleep -Seconds 30
 
     # Automate Agent Installation Check
     if (Test-Path $agentPath) {
@@ -745,6 +747,80 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
 Start-Sleep -Seconds 2
+
+
+# Install Office 365
+$O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
+
+if ($O365) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    $EMOIF = "Existing Microsoft Office installation found."
+    foreach ($Char in $EMOIF.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30    
+        }
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    goto NE_Install    
+} else {
+    $OfficePath = "c:\temp\OfficeSetup.exe"
+    if (-not (Test-Path $OfficePath)) {
+        $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
+        $DLMOI = "Downloading Microsoft Office..."
+    foreach ($Char in $DLMOI.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30    
+        }
+        Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
+        Write-Host " done." -ForegroundColor "Green"
+    }
+    # Validate successful download by checking the file size
+    $FileSize = (Get-Item $OfficePath).Length
+    $ExpectedSize = 7651616 # in bytes
+    if ($FileSize -eq $ExpectedSize) {
+        #& $config.officeNotice
+        $IO365 = "Installing Microsoft Office 365..."
+        foreach ($Char in $IO365.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 30    
+            }
+        Start-Process -FilePath $OfficePath -Wait
+        if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
+            Write-Log "Office 365 Installation Completed Successfully."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+            Start-Sleep -Seconds 10
+            Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
+            } else {
+            $MO365IF = "Microsoft Office 365 installation failed.`n"
+            foreach ($Char in $MO365IF.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 30    
+                }
+            }
+        
+    }
+    else {
+        # Report download error
+        #& $config.officeFailure
+        Write-Log "Office download failed!"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        $O365DLF = "Download failed or file size does not match"
+        foreach ($Char in $O365DLF.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 30    
+            }
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+        Start-Sleep -Seconds 10
+        Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
+    }
+}
+
 
 # Install Google Chrome
 $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
@@ -880,77 +956,6 @@ if ($Acrobat) {
 }
 
 
-# Install Office 365
-$O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
-
-if ($O365) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    $EMOIF = "Existing Microsoft Office installation found."
-    foreach ($Char in $EMOIF.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
-    [Console]::ResetColor()
-    [Console]::WriteLine()
-    goto NE_Install    
-} else {
-    $OfficePath = "c:\temp\OfficeSetup.exe"
-    if (-not (Test-Path $OfficePath)) {
-        $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        $DLMOI = "Downloading Microsoft Office..."
-    foreach ($Char in $DLMOI.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
-        Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
-    }
-    # Validate successful download by checking the file size
-    $FileSize = (Get-Item $OfficePath).Length
-    $ExpectedSize = 7651616 # in bytes
-    if ($FileSize -eq $ExpectedSize) {
-        #& $config.officeNotice
-        $IO365 = "Installing Microsoft Office 365..."
-        foreach ($Char in $IO365.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
-        Start-Process -FilePath $OfficePath -Wait
-        if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
-            Write-Log "Office 365 Installation Completed Successfully."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
-            [Console]::ResetColor()
-            [Console]::WriteLine()  
-            Start-Sleep -Seconds 10
-            Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
-            } else {
-            $MO365IF = "Microsoft Office 365 installation failed.`n"
-            foreach ($Char in $MO365IF.ToCharArray()) {
-                [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 30    
-                }
-            }
-        
-    }
-    else {
-        # Report download error
-        #& $config.officeFailure
-        Write-Log "Office download failed!"
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        $O365DLF = "Download failed or file size does not match"
-        foreach ($Char in $O365DLF.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-        Start-Sleep -Seconds 10
-        Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
-    }
-}
 
 # Install NetExtender
 $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
