@@ -32,10 +32,10 @@ function Show-Spinner {
 
     # Backspace the '|' character and write "done."
     [Console]::SetCursorPosition([Console]::CursorLeft - 1, [Console]::CursorTop)
-    Write-Host -NoNewline " done.`n" -ForegroundColor Green
+    Write-Host -NoNewline " done." -ForegroundColor Green
 
     # Move the cursor to the next line
-    Write-Host ""
+    #Write-Host ""
     
     # Remove the job
     Remove-Job -Name $job.Name
