@@ -268,8 +268,6 @@ if (-not (Test-Path -Path $registryPath)) {
     New-Item -Path $registryPath -Force *> $null
 }
 
-
-# Disable Offline File Sync
 $OfflineFiles = "Disabling Offline File Sync..."
 foreach ($Char in $OfflineFiles.ToCharArray()) {
     [Console]::Write("$Char")
@@ -522,13 +520,13 @@ if ($manufacturer -eq "Dell Inc.") {
     $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
     $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall-v2.ps1"
     $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
-    & $config.DellHardware
+    #& $config.DellHardware
     Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
     Start-Sleep -seconds 2
     Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
 
     if (Test-Path -Path $SpinnerFile) {
-    & $config.DellBloatware
+    #& $config.DellBloatware
     & $SpinnerFile
         }
 
@@ -556,7 +554,7 @@ if ($null -ne $OfficeUninstallStrings) {
     Start-Sleep -seconds 2
     Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
     if (Test-Path -Path $config.RemoveOfficeSpinner) {
-        & $config.ScrubOffice
+        #& $config.ScrubOffice
         & $RemoveOfficeSpinner
         }
 } else {
@@ -929,7 +927,7 @@ if ($O365) {
             Start-Sleep -Seconds 10
             Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
             } else {
-            $MO365IF = "Microsoft Office 365 installation failed."
+            $MO365IF = "Microsoft Office 365 installation failed.`n"
             foreach ($Char in $MO365IF.ToCharArray()) {
                 [Console]::Write("$Char")
                 Start-Sleep -Milliseconds 30    
