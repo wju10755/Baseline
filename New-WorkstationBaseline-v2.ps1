@@ -233,7 +233,7 @@ if ($osVersion -gt "10.0.22000*") {
     [Console]::ResetColor() 
     [Console]::WriteLine()
 } else {
-    Write-Host "Disable notification snooze function is only applicable to Windows 11 OS."
+    Write-Host "Disable notification snooze function is only applicable to Windows 11."
 }
 
 # Stop & disable the Windows Update service
@@ -244,6 +244,7 @@ foreach ($Char in $WU.ToCharArray()) {
 }
 
 Stop-Service -Name wuauserv -Force
+Start-Sleep -Seconds 3
 Set-Service -Name wuauserv -StartupType Disabled
 Start-Sleep -Seconds 3
 $service = Get-Service -Name wuauserv
@@ -465,7 +466,7 @@ if (Test-Win10) {
     # Set the value to disable Offline Files
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
     # Output the result
-    Write-Host "Offline Files has been disabled on Windows 10." -NoNewline
+    Write-Host "Windows 10 Offline Files has been disabled.`n" -NoNewline
     # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
     catch {
