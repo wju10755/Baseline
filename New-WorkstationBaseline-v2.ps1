@@ -181,26 +181,26 @@ if (Test-Path $config.ProcmonFile)
 
 
 # Stage Toast Notifications
-$Notice = "Staging notifications..."
-foreach ($Char in $Notice.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+#$Notice = "Staging notifications..."
+#foreach ($Char in $Notice.ToCharArray()) {
+#    [Console]::Write("$Char")
+#    Start-Sleep -Milliseconds 30
+#}
 
 #$ProgressPreference = 'Continue'
-$url = $config.PSNoticeURL
-$filePath = $config.PSNoticeFile
-if (-not (Test-Path -Path $filePath -PathType Leaf)) {
-    Invoke-WebRequest -Uri $url -OutFile $filePath
-} else {
-}
-if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
-    Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
-}
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() 
-[Console]::WriteLine() 
+#$url = $config.PSNoticeURL
+#$filePath = $config.PSNoticeFile
+#if (-not (Test-Path -Path $filePath -PathType Leaf)) {
+#   Invoke-WebRequest -Uri $url -OutFile $filePath
+#} else {
+#}
+#if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
+#    Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
+#}
+#[Console]::ForegroundColor = [System.ConsoleColor]::Green
+#[Console]::Write(" done.")
+#[Console]::ResetColor() 
+#[Console]::WriteLine() 
 
 
 # Disable Notification Snooze
@@ -242,8 +242,8 @@ foreach ($Char in $WU.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 30
 }
-
-
+Stop-Service -Name wuauserv -Force *> $null
+Start-Sleep -Seconds 4
 Set-Service -Name wuauserv -StartupType Disabled
 Start-Sleep -Seconds 3
 $service = Get-Service -Name wuauserv
@@ -500,7 +500,7 @@ if (Test-Win11) {
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
 
     # Output the result
-    Write-Host "Offline Files has been disabled on Windows 11." -NoNewline
+    Write-Host "Windows 11 Offline Files has been disabled." -NoNewline
     Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
 
     }
@@ -1135,7 +1135,7 @@ if (Is-Windows11) {
         Start-Sleep -seconds 2
         Expand-Archive $Win11DebloatFile -DestinationPath 'c:\temp\MITS-Debloat'
         Start-Sleep -Seconds 2
-        & $config.Win11
+        #& $config.Win11
         & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
         Write-Log "Windows 11 Debloat completed successfully."
     }
