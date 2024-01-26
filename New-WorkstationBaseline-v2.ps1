@@ -69,7 +69,6 @@ Print-Middle "MITS - New Workstation Baseline Utility";
 Write-Host -ForegroundColor DarkRed "                                                      version 9.8";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
-Set-ExecutionPolicy -Scope process RemoteSigned -Force
 
 
 # Create temp directory and baseline log
