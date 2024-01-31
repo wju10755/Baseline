@@ -248,7 +248,7 @@ if ($user) {
         # Set the password to 'Never Expire'
         $user | Set-LocalUser -PasswordNeverExpires $true
         Start-Sleep -Seconds 2
-        Write-Host " done."
+        Write-Host -ForegroundColor Green " done."
     }
 } else {
     $Password = ConvertTo-SecureString "@dvances10755" -AsPlainText -Force
