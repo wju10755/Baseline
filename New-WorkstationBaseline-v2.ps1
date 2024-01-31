@@ -120,8 +120,10 @@ $manufacturer = $computerSystem.Manufacturer
 if ($computerSystem.PCSystemType -eq 2) {
     Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
 } else {
-Write-Host "Put wake lock here"
-Start-Sleep -Seconds 4
+#Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/" -Outfile "C:\temp\Aquire-WakeLock.ps1"
+$WakeLock = "c:\temp\aquire-WakeLock.ps1"
+& $WakeLock
+
 }
 
 # Start Baseline Notification
