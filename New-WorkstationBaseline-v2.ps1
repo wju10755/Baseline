@@ -235,6 +235,32 @@ if ($osVersion -gt "10.0.22000*") {
     Write-Host "Disable notification snooze function is only applicable to Windows 11."
 }
 
+# Check if the user 'mitsadmin' exists
+$user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
+
+if ($user) {
+    #Write-Host "User 'mitsadmin' exists."
+
+    # Check if the password is set to 'Never Expire'
+    if ($user.PasswordNeverExpires) {
+        Write-Host "Password for 'mitsadmin' is already set to 'Never Expire'."
+    } else {
+        Write-Host "Setting mitsadmin password to 'Never Expire'..." -NoNewline
+
+        # Set the password to 'Never Expire'
+        $user | Set-LocalUser -PasswordNeverExpires $true
+        Start-Sleep -Seconds 2
+        Write-Host " done."
+    }
+} else {
+    #Write-Host "User 'mitsadmin' does not exist."
+    $Password = ConvertTo-SecureString "@dvances10755" -AsPlainText -Force
+    New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
+    $user | set-LocalUser -PasswordNeverExpires $true
+    Add-LocalGroupMember -Group "Administrators" -Member "mitsadmin"
+    Write-Host "New local account 'mitsadmin' has been created, added to the local Administrators group, and password set to 'Never Expire'"
+}
+
 # Stop & disable the Windows Update service
 $WU = "Suspending Windows Update..."
 foreach ($Char in $WU.ToCharArray()) {
