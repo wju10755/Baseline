@@ -120,10 +120,14 @@ $manufacturer = $computerSystem.Manufacturer
 if ($computerSystem.PCSystemType -eq 2) {
     Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
 } else {
-Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Aquire-Wakelock.ps1" -Outfile "C:\temp\Aquire-WakeLock.ps1"
-$WakeLock = "c:\temp\Aquire-WakeLock.ps1"
-& $WakeLock
+#Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Aquire-Wakelock.ps1" -Outfile "C:\temp\Aquire-WakeLock.ps1"
+#$WakeLock = "c:\temp\Aquire-WakeLock.ps1"
+#& $WakeLock
+# Get the GUID of the High Performance power scheme
+$highPerformanceSchemeGuid = (powercfg /list | Select-String "High Performance").ToString().Split()[3]
 
+# Set the active power scheme to High Performance
+powercfg /setactive $highPerformanceSchemeGuid
 }
 
 # Start Baseline Notification
