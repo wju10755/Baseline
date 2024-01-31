@@ -66,7 +66,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 9.8";
+Write-Host -ForegroundColor DarkRed "                                                      version 9.9";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 
@@ -202,6 +202,7 @@ if (Test-Path $config.ProcmonFile)
 #[Console]::WriteLine() 
 
 
+
 # Disable Notification Snooze
 $url = $config.SendWurl
 $filePath = $config.TempFolder
@@ -256,6 +257,82 @@ if ($user) {
     Add-LocalGroupMember -Group "Administrators" -Member "mitsadmin"
     Write-Host "New local account 'mitsadmin' has been created, added to the local Administrators group, and password set to 'Never Expire'"
 }
+
+
+# ConnectWise Automate Agent Installation
+$file = 'c:\temp\Warehouse-Agent_Install.MSI'
+$agentName = "LTService"
+$agentPath = "C:\Windows\LTSvc\"
+$installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
+
+# Check for existing LabTech agent
+if (Get-Service $agentName -ErrorAction SilentlyContinue) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    #[Console]::Write("ConnectWise Automate agent is already installed.")
+    $LTInstalled = "ConnectWise Automate agent is already installed."
+    Start-Sleep -Seconds 1
+    foreach ($Char in $LTInstalled.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+} elseif (Test-Path $agentPath) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    #[Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
+    $Broken = "ConnectWise Automate agent files are present, but the service is not installed."
+    foreach ($Char in $Broken.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
+    [Console]::ResetColor() 
+    [Console]::WriteLine() 
+} else {
+    #[Console]::WriteLine("Downloading Connectwise Automate Agent...")
+    $CWDL = "Downloading ConnectWise Automate Agent..."
+    foreach ($Char in $CWDL.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
+    Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
+    # Verify dowload
+    if (Test-Path $file) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.`n")
+    [Console]::ResetColor()    
+    #[Console]::WriteLine("`n")
+    $LTIns = "Installing ConnectWise Automate Agent..."
+    foreach ($Char in $LTIns.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
+    Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
+    Start-Sleep -Seconds 30
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+    } else {
+        Write-Log "The file [$file] download failed."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" failed.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+        exit
+}
+    # Wait for the installation to complete
+    Start-Sleep -Seconds 30
+
+    # Automate Agent Installation Check
+    if (Test-Path $agentPath) {
+        Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
+        #& $config.AutomateSuccess
+    } else {
+        Write-Log "ConnectWise Automate Agent installation failed!"
+        #& $config.AutomateFailure
+    }
+}
+
 
 # Stop & disable the Windows Update service
 $WU = "Suspending Windows Update..."
@@ -633,81 +710,6 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
-}
-
-
-# ConnectWise Automate Agent Installation
-$file = 'c:\temp\Warehouse-Agent_Install.MSI'
-$agentName = "LTService"
-$agentPath = "C:\Windows\LTSvc\"
-$installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
-
-# Check for existing LabTech agent
-if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    #[Console]::Write("ConnectWise Automate agent is already installed.")
-    $LTInstalled = "ConnectWise Automate agent is already installed."
-    Start-Sleep -Seconds 1
-    foreach ($Char in $LTInstalled.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-    [Console]::ResetColor()
-    [Console]::WriteLine()
-} elseif (Test-Path $agentPath) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    #[Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
-    $Broken = "ConnectWise Automate agent files are present, but the service is not installed."
-    foreach ($Char in $Broken.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-    [Console]::ResetColor() 
-    [Console]::WriteLine() 
-} else {
-    #[Console]::WriteLine("Downloading Connectwise Automate Agent...")
-    $CWDL = "Downloading ConnectWise Automate Agent..."
-    foreach ($Char in $CWDL.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-    Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
-    # Verify dowload
-    if (Test-Path $file) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.`n")
-    [Console]::ResetColor()    
-    #[Console]::WriteLine("`n")
-    $LTIns = "Installing ConnectWise Automate Agent..."
-    foreach ($Char in $LTIns.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-    Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
-    Start-Sleep -Seconds 30
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine() 
-    } else {
-        Write-Log "The file [$file] download failed."
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write(" failed.")
-        [Console]::ResetColor()
-        [Console]::WriteLine()    
-        exit
-}
-    # Wait for the installation to complete
-    Start-Sleep -Seconds 30
-
-    # Automate Agent Installation Check
-    if (Test-Path $agentPath) {
-        Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
-        #& $config.AutomateSuccess
-    } else {
-        Write-Log "ConnectWise Automate Agent installation failed!"
-        #& $config.AutomateFailure
-    }
 }
 
 
@@ -1155,7 +1157,11 @@ if (Is-Windows11) {
         Expand-Archive $Win11DebloatFile -DestinationPath 'c:\temp\MITS-Debloat'
         Start-Sleep -Seconds 2
         #& $config.Win11
-        & 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        #& 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+        Start-Process powershell -ArgumentList "-noexit","-Command Invoke-Expression -Command '& ''C:\temp\MITS-Debloat\MITS-Debloat.ps1'' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent'"
+        Start-Sleep -Seconds 2
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait('%{TAB}') 
         Write-Log "Windows 11 Debloat completed successfully."
     }
     catch {
