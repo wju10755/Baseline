@@ -120,8 +120,8 @@ $manufacturer = $computerSystem.Manufacturer
 if ($computerSystem.PCSystemType -eq 2) {
     Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
 } else {
-#Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/" -Outfile "C:\temp\Aquire-WakeLock.ps1"
-$WakeLock = "c:\temp\aquire-WakeLock.ps1"
+Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Aquire-Wakelock.ps1" -Outfile "C:\temp\Aquire-WakeLock.ps1"
+$WakeLock = "c:\temp\Aquire-WakeLock.ps1"
 & $WakeLock
 
 }
