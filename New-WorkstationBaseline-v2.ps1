@@ -127,7 +127,7 @@ if ($computerSystem.PCSystemType -eq 2) {
 $highPerformanceSchemeGuid = (powercfg /list | Select-String "High Performance").ToString().Split()[3]
 
 # Set the active power scheme to High Performance
-powercfg /setactive $highPerformanceSchemeGuid
+powercfg /setactive $highPerformanceSchemeGuid *> $null
 }
 
 # Start Baseline Notification
