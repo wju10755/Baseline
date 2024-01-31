@@ -239,21 +239,17 @@ if ($osVersion -gt "10.0.22000*") {
 $user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
 
 if ($user) {
-    #Write-Host "User 'mitsadmin' exists."
-
     # Check if the password is set to 'Never Expire'
     if ($user.PasswordNeverExpires) {
         Write-Host "Password for 'mitsadmin' is already set to 'Never Expire'."
     } else {
         Write-Host "Setting mitsadmin password to 'Never Expire'..." -NoNewline
-
         # Set the password to 'Never Expire'
         $user | Set-LocalUser -PasswordNeverExpires $true
         Start-Sleep -Seconds 2
         Write-Host " done."
     }
 } else {
-    #Write-Host "User 'mitsadmin' does not exist."
     $Password = ConvertTo-SecureString "@dvances10755" -AsPlainText -Force
     New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
     $user | set-LocalUser -PasswordNeverExpires $true
@@ -285,7 +281,6 @@ if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
 }
 
 # Disable Offline File Sync
-# Set the path of the Offline Files registry key
 $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
 
 # Check if the registry path exists, if not, create it
@@ -314,7 +309,6 @@ foreach ($Char in $Pwr.ToCharArray()) {
 }
 Start-Sleep -Seconds 2
 powercfg /S SCHEME_BALANCED *> $null
-#& $config.PowerProfile
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
