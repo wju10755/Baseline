@@ -713,10 +713,10 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     # Retrieve and Output the Recovery Key Password
     $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
     #Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine()
+    #[Console]::ForegroundColor = [System.ConsoleColor]::Green
+    #[Console]::Write(" done.")
+    #[Console]::ResetColor()
+    #[Console]::WriteLine()
     
 } else {
     Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
