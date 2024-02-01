@@ -34,7 +34,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 10.0.2";
+Write-Host -ForegroundColor DarkRed "                                                      version 10.0.3";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 
@@ -605,7 +605,7 @@ if (Test-Win11) {
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
 
     # Output the result
-    Write-Host "Windows 11 Offline Files has been disabled." -NoNewline
+    Write-Host "Windows 11 Offline Files has been disabled.`n" -NoNewline
     Write-Log "Windows 11 Offline Files has been disabled"
     #Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
 
