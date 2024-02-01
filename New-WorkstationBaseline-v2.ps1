@@ -524,7 +524,7 @@ Write-Log "System Restore Enabled."
 #& $config.SystemRestore
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.`n")
+[Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine()    
 Start-Sleep -Seconds 5
