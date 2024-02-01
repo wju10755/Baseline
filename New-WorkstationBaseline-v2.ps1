@@ -5,53 +5,21 @@ $WarningActionPreference = 'SilentlyContinue'
 
 # Central Configuration
 $config = @{
-    AcrobatComplete      = "c:\temp\psnotice\appnotice\acrobat\AcrobatComplete.ps1"
-    AcrobatFailure       = "C:\temp\psnotice\appnotice\acrobat\failure\New-ToastNotification.ps1"
-    AcrobatInstaller     = "c:\temp\AcroRdrDC2300620360_en_US.exe"
-    AutomateFailure      = "C:\temp\psnotice\AppNotice\automate\failure\New-ToastNotification.ps1"
-    AutomateSuccess      = "C:\temp\psnotice\AppNotice\automate\"
-    BaselineComplete     = "C:\temp\psnotice\BaselineComplete\New-ToastNotification.ps1"
-    Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
-    ChromeDownload       = "C:\temp\psnotice\AppNotice\Chrome\download\New-ToastNotification.ps1"
+    AcrobatInstaller     = "c:\temp\AcroRead.exe"
     ChromeInstaller      = "c:\temp\ChromeSetup.exe"
-    ChromeNotification   = "C:\temp\psnotice\appnotice\Chrome\New-ToastNotification.ps1"
-    ClearPath            = "C:\temp\psnotice\Clear-ToastNotification.ps1"
     DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
-    DellBloatware        = "C:\temp\psnotice\DellNotice\New-ToastNotification.ps1"
-    DellHardware         = "C:\temp\psnotice\hardware-dell"
-    FastStartup          = "C:\temp\psnotice\FastStartup\New-ToastNotification.ps1"
-    HiberSleep           = "C:\temp\psnotice\HiberSleep\New-ToastNotification.ps1"
-    HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
-    LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
     LogFile              = "C:\temp\baseline.log"
     NEGui                = "C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NEGui.exe"
-    NoSnooze             = "c:\temp\nosnooze.ps1"
-    NoSnoozeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
-    NoSnoozeZip          = "c:\temp\nosnooze.zip"
-    OfficeComplete       = "C:\temp\psnotice\OfficeNotice\complete\New-ToastNotification.ps1"
-    OfficeFailure        = "C:\temp\psnotice\OfficeNotice\failure\New-ToastNotification.ps1"
     OfficeInstaller      = "c:\temp\Office2016_ProPlus"
-    PowerProfile         = "C:\temp\psnotice\powerprofile\New-ToastNotification.ps1"
-    PSNoticeFile         = "c:\temp\psnotice.zip"
-    PSNoticePath         = "c:\temp\PSNotice"
     ProcmonURL           = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
     ProcmonFile          = "c:\temp\Procmon.exe"
-    PSNoticeUrl          = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
     RemoveOfficeURL      = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office.ps1"
     RemoveOfficeSpinURL  = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
     RemoveOfficeScript   = "c:\temp\Remove-Office.ps1"
     RemoveOfficeSpinner  = "c:\temp\Remove-Office-Spinner.ps1"
-    ScrubOffice          = "C:\temp\psnotice\scruboffice\New-ToastNotification.ps1"
     SendWKey             = "C:\temp\sendwkey.exe"
     SendWurl             = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe"
-    StartBaseline        = "C:\temp\psnotice\BaselineStart\New-ToastNotification.ps1"
-    SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
     TempFolder           = "C:\temp"
-    TimeZone             = "C:\temp\psnotice\TimeZone\New-ToastNotification.ps1"
-    UpdateComplete       = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
-    UpdateNotice         = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
-    Win10                = "C:\temp\psnotice\win10\New-ToastNotification.ps1"
-    Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
 }
 
 
@@ -66,7 +34,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 10.1";
+Write-Host -ForegroundColor DarkRed "                                                      version 10.0.2";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 
@@ -120,18 +88,56 @@ $manufacturer = $computerSystem.Manufacturer
 if ($computerSystem.PCSystemType -eq 2) {
     Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
 } else {
-#Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Aquire-Wakelock.ps1" -Outfile "C:\temp\Aquire-WakeLock.ps1"
-#$WakeLock = "c:\temp\Aquire-WakeLock.ps1"
-#& $WakeLock
-# Get the GUID of the High Performance power scheme
-$highPerformanceSchemeGuid = (powercfg /list | Select-String "High Performance").ToString().Split()[3]
+# Device Identification
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
+$flagFilePath = "C:\Temp\WakeLock.flag"
+# Get computer system information using CIM (more efficient and modern compared to WMI)
+try {
+    $computerSystem = Get-CimInstance -ClassName CIM_ComputerSystem
+    $pcSystemType = $computerSystem.PCSystemType
+    $manufacturer = $computerSystem.Manufacturer
 
-# Set the active power scheme to High Performance
-powercfg /setactive $highPerformanceSchemeGuid *> $null
+    # Check if the system is a mobile device
+    if ($pcSystemType -eq 2) {
+        # Mobile device detected, launching presentation settings
+        Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
+    } else {
+        # Not a mobile device, proceed with wake lock logic
+        $flagFilePath = "C:\Temp\WakeLock.flag"
+        $wakeLockScriptPath = "C:\Temp\WakeLock.ps1"
+
+        # Write the wake lock logic to a separate PowerShell script file
+        @'
+        # Load the necessary assembly for accessing Windows Forms functionality
+Add-Type -AssemblyName System.Windows.Forms
+
+# Define the path to the flag file
+$flagFilePath = 'c:\temp\wakelock.flag'
+
+# Infinite loop to send keys and check for the flag file
+while ($true) {
+    # Check if the flag file exists
+    if (Test-Path $flagFilePath) {
+        # If the flag file is found, exit the loop and script
+        Write-Host "Flag file detected. Exiting script..."
+        break
+    } else {
+        # If the flag file is not found, send the 'Shift + F15' keys
+        [System.Windows.Forms.SendKeys]::SendWait('+{F15}')
+        # Wait for 60 seconds before sending the keys again
+        Start-Sleep -Seconds 60
+    }
 }
 
-# Start Baseline Notification
-#& $config.StartBaseline | Out-Null
+'@ | Out-File -FilePath $wakeLockScriptPath
+    }
+} catch {
+    Write-Error "Failed to retrieve computer system information. Error: $_"
+}
+}
+
+Start-Sleep -Seconds 2
+Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
 
 
 $ModChk = "Installing required powershell modules..."
@@ -148,12 +154,6 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
 }
 
-# Check and install BurntToast Module if not found
-if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
-    Install-Module -Name BurntToast -Scope CurrentUser -Force -WarningAction SilentlyContinue | Out-Null
-    Import-Module BurntToast 
-    
-}
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
@@ -184,30 +184,6 @@ if (Test-Path $config.ProcmonFile)
     [Console]::WriteLine() 
     Start-Sleep -Seconds 2
 }
-
-
-# Stage Toast Notifications
-#$Notice = "Staging notifications..."
-#foreach ($Char in $Notice.ToCharArray()) {
-#    [Console]::Write("$Char")
-#    Start-Sleep -Milliseconds 30
-#}
-
-#$ProgressPreference = 'Continue'
-#$url = $config.PSNoticeURL
-#$filePath = $config.PSNoticeFile
-#if (-not (Test-Path -Path $filePath -PathType Leaf)) {
-#   Invoke-WebRequest -Uri $url -OutFile $filePath
-#} else {
-#}
-#if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
-#    Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
-#}
-#[Console]::ForegroundColor = [System.ConsoleColor]::Green
-#[Console]::Write(" done.")
-#[Console]::ResetColor() 
-#[Console]::WriteLine() 
-
 
 
 # Disable Notification Snooze
@@ -347,22 +323,45 @@ foreach ($Char in $WU.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 30
 }
-Stop-Service -Name wuauserv -Force *> $null
+
+# Stop the Windows Update service
+Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue *> $null
 Start-Sleep -Seconds 4
-Set-Service -Name wuauserv -StartupType Disabled
-Start-Sleep -Seconds 3
+# Set the startup type of the Windows Update service to disabled
+Set-Service -Name wuauserv -StartupType Disabled -ErrorAction SilentlyContinue *> $null
+Start-Sleep -Seconds 4
+# Get the current status of the Windows Update service
 $service = Get-Service -Name wuauserv
+
+# Check if the service is stopped and the startup type is disabled
 if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
-    [Console]::WriteLine()  
+    [Console]::WriteLine()
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" failed.")
     [Console]::ResetColor()
-    [Console]::WriteLine()  
+    [Console]::WriteLine()
 }
+
+#Set-Service -Name wuauserv -StartupType Disabled
+#Start-Sleep -Seconds 4
+#Stop-Service -Name wuauserv -Force *> $null
+#Start-Sleep -Seconds 4
+#$service = Get-Service -Name wuauserv
+#if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
+#    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+#    [Console]::Write(" done.")
+#    [Console]::ResetColor()
+#    [Console]::WriteLine()  
+#} else {
+#    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+#    [Console]::Write(" failed.")
+#    [Console]::ResetColor()
+#    [Console]::WriteLine()  
+#}
 
 # Disable Offline File Sync
 $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
