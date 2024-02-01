@@ -394,13 +394,6 @@ foreach ($Char in $Pwr.ToCharArray()) {
 }
 Start-Sleep -Seconds 2
 powercfg /S SCHEME_BALANCED *> $null
-
-# Get the GUID of the High Performance power scheme
-$highPerformanceSchemeGuid = (powercfg /list | Select-String "High Performance").ToString().Split()[3]
-
-# Set the active power scheme to High Performance
-powercfg /setactive $highPerformanceSchemeGuid
-
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
@@ -932,7 +925,7 @@ if ($Chrome) {
 $AcroFilePath = "c:\temp\AcroRead.exe"
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                             HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-          Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
+          Where-Object { $_.DisplayName -like "*Adobe Acrobat (64-bit)*" }
 Start-Sleep -Seconds 1
 
 if ($Acrobat) {
