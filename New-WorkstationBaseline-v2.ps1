@@ -693,6 +693,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30    
         }
+        Write-Host " "
     # Create the recovery key
     Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
 
@@ -723,7 +724,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
 }
-
+Write-Host " "
 
 # Launch Procmon
 $ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
