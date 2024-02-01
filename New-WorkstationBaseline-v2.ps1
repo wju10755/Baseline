@@ -688,7 +688,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     if (-not (Test-Path -Path $outputDirectory)) {
         New-Item -Path $outputDirectory -ItemType Directory | Out-Null
     }
-    $SBLC = "Configuring Bitlocker disk encryption...`n"
+    $SBLC = "Configuring Bitlocker disk encryption:`n"
     foreach ($Char in $SBLC.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30    
