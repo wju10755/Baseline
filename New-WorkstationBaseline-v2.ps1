@@ -640,7 +640,7 @@ if ($manufacturer -eq "Dell Inc.") {
         }
 
 } else {
-    Write-Warning "Skipping Dell debloat module due to device not meeting manufacturer requirements."
+    Write-Warning "`nSkipping Dell debloat module due to device not meeting manufacturer requirements."
     Write-Log "Skipping Dell debloat module due to device not meeting manufacturer requirements."
     Start-Sleep -Seconds 1
 }
@@ -668,7 +668,7 @@ if ($null -ne $OfficeUninstallStrings) {
         Write-Log "Pre-Installed Office 365 Applications Removed."
         }
 } else {
-    Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
+    Write-Warning "`nSkipping Pre-Installed Office Removal module due to not meeting application requirements."
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
