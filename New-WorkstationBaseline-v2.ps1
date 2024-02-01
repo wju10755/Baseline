@@ -335,7 +335,7 @@ Start-Sleep -Seconds 4
 $service = Get-Service -Name wuauserv
 
 # Check if the service is stopped and the startup type is disabled
-if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
+if ($service.Status -eq 'Stopped') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -1214,6 +1214,7 @@ if (Is-Windows10) {
 else {
     #Write-Host "This script is intended to run only on Windows 10."
 }
+
 Write-Output " "
 # Enable and start Windows Update Service
 $EWUS = "`bEnabling Windows Update Service..."
@@ -1222,10 +1223,11 @@ foreach ($Char in $EWUS.ToCharArray()) {
     Start-Sleep -Milliseconds 30    
     }
 Set-Service -Name wuauserv -StartupType Manual
+Start-Sleep -seconds 3
 Start-Service -Name wuauserv
 Start-Sleep -Seconds 3
 $service = Get-Service -Name wuauserv
-if ($service.Status -eq 'Running' -and $service.StartType -eq 'Manual') {
+if ($service.Status -eq 'Running') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
