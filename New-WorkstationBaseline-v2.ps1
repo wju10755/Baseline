@@ -34,7 +34,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 10.0.7";
+Write-Host -ForegroundColor DarkRed "                                                      version 10.0.8";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 
@@ -688,7 +688,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     if (-not (Test-Path -Path $outputDirectory)) {
         New-Item -Path $outputDirectory -ItemType Directory | Out-Null
     }
-    $SBLC = "Configuring Bitlocker disk encryption..."
+    $SBLC = "Configuring Bitlocker disk encryption...`n"
     foreach ($Char in $SBLC.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30    
