@@ -34,7 +34,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 10.0.5";
+Write-Host -ForegroundColor DarkRed "                                                      version 10.0.6";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 
@@ -668,7 +668,7 @@ if ($null -ne $OfficeUninstallStrings) {
         Write-Log "Pre-Installed Office 365 Applications Removed."
         }
 } else {
-    Write-Warning "`nSkipping Pre-Installed Office Removal module due to not meeting application requirements."
+    Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
