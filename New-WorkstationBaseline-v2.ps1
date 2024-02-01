@@ -231,6 +231,7 @@ if ($user) {
         # Set the password to 'Never Expire'
         $user | Set-LocalUser -PasswordNeverExpires $true
         Start-Sleep -Seconds 2
+        Write-Log "mitsadmin password set to 'Never Expire'."
         Write-Host -ForegroundColor Green " done."
     }
 } else {
@@ -379,6 +380,7 @@ foreach ($Char in $OfflineFiles.ToCharArray()) {
 Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 Start-Sleep -Seconds 2
+Write-Log "Offline file sync disabled."
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
@@ -436,7 +438,7 @@ foreach ($Char in $FStart.ToCharArray()) {
 }
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
-Write-Log "Disabled fast startup."
+Write-Log "Fast startup disabled."
 #& $config.FastStartup
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -495,7 +497,6 @@ Start-Service W32Time
 Set-TimeZone -Id "Eastern Standard Time" 
 Write-Log "Time zone set to Eastern Standard Time."
 Start-Sleep -Seconds 2
-#& $config.timezone
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
@@ -513,6 +514,7 @@ Start-Sleep -Seconds 2
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine()    
+Write-Log "Synced system clock"
 Start-Sleep -Seconds 5
 
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
@@ -575,6 +577,7 @@ if (Test-Win10) {
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
     # Output the result
     Write-Host "Windows 10 Offline Files has been disabled.`n" -NoNewline
+    Write-Log "Offline files disabled."
     # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
     catch {
@@ -610,7 +613,8 @@ if (Test-Win11) {
 
     # Output the result
     Write-Host "Windows 11 Offline Files has been disabled." -NoNewline
-    Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
+    Write-Log "Windows 11 Offline Files has been disabled"
+    #Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
 
     }
     catch {
@@ -639,6 +643,7 @@ if ($manufacturer -eq "Dell Inc.") {
     if (Test-Path -Path $SpinnerFile) {
     #& $config.DellBloatware
     & $SpinnerFile
+    Write-Log "Dell Bloatware Removed."
         }
 
 } else {
@@ -667,6 +672,7 @@ if ($null -ne $OfficeUninstallStrings) {
     if (Test-Path -Path $config.RemoveOfficeSpinner) {
         #& $config.ScrubOffice
         & $config.RemoveOfficeSpinner
+        Write-Log "Pre-Installed Office 365 Applications Removed."
         }
 } else {
     Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
@@ -677,7 +683,7 @@ if ($null -ne $OfficeUninstallStrings) {
 # Restart transcript
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
-
+<#
 # Check Bitlocker Compatibility
 $WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
 $TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
@@ -713,7 +719,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
     # Retrieve and Output the Recovery Key Password
     $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
-    Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
+    #Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -724,7 +730,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
 }
-
+#>
 
 # Launch Procmon
 $ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
@@ -831,6 +837,7 @@ if ($O365) {
             Start-Sleep -Seconds 10
             Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
             } else {
+            Write-Log "Office 365 installation failed."
             $MO365IF = "Microsoft Office 365 installation failed.`n"
             foreach ($Char in $MO365IF.ToCharArray()) {
                 [Console]::Write("$Char")
@@ -841,7 +848,6 @@ if ($O365) {
     }
     else {
         # Report download error
-        #& $config.officeFailure
         Write-Log "Office download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         $O365DLF = "Download failed or file size does not match"
@@ -881,7 +887,7 @@ if ($Chrome) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30
     }   
-        #& $config.ChromeDownload
+        
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.`n")
@@ -891,7 +897,7 @@ if ($Chrome) {
     $FileSize = (Get-Item $ChromePath).Length
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
-        & $config.chromeNotification
+       
         $IGC = "Installing Google Chrome..."
         foreach ($Char in $IGC.ToCharArray()) {
             [Console]::Write("$Char")
@@ -903,13 +909,11 @@ if ($Chrome) {
         [Console]::Write(" done.")
         [Console]::ResetColor()
         [Console]::WriteLine()    
-        #& $config.chromeComplete
         Start-Sleep -Seconds 10
         Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
     }
     else {
         # Report download error
-        #& $config.chromeFailure
         Write-Log "Google Chrome download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         $GCDE = "Download failed! file not found or size does not match"
@@ -980,7 +984,7 @@ if ($Acrobat) {
         Start-Sleep 15
         taskkill /f /im acroread.exe *> $null
         Write-Host " done." -ForegroundColor "Green"
-        #Write-Host "Adobe Acrobat installation complete." -ForegroundColor Green
+        Write-Log "Adobe Acrobat installation complete." -ForegroundColor Green
 
         } else {
         # Report download error
@@ -1261,7 +1265,8 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
-    [Console]::WriteLine()  
+    [Console]::WriteLine()
+    Write-Log "All available Windows updates are installed."  
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     $WUEF = "Windows Update execution failed!"
