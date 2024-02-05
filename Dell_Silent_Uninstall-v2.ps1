@@ -284,21 +284,32 @@ if ($SWName) {
     "There is no bloatware detected"
 }
 
-# Trigger uninstall of remaining Dell applications
-$Remaining = Get-Package | Where-Object {
+# Define the list of package names to exclude
+$excludeNames = @('*firmware*', '*WLAN*', '*HID*', '*Touch*')
+
+# Get the remaining Dell packages
+$remainingPackages = Get-Package | Where-Object {
     $_.Name -like 'Dell Trusted Device Agent' -and
-    $_.Name -notlike '*firmware*' -and
-    $_.Name -notlike '*WLAN*' -and
-    $_.Name -notlike '*HID*' -and
-    $_.Name -notlike '*Touch*'
-  }
-    
-  foreach ($package in $Remaining) {
-    Write-Host "Triggering uninstall for $($package.Name)" -NoNewline
-    Uninstall-Package -Name $package.Name -Force *> $null
-    Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed $($package.Name)"
-  }
+    $excludeNames -notcontains $_.Name
+}
+
+# Check if any packages were found
+if ($remainingPackages) {
+    # Uninstall each package
+    foreach ($package in $remainingPackages) {
+        try {
+            Write-Host "Triggering uninstall for $($package.Name)" -NoNewline
+            Uninstall-Package -Name $package.Name -Force -ErrorAction Stop *> $null
+            Write-Host " done." -ForegroundColor "Green"
+            Write-Log "Removed $($package.Name)"
+        } catch {
+            Write-Error "There was an error when uninstalling $($package.Name): $_"
+        }
+    }
+} else {
+    Write-Host "No matching packages found."
+}
+
 $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2  
 taskkill /f /im procmon* *> $null
