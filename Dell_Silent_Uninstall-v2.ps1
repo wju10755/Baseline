@@ -156,7 +156,7 @@ if ($DPMpackage) {
     Write-Host "Extracting Dell Peripheral Manager package..."
     Expand-Archive -Path $DPMzip -DestinationPath $DPMdir -Force
     Write-Host "Removing Dell Peripheral Manager..."
-    & "$DPMdir\Uninstall-DellPeripheralManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+    & "$DPMdir\Uninstall-DellPeripheralManager.ps1" -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null  
     Write-Log "Removed Dell Peripheral Manager."
 } else {
     Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
