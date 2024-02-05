@@ -310,6 +310,21 @@ if ($remainingPackages) {
     Write-Host "No matching packages found."
 }
 
+# Get applications with a name like 'Dell'
+$dellApps = Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -like '*Dell*' }
+
+# Uninstall each application
+foreach ($app in $dellApps) {
+    $appName = $app.Name
+    Write-Host "Attempting to uninstall: [$appName]..."
+    $uninstallResult = Invoke-CimMethod -InputObject $app -MethodName "Uninstall"
+    if ($uninstallResult.ReturnValue -eq 0) {
+        Write-Host "Successfully uninstalled: [$appName]"
+    } else {
+        Write-Warning "Failed to uninstall: [$appName]. Exit code: $($uninstallResult.ReturnValue)"
+    }
+}
+
 $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2  
 taskkill /f /im procmon* *> $null
