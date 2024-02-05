@@ -327,10 +327,12 @@ foreach ($Char in $WU.ToCharArray()) {
 
 # Stop the Windows Update service
 Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue *> $null
-Start-Sleep -Seconds 4
+Start-Sleep -Seconds 5
 # Set the startup type of the Windows Update service to disabled
 Set-Service -Name wuauserv -StartupType Disabled -ErrorAction SilentlyContinue *> $null
-Start-Sleep -Seconds 4
+Start-Sleep -Seconds 5
+
+
 # Get the current status of the Windows Update service
 $service = Get-Service -Name wuauserv
 
@@ -646,6 +648,10 @@ if ($manufacturer -eq "Dell Inc.") {
 }
 
 # Kill procmon 
+$wshell = New-Object -ComObject wscript.shell
+Start-Sleep -Seconds 2
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2
 taskkill /f /im procmon* *> $null
 
 

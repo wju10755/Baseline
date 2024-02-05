@@ -16,6 +16,7 @@ if ($manufacturer -notlike "*Dell*") {
 }
 
 Start-Transcript -path c:\temp\$env:ComputerName-Dell_Uninstall.log
+
 # Instal Common Stuff 
 $moduleName = "CommonStuff"
 
@@ -258,6 +259,7 @@ if ($null -ne $uninstallString) {
     Write-Host "Application 'My Dell' not found."
 }
 
+
 # Trigger remaining Dell application uninstall
 $SWName = Get-InstalledSoftware "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services" |
     Where-Object { $_.DisplayName -ne "Dell Trusted Device Agent" } |  
@@ -283,6 +285,7 @@ if ($SWName) {
 } else {
     "There is no bloatware detected"
 }
+
 
 # Define the list of package names to exclude
 $excludeNames = @('*firmware*', '*WLAN*', '*HID*', '*Touch*')
