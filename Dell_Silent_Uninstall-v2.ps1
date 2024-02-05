@@ -118,9 +118,17 @@ foreach ($path in $registryPaths) {
     }
 }
 if ($isInstalled) {
-    Write-Host "Uninstalling Dell Display Manager..."
-    Start-Process -FilePath "C:\Program Files\Dell\Dell Display Manager 2\uninst.exe" -ArgumentList "/S", "/v/qn" -Wait -NoNewWindow
-    Write-Host " done." -ForegroundColor "Green"
+    try {
+        Write-Host "Uninstalling Dell Display Manager..."
+        $process = Start-Process -FilePath "C:\Program Files\Dell\Dell Display Manager 2\uninst.exe" -ArgumentList "/S", "/v/qn" -Wait -NoNewWindow -PassThru -ErrorAction Stop
+        if ($process.ExitCode -eq 0) {
+            Write-Host "Successfully uninstalled Dell Display Manager." -ForegroundColor "Green"
+        } else {
+            Write-Warning "Failed to uninstall Dell Display Manager. Exit code: $($process.ExitCode)"
+        }
+    } catch {
+        Write-Warning "Failed to uninstall Dell Display Manager. Error: $($_.Exception.Message)"
+    }
 } else {
     Write-Host "Dell Display Manager is not installed."
 }
@@ -162,20 +170,93 @@ if ($DPMpackage) {
     Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
 }
 
-# Remove Dell Command | Update for Windows Universal
+# Remove Dell Command Update
 $DCUURL = "https://advancestuff.hostedrmm.com/labtech/Transfer/installers/remove-dcu.zip"
 $DCUZIP = "C:\temp\remove-dcu.zip"
-$DCUDEST = "c:\temp\remove-dcu"
+$DCUDEST = "C:\temp\remove-dcu"
 $DCUFILE = "C:\temp\remove-dcu\Deploy-DellCommandUpdate.ps1"
+
+# Download the uninstaller
 Invoke-WebRequest -Uri $DCUURL -OutFile $DCUZIP
-if (Test-Path $DCUZIP){
-Expand-Archive $DCUZIP -DestinationPath $DCUDEST -force
 
+# Extract the uninstaller
+if (Test-Path $DCUZIP) {
+    Expand-Archive $DCUZIP -DestinationPath $DCUDEST -Force
+}
+
+# Run the uninstaller
 if (Test-Path $DCUFILE) {
-Powershell.exe -ExecutionPolicy Bypass .\Deploy-DellCommandUpdate.ps1 -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null
-}
+    Powershell.exe -ExecutionPolicy Bypass -File $DCUFILE -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null
 }
 
+
+
+# Remove Dell Peripheral Manager
+#$DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm.zip"
+#$DPMzip = "C:\temp\Uninstall-dpm.zip"
+#$DPMdir = "C:\temp\Uninstall-DPM"
+#Write-Host "Starting Dell bloatware removal`n" -NoNewline
+#$DPMpackageName = 'Dell Peripheral Manager'
+#$DPMpackage = Get-Package -Name $DPMpackageName -ErrorAction SilentlyContinue
+#if ($DPMpackage) {
+#    # Download Dell Peripheral Manager
+#    $ProgressPreference = 'SilentlyContinue'
+#    #Write-Host "Downloading Dell Peripheral Manager Script..."
+#    Invoke-WebRequest -Uri $DPMurl -OutFile $DPMzip *> $null
+#    Write-Host "Extracting Dell Peripheral Manager package..."
+#    Expand-Archive -Path $DPMzip -DestinationPath $DPMdir -Force
+#    Write-Host "Removing Dell Peripheral Manager..."
+#    & "$DPMdir\Uninstall-DellPeripheralManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+#    Write-Log "Removed Dell Peripheral Manager."
+#} else {
+#    Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
+#}
+
+
+# Remove Dell Peripheral Manager
+$DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm2.zip"
+$DPMzip = "C:\temp\Uninstall-dpm2.zip"
+$DPMdir = "C:\temp\Uninstall-DPM2"
+Write-Host "Starting Dell bloatware removal`n" -NoNewline
+$DPMpackageName = 'Dell Peripheral Manager'
+$DPMpackage = Get-Package -Name $DPMpackageName -ErrorAction SilentlyContinue
+if ($DPMpackage) {
+    # Download Dell Peripheral Manager
+    $ProgressPreference = 'SilentlyContinue'
+    #Write-Host "Downloading Dell Peripheral Manager Script..."
+    Invoke-WebRequest -Uri $DPMurl -OutFile $DPMzip *> $null
+    Write-Host "Extracting Dell Peripheral Manager package..."
+    Expand-Archive -Path $DPMzip -DestinationPath $DPMdir -Force
+    Write-Host "Removing Dell Peripheral Manager..."
+    & "$DPMdir\Uninstall-DellPeripheralManager2.ps1" -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null  
+    Write-Log "Removed Dell Peripheral Manager."
+} else {
+    Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
+}
+
+
+
+# Uninstall Dell Optimizer
+$uninstallCommand = '"C:\Program Files (x86)\InstallShield Installation Information\{286A9ADE-A581-43E8-AA85-6F5D58C7DC88}\DellOptimizer_MyDell.exe" -remove -runfromtemp -silent'
+
+# Run the uninstall command
+Start-Process cmd -ArgumentList "/c $uninstallCommand" -Wait
+
+
+# Uninstall MyDell
+$uninstallString = Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* |
+                   Where-Object { $_.DisplayName -eq 'MyDell' } |
+                   Select-Object -ExpandProperty UninstallString
+
+# Check if the My Dell application exists
+if ($null -ne $uninstallString) {
+    # Uninstall the application
+    $uninstallString = $uninstallString -Replace '/I', '/X'
+    $uninstallString = $uninstallString + ' /qn /norestart'
+    Start-Process cmd -ArgumentList "/c $uninstallString" -Wait
+} else {
+    Write-Host "Application 'My Dell' not found."
+}
 
 # Trigger remaining Dell application uninstall
 $SWName = Get-InstalledSoftware "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services" |

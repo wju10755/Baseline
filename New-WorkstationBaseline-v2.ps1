@@ -1423,7 +1423,7 @@ if ($choice -eq "A" -or $choice -eq "S") {
 New-Item -ItemType File -Path "c:\temp\WakeLock.flag" -Force *> $null
 
 # Final log entry
-& $config.baselineComplete
+#& $config.baselineComplete
 Write-Log "Baseline configuration completed successfully."
 $BCCS = "Baseline configuration completed successfully!"
 foreach ($Char in $BCCS.ToCharArray()) {
