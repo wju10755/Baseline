@@ -648,10 +648,10 @@ if ($manufacturer -eq "Dell Inc.") {
 }
 
 # Kill procmon 
-$wshell = New-Object -ComObject wscript.shell
-Start-Sleep -Seconds 2
-$wshell.SendKeys("^a")
-Start-Sleep -Seconds 2
+#$wshell = New-Object -ComObject wscript.shell
+#Start-Sleep -Seconds 2
+#$wshell.SendKeys("^a")
+#Start-Sleep -Seconds 2
 taskkill /f /im procmon* *> $null
 
 
@@ -674,7 +674,7 @@ if ($null -ne $OfficeUninstallStrings) {
         Write-Log "Pre-Installed Office 365 Applications Removed."
         }
 } else {
-    Write-Warning "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
+    Write-Warning "`nSkipping Pre-Installed Office Removal module due to not meeting application requirements."
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
