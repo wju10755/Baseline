@@ -1404,13 +1404,14 @@ if ($choice -eq "A" -or $choice -eq "S") {
             }
         Start-Sleep -Seconds 2
         Start-Process "ms-settings:workplace"
+        Start-Sleep -Seconds 3
         # Run dsregcmd /status and capture its output
         $output = dsregcmd /status | Out-String
 
         # Extract the AzureAdJoined value
         $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
         $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
-
+        Start-Sleep -Seconds 3
         # Display the extracted value
         Write-Host " "
         $AADJV = "AzureADJoined: $azureADJoinedValue"
