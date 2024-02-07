@@ -15,7 +15,6 @@ if ($manufacturer -notlike "*Dell*") {
     break
 }
 
-Start-Transcript -path c:\temp\$env:ComputerName-Dell_Uninstall.log
 
 # Instal Common Stuff 
 $moduleName = "CommonStuff"
@@ -104,6 +103,7 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
+
 # Remove Dell Display Manager
 $registryPaths = @(
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
@@ -191,7 +191,6 @@ if (Test-Path $DCUFILE) {
 }
 
 
-
 # Remove Dell Peripheral Manager
 #$DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm.zip"
 #$DPMzip = "C:\temp\Uninstall-dpm.zip"
@@ -239,8 +238,6 @@ if ($DPMpackage) {
 
 # Uninstall Dell Optimizer
 $uninstallCommand = '"C:\Program Files (x86)\InstallShield Installation Information\{286A9ADE-A581-43E8-AA85-6F5D58C7DC88}\DellOptimizer_MyDell.exe" -remove -runfromtemp -silent'
-
-# Run the uninstall command
 Start-Process cmd -ArgumentList "/c $uninstallCommand" -Wait
 
 
@@ -248,8 +245,6 @@ Start-Process cmd -ArgumentList "/c $uninstallCommand" -Wait
 $uninstallString = Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* |
                    Where-Object { $_.DisplayName -eq 'MyDell' } |
                    Select-Object -ExpandProperty UninstallString
-
-# Check if the My Dell application exists
 if ($null -ne $uninstallString) {
     # Uninstall the application
     $uninstallString = $uninstallString -Replace '/I', '/X'
