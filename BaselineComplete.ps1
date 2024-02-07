@@ -35,3 +35,4 @@ $AzureADJoined = ((dsregcmd /status | select-string -Pattern "AzureAdJoined").Li
 $AzureADJoined
 $DomainJoined = ((dsregcmd /status | select-string -Pattern "DomainJoined").Line).Trim()
 $DomainJoined
+Write-Output " "
