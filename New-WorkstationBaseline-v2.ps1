@@ -1443,7 +1443,9 @@ foreach ($Char in $BCCS.ToCharArray()) {
 Write-Host " "
 Stop-Transcript  
 Start-Sleep -seconds 1
-Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1" -UseBasicParsing
+Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1" -UseBasicParsing
+$scriptPath = "c:\temp\BaselineComplete.ps1"
+Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
 #Start-Process "appwiz.cpl"
 Write-Host " "
 Write-Host " "
