@@ -81,6 +81,48 @@ Start-Sleep -Seconds 2
 # Start baseline log file
 Write-Log "Automated workstation baseline has started"
 
+
+# Terminate any existing msiexec processes
+Write-Host "Waiting for MSIExec process to exit..."
+while ($true) {
+    # Get the process
+    $process = Get-Process -Name "msiexec" -ErrorAction SilentlyContinue
+
+    # Check if the process is running
+    if ($process) {
+        # Terminate the process
+        $process | Stop-Process -Force
+    } else {
+        # If the process is not found, exit the loop
+        break
+    }
+
+    # Wait for a short period before checking again
+    Start-Sleep -Seconds 1
+}
+
+
+# Terminate any existing OfficeClickToRun processes
+Write-Host "Waiting for OfficeClickToRun process to exit..." -NoNewline
+while ($true) {
+    # Get the process
+    $process = Get-Process -Name "OfficeClickToRun" -ErrorAction SilentlyContinue
+
+    # Check if the process is running
+    if ($process) {
+        # Terminate the process
+        $process | Stop-Process -Force
+    } else {
+        # If the process is not found, exit the loop
+        Write-Host -ForegroundColor Green " done."
+        break
+    }
+
+    # Wait for a short period before checking again
+    Start-Sleep -Seconds 1
+}
+
+
 # Device Identification
 # PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
 $computerSystem = Get-WmiObject Win32_ComputerSystem
