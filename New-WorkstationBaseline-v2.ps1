@@ -188,7 +188,7 @@ if (Test-Path $config.ProcmonFile)
 
 
 # Terminate any existing msiexec processes
-Write-Host "Waiting for MSIExec process to exit..."
+Write-Host "Waiting for MSIExec process to exit..." -NoNewline
 while ($true) {
     # Get the process
     $process = Get-Process -Name "msiexec" -ErrorAction SilentlyContinue
@@ -368,41 +368,34 @@ foreach ($Char in $WU.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 30
 }
-sc.exe stop "wuauserv"
-sc.exe config "wuauserv" start=disabled
-
-$UpdateQuery = sc.exe query wuauserv
-
-if ($UpdateQuery.State -eq "Running"){
-Net stop wuauserv
-}
-Start-Sleep -Seconds 5
 
 # Stop the Windows Update service
-#Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue *> $null
-#Start-Sleep -Seconds 5
-#sc stop wuauserv *> $null
-#Start-Sleep -Seconds 3
+Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue *> $null
+
+# Second attempt at stopping Windows Update Service
+Start-Sleep -Seconds 5
+sc.exe stop wuauserv *> $null
+
 # Set the startup type of the Windows Update service to disabled
-#Set-Service -Name wuauserv -StartupType Disabled -ErrorAction SilentlyContinue *> $null
-#Start-Sleep -Seconds 5
+Set-Service -Name wuauserv -StartupType Disabled -ErrorAction SilentlyContinue *> $null
+Start-Sleep -Seconds 5
 
 
 # Get the current status of the Windows Update service
-#$service = Get-Service -Name wuauserv
+$service = Get-Service -Name wuauserv
 
 # Check if the service is stopped and the startup type is disabled
-#if ($service.Status -eq 'Stopped') {
-#    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-#    [Console]::Write(" done.")
-#    [Console]::ResetColor()
-#    [Console]::WriteLine()
-#} else {
-#    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-#    [Console]::Write(" failed.")
-#    [Console]::ResetColor()
-#    [Console]::WriteLine()
-#}
+if ($service.Status -eq 'Stopped') {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" failed.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
 
 #Set-Service -Name wuauserv -StartupType Disabled
 #Start-Sleep -Seconds 4
