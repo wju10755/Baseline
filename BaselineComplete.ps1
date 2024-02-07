@@ -33,3 +33,5 @@ $Software = Get-InstalledSoftware | select DisplayName, DisplayVersion
 $Software | ft -HideTableHeaders
 $AzureADJoined = ((dsregcmd /status | select-string -Pattern "AzureAdJoined").Line).Trim()
 $AzureADJoined
+$DomainJoined = ((dsregcmd /status | select-string -Pattern "DomainJoined").Line).Trim()
+$DomainJoined

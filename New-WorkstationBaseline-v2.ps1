@@ -620,10 +620,10 @@ else {
     #Write-Host "This script is intended to run only on Windows 11."
 }
 
+Stop-Transcript *> $null
 
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
-    Stop-Transcript *> $null
     # Set the URL and file path variables
     $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
     $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
@@ -669,7 +669,6 @@ if ($null -ne $OfficeUninstallStrings) {
     Start-Sleep -seconds 2
     Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
     if (Test-Path -Path $config.RemoveOfficeSpinner) {
-        #& $config.ScrubOffice
         & $config.RemoveOfficeSpinner
         Write-Log "Pre-Installed Office 365 Applications Removed."
         }
