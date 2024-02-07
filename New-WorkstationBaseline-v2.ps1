@@ -1361,7 +1361,17 @@ if ($choice -eq "Y" -or $choice -eq "N") {
         if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
             [Console]::Write("NetExtender detected successfully, starting connection...")
             start C:\temp\ssl-vpn.bat
-            Start-Sleep -Seconds 3
+            Start-Sleep -Seconds 5
+            # Get the network connection profile for the specific network adapter
+            connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
+
+            # Check if the network adapter is connected to a network
+            if ($connectionProfile) {
+                Write-Host "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN."
+            } else {
+                Write-Host "The 'Sonicwall NetExtender' adapter is not connected to the SSLVPN."
+            }
+            Write-Output " "
             Read-Host -Prompt "Press Enter once connected to SSL VPN to continue."
         } else {
             [Console]::Write("`n")
