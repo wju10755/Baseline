@@ -15,7 +15,7 @@ if ($manufacturer -notlike "*Dell*") {
     break
 }
 
-
+$test | ft -HideTableHeaders
 # Instal Common Stuff 
 $moduleName = "CommonStuff"
 

@@ -1443,7 +1443,8 @@ foreach ($Char in $BCCS.ToCharArray()) {
 Write-Host " "
 Stop-Transcript  
 Start-Sleep -seconds 1
-Start-Process "appwiz.cpl"
+Invoke-WebRequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1" -UseBasicParsing
+#Start-Process "appwiz.cpl"
 Write-Host " "
 Write-Host " "
 Read-Host -Prompt "Press Enter to exit"
