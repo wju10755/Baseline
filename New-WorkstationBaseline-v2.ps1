@@ -652,7 +652,7 @@ if ($manufacturer -eq "Dell Inc.") {
 #Start-Sleep -Seconds 2
 #$wshell.SendKeys("^a")
 #Start-Sleep -Seconds 2
-taskkill /f /im procmon* *> $null
+#taskkill /f /im procmon* *> $null
 
 
 # Registry Check
@@ -726,7 +726,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     #[Console]::WriteLine()
     
 } else {
-    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    Write-Warning "`nSkipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
 }
@@ -1151,6 +1151,8 @@ try {
 
 
 # Stop Procmon
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2
 taskkill /f /im procmon64.exe *> $null
 
 
@@ -1232,7 +1234,7 @@ foreach ($Char in $EWUS.ToCharArray()) {
 Set-Service -Name wuauserv -StartupType Manual
 Start-Sleep -seconds 3
 Start-Service -Name wuauserv
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 5
 $service = Get-Service -Name wuauserv
 if ($service.Status -eq 'Running') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
