@@ -1,4 +1,5 @@
 Set-Executionpolicy RemoteSigned -Force *> $null
+Start-Transcript -path "c:\temp\Office_Uninstall.log"
 
 if (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "*Microsoft 365 - *" }) {
     # Start-Sleep -Seconds 5
@@ -149,4 +150,5 @@ if (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
     $wshell.SendKeys("^a")
     Start-Sleep -Seconds 2
     taskkill /f /im procmon* *> $null
+    Stop-Transcript
 }
