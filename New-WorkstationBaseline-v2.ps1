@@ -34,7 +34,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 10.1.1";
+Write-Host -ForegroundColor DarkRed "                                                      version 10.1.2";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 
@@ -808,7 +808,7 @@ if ($O365) {
     $OfficePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $OfficePath)) {
         $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        $DLMOI = "Downloading Microsoft Office..."
+        $DLMOI = "Downloading Microsoft Office 365..."
     foreach ($Char in $DLMOI.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30    
