@@ -34,7 +34,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                 version 10.1.5";
+Write-Host -ForegroundColor DarkRed "                                                   version 10.1.6";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host " "
 
@@ -274,19 +274,34 @@ if ($user) {
         Write-Host -ForegroundColor Green " done."
     } else {
         Write-Host "Setting mitsadmin password to 'Never Expire'..." -NoNewline
+        $SPWNE = "Setting mitsadmin password to 'Never Expire'..."
+        foreach ($Char in $SPWNE.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 30
+        }
         # Set the password to 'Never Expire'
         $user | Set-LocalUser -PasswordNeverExpires $true
         Start-Sleep -Seconds 2
         #Write-Log "mitsadmin password set to 'Never Expire'."
-        Write-Host -ForegroundColor Green " done."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor() 
+        [Console]::WriteLine()
     }
 } else {
-    Write-Host "Creating local mitsadmin & password set to 'Never Expire'..." -NoNewline
+    $PWNE = "Creating local mitsadmin & password set to 'Never Expire'..."
+    foreach ($Char in $PWNE.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
     $Password = ConvertTo-SecureString "@dvances10755" -AsPlainText -Force
     New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
     $user | set-LocalUser -PasswordNeverExpires $true
     Add-LocalGroupMember -Group "Administrators" -Member "mitsadmin"
-    Write-Host -ForegroundColor Green " done."
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
 }
 
 
