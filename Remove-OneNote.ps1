@@ -1,5 +1,7 @@
 Set-Executionpolicy RemoteSigned -Force *> $null
-Start-Transcript -path "c:\temp\Office_Uninstall.log"
+Start-Transcript -path "c:\temp\OneNote_Uninstall.log"
+taskkill /f /im OfficeClickToRun.exe *> $null
+taskkill /f /im OfficeC2RClient.exe *> $null
 
 # Define the function to move the process window to top left
 function Move-ProcessWindowToTopLeft([string]$processName) {

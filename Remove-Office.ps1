@@ -1,5 +1,7 @@
 Set-Executionpolicy RemoteSigned -Force *> $null
 Start-Transcript -path "c:\temp\Office_Uninstall.log"
+taskkill /f /im OfficeClickToRun.exe *> $null
+taskkill /f /im OfficeC2RClient.exe *> $null
 
 # Define the function to move the process window to top left
 function Move-ProcessWindowToTopLeft([string]$processName) {
@@ -64,20 +66,6 @@ if (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
         $UninstallArg = ($UninstallString -split '"')[2] + " DisplayLevel=False"
         Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
     } 
-
-    # Stop Procmon
-    Stop-Procmon
-
-    # Start Procmon
-    Start-Procmon
-
-    # Trigger uninstall of all pre-installed versions of Microsoft OneNote Apps
-    $OneNoteUninstallStrings = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "*Microsoft OneNote - *"} | Select UninstallString).UninstallString
-    ForEach ($UninstallString in $OneNoteUninstallStrings) {
-        $UninstallEXE = ($UninstallString -split '"')[1]
-        $UninstallArg = ($UninstallString -split '"')[2] + " DisplayLevel=False"
-        Start-Process -FilePath $UninstallEXE -ArgumentList $UninstallArg -Wait
-    }
 
     # Stop Procmon
     Stop-Procmon
