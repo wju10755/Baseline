@@ -45,5 +45,5 @@ function Show-Spinner {
 }
 
 # Call the function Show-Spinner with the command and a label
-Show-Spinner -Script {& 'C:\temp\Dell_Silent_Uninstall.ps1'} -Message "Removing Dell Applications..."
+Show-Spinner -Script {& 'C:\temp\Download-Office.ps1'} -Message "Downloading Microsoft Office 365..."
 Start-Sleep -Seconds 3
