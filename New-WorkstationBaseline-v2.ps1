@@ -263,6 +263,8 @@ if ($osVersion -gt "10.0.22000*") {
     Write-Host "Disable notification snooze function is only applicable to Windows 11."
 }
 
+Write-Host "Checking for local mitsadmin & confirming password set to 'Never Expire'..." -NoNewline
+$LogPath = "C:\temp\baseline.log"
 # Check if the user 'mitsadmin' exists
 $user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
 
@@ -271,11 +273,11 @@ if ($user) {
     if ($user.PasswordNeverExpires) {
         Write-Host "Password for 'mitsadmin' is already set to 'Never Expire'."
     } else {
-        Write-Host "Setting mitsadmin password to 'Never Expire'..." -NoNewline
+        #Write-Host "Setting mitsadmin password to 'Never Expire'..." -NoNewline
         # Set the password to 'Never Expire'
         $user | Set-LocalUser -PasswordNeverExpires $true
         Start-Sleep -Seconds 2
-        Write-Log "mitsadmin password set to 'Never Expire'."
+        #Write-Log "mitsadmin password set to 'Never Expire'."
         Write-Host -ForegroundColor Green " done."
     }
 } else {
@@ -283,7 +285,7 @@ if ($user) {
     New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
     $user | set-LocalUser -PasswordNeverExpires $true
     Add-LocalGroupMember -Group "Administrators" -Member "mitsadmin"
-    Write-Host "New local account 'mitsadmin' has been created, added to the local Administrators group, and password set to 'Never Expire'"
+    Write-Host "Local account 'mitsadmin' created, added to local admin group & password set to 'Never Expire'"
 }
 
 
