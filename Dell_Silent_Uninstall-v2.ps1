@@ -15,7 +15,7 @@ if ($manufacturer -notlike "*Dell*") {
     break
 }
 
-$test | ft -HideTableHeaders
+
 # Instal Common Stuff 
 $moduleName = "CommonStuff"
 
@@ -136,17 +136,22 @@ if ($isInstalled) {
 
 
 # Remove Dell Pair Application
-$pairPath = "C:\Program Files\Dell\Dell Pair\Uninstall.exe"
-if (Test-Path $pairPath) {
-    Write-Host "Removing Dell Pair Application..." -NoNewline
-    $pair = "`"$pairPath`" /S"
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $pair" *> $null
-    Start-Sleep -Seconds 10
-    Write-Host " done." -ForegroundColor "Green"
-    Write-Log "Removed Dell Pair Application."   
+$programName = "Dell Pair Application"
+$uninstallPath = "C:\Program Files\Dell\Dell Pair\Uninstall.exe"
+
+if (Test-Path $uninstallPath) {
+    try {
+        Write-Host "Removing $programName..." -NoNewline
+        $arguments = "`"$uninstallPath`" /S"
+        Start-Process -FilePath "cmd.exe" -ArgumentList "/c $arguments" -NoNewWindow -Wait -PassThru -ErrorAction Stop *> $null
+        Start-Sleep -Seconds 10
+        Write-Host " done." -ForegroundColor "Green"
+        Write-Log "Removed $programName."   
+    } catch {
+        Write-Warning "Failed to uninstall $programName. Error: $($_.Exception.Message)"
+    }
 } else {
-    #Write-Host "Dell Pair Uninstall.exe file does not exist."
-    Write-Host "Dell Pair installation not found." -ForegroundColor "Red"
+    Write-Host "$programName installation not found." -ForegroundColor "Red"
 }
 
 
@@ -154,22 +159,37 @@ if (Test-Path $pairPath) {
 $DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm.zip"
 $DPMzip = "C:\temp\Uninstall-dpm.zip"
 $DPMdir = "C:\temp\Uninstall-DPM"
+$uninstallScript = "$DPMdir\Uninstall-DellPeripheralManager.ps1"
+
 Write-Host "Starting Dell bloatware removal`n" -NoNewline
+
 $DPMpackageName = 'Dell Peripheral Manager'
 $DPMpackage = Get-Package -Name $DPMpackageName -ErrorAction SilentlyContinue
+
 if ($DPMpackage) {
-    # Download Dell Peripheral Manager
-    $ProgressPreference = 'SilentlyContinue'
-    #Write-Host "Downloading Dell Peripheral Manager Script..."
-    Invoke-WebRequest -Uri $DPMurl -OutFile $DPMzip *> $null
-    Write-Host "Extracting Dell Peripheral Manager package..."
-    Expand-Archive -Path $DPMzip -DestinationPath $DPMdir -Force
-    Write-Host "Removing Dell Peripheral Manager..."
-    & "$DPMdir\Uninstall-DellPeripheralManager.ps1" -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null  
-    Write-Log "Removed Dell Peripheral Manager."
+    try {
+        # Download Dell Peripheral Manager
+        $ProgressPreference = 'SilentlyContinue'
+        Write-Host "Downloading Dell Peripheral Manager Script..."
+        Invoke-WebRequest -Uri $DPMurl -OutFile $DPMzip -ErrorAction Stop
+
+        Write-Host "Extracting Dell Peripheral Manager package..."
+        Expand-Archive -Path $DPMzip -DestinationPath $DPMdir -Force -ErrorAction Stop
+
+        if (Test-Path $uninstallScript) {
+            Write-Host "Removing Dell Peripheral Manager..."
+            & $uninstallScript -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null  
+            Write-Log "Removed Dell Peripheral Manager."
+        } else {
+            Write-Warning "Uninstall script not found at $uninstallScript"
+        }
+    } catch {
+        Write-Warning "Failed to remove Dell Peripheral Manager. Error: $($_.Exception.Message)"
+    }
 } else {
     Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
 }
+
 
 # Remove Dell Command Update
 $DCUURL = "https://advancestuff.hostedrmm.com/labtech/Transfer/installers/remove-dcu.zip"
@@ -177,63 +197,64 @@ $DCUZIP = "C:\temp\remove-dcu.zip"
 $DCUDEST = "C:\temp\remove-dcu"
 $DCUFILE = "C:\temp\remove-dcu\Deploy-DellCommandUpdate.ps1"
 
-# Download the uninstaller
-Invoke-WebRequest -Uri $DCUURL -OutFile $DCUZIP
+try {
+    # Download the uninstaller
+    Write-Host "Downloading Dell Command Update uninstaller..."
+    Invoke-WebRequest -Uri $DCUURL -OutFile $DCUZIP -ErrorAction Stop
 
-# Extract the uninstaller
-if (Test-Path $DCUZIP) {
-    Expand-Archive $DCUZIP -DestinationPath $DCUDEST -Force
+    # Extract the uninstaller
+    if (Test-Path $DCUZIP) {
+        Write-Host "Extracting Dell Command Update uninstaller..."
+        Expand-Archive $DCUZIP -DestinationPath $DCUDEST -Force -ErrorAction Stop
+    }
+
+    # Run the uninstaller
+    if (Test-Path $DCUFILE) {
+        Write-Host "Removing Dell Command Update..."
+        Powershell.exe -ExecutionPolicy Bypass -File $DCUFILE -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null
+        Write-Host "Dell Command Update removed successfully."
+    } else {
+        Write-Warning "Uninstall script not found at $DCUFILE"
+    }
+} catch {
+    Write-Warning "Failed to remove Dell Command Update. Error: $($_.Exception.Message)"
 }
-
-# Run the uninstaller
-if (Test-Path $DCUFILE) {
-    Powershell.exe -ExecutionPolicy Bypass -File $DCUFILE -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null
-}
-
-
-# Remove Dell Peripheral Manager
-#$DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm.zip"
-#$DPMzip = "C:\temp\Uninstall-dpm.zip"
-#$DPMdir = "C:\temp\Uninstall-DPM"
-#Write-Host "Starting Dell bloatware removal`n" -NoNewline
-#$DPMpackageName = 'Dell Peripheral Manager'
-#$DPMpackage = Get-Package -Name $DPMpackageName -ErrorAction SilentlyContinue
-#if ($DPMpackage) {
-#    # Download Dell Peripheral Manager
-#    $ProgressPreference = 'SilentlyContinue'
-#    #Write-Host "Downloading Dell Peripheral Manager Script..."
-#    Invoke-WebRequest -Uri $DPMurl -OutFile $DPMzip *> $null
-#    Write-Host "Extracting Dell Peripheral Manager package..."
-#    Expand-Archive -Path $DPMzip -DestinationPath $DPMdir -Force
-#    Write-Host "Removing Dell Peripheral Manager..."
-#    & "$DPMdir\Uninstall-DellPeripheralManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
-#    Write-Log "Removed Dell Peripheral Manager."
-#} else {
-#    Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
-#}
 
 
 # Remove Dell Peripheral Manager
 $DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm2.zip"
 $DPMzip = "C:\temp\Uninstall-dpm2.zip"
 $DPMdir = "C:\temp\Uninstall-DPM2"
+$uninstallScript = "$DPMdir\Uninstall-DellPeripheralManager2.ps1"
+
 Write-Host "Starting Dell bloatware removal`n" -NoNewline
+
 $DPMpackageName = 'Dell Peripheral Manager'
 $DPMpackage = Get-Package -Name $DPMpackageName -ErrorAction SilentlyContinue
+
 if ($DPMpackage) {
-    # Download Dell Peripheral Manager
-    $ProgressPreference = 'SilentlyContinue'
-    #Write-Host "Downloading Dell Peripheral Manager Script..."
-    Invoke-WebRequest -Uri $DPMurl -OutFile $DPMzip *> $null
-    Write-Host "Extracting Dell Peripheral Manager package..."
-    Expand-Archive -Path $DPMzip -DestinationPath $DPMdir -Force
-    Write-Host "Removing Dell Peripheral Manager..."
-    & "$DPMdir\Uninstall-DellPeripheralManager2.ps1" -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null  
-    Write-Log "Removed Dell Peripheral Manager."
+    try {
+        # Download Dell Peripheral Manager
+        $ProgressPreference = 'SilentlyContinue'
+        Write-Host "Downloading Dell Peripheral Manager Script..."
+        Invoke-WebRequest -Uri $DPMurl -OutFile $DPMzip -ErrorAction Stop
+
+        Write-Host "Extracting Dell Peripheral Manager package..."
+        Expand-Archive -Path $DPMzip -DestinationPath $DPMdir -Force -ErrorAction Stop
+
+        if (Test-Path $uninstallScript) {
+            Write-Host "Removing Dell Peripheral Manager..."
+            & $uninstallScript -DeploymentType "Uninstall" -DeployMode "NonInteractive" *> $null  
+            Write-Host "Removed Dell Peripheral Manager."
+        } else {
+            Write-Warning "Uninstall script not found at $uninstallScript"
+        }
+    } catch {
+        Write-Warning "Failed to remove Dell Peripheral Manager. Error: $($_.Exception.Message)"
+    }
 } else {
     Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
 }
-
 
 
 # Uninstall Dell Optimizer
@@ -241,44 +262,63 @@ $uninstallCommand = '"C:\Program Files (x86)\InstallShield Installation Informat
 Start-Process cmd -ArgumentList "/c $uninstallCommand" -Wait
 
 
-# Uninstall MyDell
+# Uninstall MyDell Suite
+$applicationName = 'MyDell'
+
+# Get the uninstall string from the registry
 $uninstallString = Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* |
-                   Where-Object { $_.DisplayName -eq 'MyDell' } |
+                   Where-Object { $_.DisplayName -eq $applicationName } |
                    Select-Object -ExpandProperty UninstallString
+
 if ($null -ne $uninstallString) {
-    # Uninstall the application
-    $uninstallString = $uninstallString -Replace '/I', '/X'
-    $uninstallString = $uninstallString + ' /qn /norestart'
-    Start-Process cmd -ArgumentList "/c $uninstallString" -Wait
+    try {
+        # Modify the uninstall string to run silently and without restarting
+        $uninstallString = $uninstallString -Replace '/I', '/X'
+        $uninstallString = $uninstallString + ' /qn /norestart'
+
+        # Uninstall the application
+        Write-Host "Uninstalling $applicationName..."
+        Start-Process cmd -ArgumentList "/c $uninstallString" -Wait -PassThru -ErrorAction Stop
+        Write-Host "$applicationName uninstalled successfully." -ForegroundColor "Green"
+    } catch {
+        Write-Warning "Failed to uninstall $applicationName. Error: $($_.Exception.Message)"
+    }
 } else {
-    Write-Host "Application 'My Dell' not found."
+    Write-Host "Application '$applicationName' not found." -ForegroundColor "Red"
 }
 
 
-# Trigger remaining Dell application uninstall
-$SWName = Get-InstalledSoftware "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services" |
-    Where-Object { $_.DisplayName -ne "Dell Trusted Device Agent" } |  
+# List of applications to uninstall
+$applicationList = "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services"
+
+# Get the list of installed software
+$installedSoftware = Get-InstalledSoftware $applicationList |
+    Where-Object { $_.DisplayName -ne "Dell Trusted Device Agent" } |
     Select-Object -ExpandProperty DisplayName
-if ($SWName) {
-    try {
-        foreach ($name in $SWName) {
-            $param = @{
-                Name        = $name
+
+if ($installedSoftware) {
+    foreach ($software in $installedSoftware) {
+        try {
+            $params = @{
+                Name        = $software
                 ErrorAction = "Stop"
             }
 
-            if ($name -eq "Dell Optimizer Core") {
+            if ($software -eq "Dell Optimizer Core") {
                 # uninstallation isn't unattended without -silent switch
-                $param["addArgument"] = "-silent"
+                $params["addArgument"] = "-silent"
             }
 
-            Uninstall-ApplicationViaUninstallString @param
+            # Uninstall the software
+            Write-Host "Uninstalling $software..."
+            Uninstall-ApplicationViaUninstallString @params
+            Write-Host "$software uninstalled successfully." -ForegroundColor "Green"
+        } catch {
+            Write-Warning "Failed to uninstall $software. Error: $($_.Exception.Message)"
         }
-    } catch {
-        Write-Error "There was an error when uninstalling bloatware: $_"
     }
 } else {
-    "There is no bloatware detected"
+    Write-Host "No bloatware detected." -ForegroundColor "Red"
 }
 
 
@@ -301,11 +341,11 @@ if ($remainingPackages) {
             Write-Host " done." -ForegroundColor "Green"
             Write-Log "Removed $($package.Name)"
         } catch {
-            Write-Error "There was an error when uninstalling $($package.Name): $_"
+            Write-Warning "There was an error when uninstalling $($package.Name): $($_.Exception.Message)"
         }
     }
 } else {
-    Write-Host "No matching packages found."
+    Write-Host "No matching packages found." -ForegroundColor "Red"
 }
 
 # Get applications with a name like 'Dell'
@@ -323,7 +363,7 @@ foreach ($app in $dellApps) {
     }
 }
 
-$wshell.SendKeys("^a")
-Start-Sleep -Seconds 2  
-taskkill /f /im procmon* *> $null
+# Stop Procmon
+Stop-Procmon
+
 Stop-Transcript
