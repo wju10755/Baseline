@@ -34,7 +34,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                   version 10.1.6";
+Write-Host -ForegroundColor DarkRed "                                                   version 10.1.7";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host " "
 
@@ -273,7 +273,6 @@ if ($user) {
     if ($user.PasswordNeverExpires) {
         Write-Host -ForegroundColor Green " done."
     } else {
-        Write-Host "Setting mitsadmin password to 'Never Expire'..." -NoNewline
         $SPWNE = "Setting mitsadmin password to 'Never Expire'..."
         foreach ($Char in $SPWNE.ToCharArray()) {
             [Console]::Write("$Char")
@@ -881,7 +880,10 @@ if ($O365) {
             [Console]::Write("$Char")
             Start-Sleep -Milliseconds 30    
             }
-        Start-Process -FilePath $OfficePath -Wait
+            taskkill /f /im OfficeClickToRun.exe *> $null
+            taskkill /f /im OfficeC2RClient.exe *> $null
+            Start-Sleep -Seconds 3
+            Start-Process -FilePath $OfficePath -Wait
         if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
             Write-Log "Office 365 Installation Completed Successfully."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
