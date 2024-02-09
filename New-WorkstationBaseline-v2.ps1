@@ -661,7 +661,7 @@ if (Test-Win11) {
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
 
     # Output the result
-    Write-Host "Windows 11 Offline Files has been disabled.`n"
+    Write-Host "Windows 11 Offline Files has been disabled."
     Write-Log "Windows 11 Offline Files has been disabled"
     #Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
 
