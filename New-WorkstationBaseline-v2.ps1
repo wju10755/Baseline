@@ -263,7 +263,7 @@ if ($osVersion -gt "10.0.22000*") {
     Write-Host "Disable notification snooze function is only applicable to Windows 11."
 }
 
-Write-Host "Checking for local mitsadmin & confirming password set to 'Never Expire'..." -NoNewline
+
 $LogPath = "C:\temp\baseline.log"
 # Check if the user 'mitsadmin' exists
 $user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
@@ -271,9 +271,9 @@ $user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
 if ($user) {
     # Check if the password is set to 'Never Expire'
     if ($user.PasswordNeverExpires) {
-        Write-Host "Password for 'mitsadmin' is already set to 'Never Expire'."
+        Write-Host -ForegroundColor Green " done."
     } else {
-        #Write-Host "Setting mitsadmin password to 'Never Expire'..." -NoNewline
+        Write-Host "Setting mitsadmin password to 'Never Expire'..." -NoNewline
         # Set the password to 'Never Expire'
         $user | Set-LocalUser -PasswordNeverExpires $true
         Start-Sleep -Seconds 2
@@ -281,11 +281,12 @@ if ($user) {
         Write-Host -ForegroundColor Green " done."
     }
 } else {
+    Write-Host "Local mitsadmin account created & password set to 'Never Expire'"
     $Password = ConvertTo-SecureString "@dvances10755" -AsPlainText -Force
     New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
     $user | set-LocalUser -PasswordNeverExpires $true
     Add-LocalGroupMember -Group "Administrators" -Member "mitsadmin"
-    Write-Host "Local account 'mitsadmin' created, added to local admin group & password set to 'Never Expire'"
+    Write-Host -ForegroundColor Green " done."
 }
 
 
@@ -399,22 +400,6 @@ if ($service.Status -eq 'Stopped') {
     [Console]::WriteLine()
 }
 
-#Set-Service -Name wuauserv -StartupType Disabled
-#Start-Sleep -Seconds 4
-#Stop-Service -Name wuauserv -Force *> $null
-#Start-Sleep -Seconds 4
-#$service = Get-Service -Name wuauserv
-#if ($service.Status -eq 'Stopped' -and $service.StartType -eq 'Disabled') {
-#    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-#    [Console]::Write(" done.")
-#    [Console]::ResetColor()
-#    [Console]::WriteLine()  
-#} else {
-#    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-#    [Console]::Write(" failed.")
-#    [Console]::ResetColor()
-#    [Console]::WriteLine()  
-#}
 
 # Disable Offline File Sync
 $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
@@ -437,6 +422,7 @@ Write-Log "Offline file sync disabled."
 [Console]::ResetColor()
 [Console]::WriteLine() 
 Start-Sleep -Seconds 3
+
 
 # Set power profile to 'Balanced'
 $Pwr = "Setting 'Balanced' Power Profile..."
@@ -464,7 +450,6 @@ foreach ($Char in $HibSlp.ToCharArray()) {
 powercfg /change standby-timeout-ac 0 *> $null
 powercfg /change hibernate-timeout-ac 0 *> $null
 powercfg /h off *> $null
-#& $config.HiberSleep
 Start-Sleep -Seconds 2
 Write-Log "Disabled sleep and hibernation mode."
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -511,6 +496,7 @@ Write-Log "Power button action set to 'Shutdown'."
 [Console]::WriteLine() 
 Start-Sleep -Seconds 5
 
+
 # Set 'lid close action' to do nothing on laptops
 Start-Sleep -Seconds 1
 if ($deviceType -eq "Laptop") {
@@ -531,6 +517,7 @@ if ($deviceType -eq "Laptop") {
     Start-Sleep -Seconds 5
 }
 
+
 # Set the time zone to 'Eastern Standard Time'
 $EST = "Setting EST as default timezone..."
 foreach ($Char in $EST.ToCharArray()) {
@@ -546,7 +533,6 @@ Start-Sleep -Seconds 2
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-
 Start-Sleep -Seconds 3
 $Sync = "Syncing system clock..."
 foreach ($Char in $Sync.ToCharArray()) {
@@ -562,8 +548,10 @@ Start-Sleep -Seconds 2
 Write-Log "Synced system clock"
 Start-Sleep -Seconds 5
 
+
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
+
 
 # Enable system restore
 $Restore = "Enabling System Restore..."
@@ -573,13 +561,14 @@ foreach ($Char in $Restore.ToCharArray()) {
 }
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System Restore Enabled."
-#& $config.SystemRestore
+
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine()    
 Start-Sleep -Seconds 5
+
 
 # Create restore point
 #[Console]::Write("Creating System Restore Checkpoint...")
@@ -598,6 +587,7 @@ Start-Sleep -Seconds 5
 #[Console]::WriteLine()    
 #& $config.Checkpoint
 #Start-Sleep -Seconds 5
+
 
 # Offline Files Function to check if the OS is Windows 10
 function Test-Win10 {
