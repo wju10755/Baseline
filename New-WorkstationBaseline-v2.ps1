@@ -34,8 +34,8 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 10.1.4";
-Write-Host -ForegroundColor "Red" -NoNewline $Padding;
+Write-Host -ForegroundColor DarkRed "                                                      version 10.1.5";
+Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host " "
 
 
@@ -281,7 +281,7 @@ if ($user) {
         Write-Host -ForegroundColor Green " done."
     }
 } else {
-    Write-Host "Local mitsadmin account created & password set to 'Never Expire'"
+    Write-Host "Creating local mitsadmin & password set to 'Never Expire'..." -NoNewline
     $Password = ConvertTo-SecureString "@dvances10755" -AsPlainText -Force
     New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
     $user | set-LocalUser -PasswordNeverExpires $true
