@@ -17,6 +17,10 @@ $config = @{
     RemoveOfficeSpinURL  = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-Office-Spinner.ps1"
     RemoveOfficeScript   = "c:\temp\Remove-Office.ps1"
     RemoveOfficeSpinner  = "c:\temp\Remove-Office-Spinner.ps1"
+    RemoveOneNoteURL     = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-OneNote.ps1"
+    RemoveOneNoteFile    = "C:\temp\Remove-OneNote.ps1"
+    RemoveOneNoteSpinURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Remove-OneNote-Spinner.ps1"
+    RemoveOneNoteSpinner = "C:\temp\Remove-OneNote-Spinner.ps1"
     SendWKey             = "C:\temp\sendwkey.exe"
     SendWurl             = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SendWKey.exe"
     TempFolder           = "C:\temp"
@@ -719,11 +723,17 @@ if ($null -ne $OfficeUninstallStrings) {
    # }
     [Console]::ResetColor()
     [Console]::WriteLine()    
+    
     Invoke-WebRequest -Uri $config.RemoveOfficeURL -OutFile $config.RemoveOfficeScript
-    Start-Sleep -seconds 2
     Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
+    Invoke-WebRequest -Uri $config.RemoveOneNoteURL -OutFile $config.RemoveOneNoteFile
+    Invoke-WebRequest -Uri $config.RemoveOneNoteSpinURL -OutFile $config.RemoveOneNoteSpinner
+    Start-Sleep -seconds 2
+    
     if (Test-Path -Path $config.RemoveOfficeSpinner) {
         & $config.RemoveOfficeSpinner
+        Start-Sleep -Seconds 5
+        & $config.RemoveOneNoteSpinner
         Write-Log "Pre-Installed Office 365 Applications Removed."
         }
 } else {
@@ -1342,17 +1352,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
 $NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready to join the domain!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
 Invoke-Expression -command $NTFY2 *> $null
 
-
-
-if(!$ConfirmAll) {
-    # Perform confirmation of the mailbox before continuing
-    $options = [System.Management.Automation.Host.ChoiceDescription[]] @("&Remediate", "&Quit")
-    $result = $host.UI.PromptForChoice($null , "`nConfirm Account Remediation?" , $Options,1)
-    if($result -eq 1) { exit }
-}
-
-
-
+ 
 Write-Output " "
 [Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
 Write-Output " "
