@@ -34,7 +34,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 10.1.3";
+Write-Host -ForegroundColor DarkRed "                                                      version 10.1.4";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 
@@ -188,7 +188,7 @@ if (Test-Path $config.ProcmonFile)
 
 
 # Terminate any existing msiexec processes
-Write-Host "Waiting for MSIExec process to exit..." -NoNewline
+Write-Host "Checking for active MSIExec process..." -NoNewline
 while ($true) {
     # Get the process
     $process = Get-Process -Name "msiexec" -ErrorAction SilentlyContinue
@@ -210,7 +210,7 @@ while ($true) {
 
 
 # Terminate any existing OfficeClickToRun processes
-Write-Host "Waiting for OfficeClickToRun process to exit..." -NoNewline
+Write-Host "Checking for OfficeClickToRun process to exit..." -NoNewline
 while ($true) {
     # Get the process
     $process = Get-Process -Name "OfficeClickToRun" -ErrorAction SilentlyContinue
