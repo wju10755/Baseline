@@ -34,7 +34,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                      version 10.1.2";
+Write-Host -ForegroundColor DarkRed "                                                      version 10.1.3";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host " "
 
@@ -1332,6 +1332,16 @@ if (Test-Path "c:\temp\update_windows.ps1") {
 # Notify device Baseline is complete and ready to join domain.
 $NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready to join the domain!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
 Invoke-Expression -command $NTFY2 *> $null
+
+
+
+if(!$ConfirmAll) {
+    # Perform confirmation of the mailbox before continuing
+    $options = [System.Management.Automation.Host.ChoiceDescription[]] @("&Remediate", "&Quit")
+    $result = $host.UI.PromptForChoice($null , "`nConfirm Account Remediation?" , $Options,1)
+    if($result -eq 1) { exit }
+}
+
 
 
 Write-Output " "
