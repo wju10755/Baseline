@@ -697,7 +697,7 @@ if ($manufacturer -eq "Dell Inc.") {
         }
 
 } else {
-    Write-Warning "`nSkipping Dell debloat module due to device not meeting manufacturer requirements."
+    Write-Warning " Skipping Dell debloat module due to device not meeting manufacturer requirements.`n"
     Write-Log "Skipping Dell debloat module due to device not meeting manufacturer requirements."
     Start-Sleep -Seconds 1
 }
@@ -728,7 +728,7 @@ if ($null -ne $OfficeUninstallStrings) {
         Write-Log "Pre-Installed Office 365 Applications Removed."
         }
 } else {
-    Write-Warning "`nSkipping Pre-Installed Office Removal module due to not meeting application requirements."
+    Write-Warning " Skipping Pre-Installed Office Removal module due to not meeting application requirements.`n"
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
@@ -780,7 +780,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     #[Console]::WriteLine()
     
 } else {
-    Write-Warning "`nSkipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements.`n"
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
 }
