@@ -40,7 +40,7 @@ Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Utility";
 Write-Host -ForegroundColor DarkRed "                                                   version 10.1.8";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
-Write-Host " "
+Write-Host "  "
 
 
 # Create temp directory and baseline log
