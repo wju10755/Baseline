@@ -16,7 +16,7 @@ if ($manufacturer -notlike "*Dell*") {
 }
 
 
-# Instal Common Stuff 
+# Install Common Stuff 
 $moduleName = "CommonStuff"
 
 # Check if the module is installed
@@ -362,6 +362,8 @@ foreach ($app in $dellApps) {
         Write-Warning "Failed to uninstall: [$appName]. Exit code: $($uninstallResult.ReturnValue)"
     }
 }
+
+Get-CimInstance -Classname Win32_Product | Where-Object Name -Match ‘Dell SupportAssist’ | Invoke-CimMethod -MethodName UnInstall
 
 # Stop Procmon
 Stop-Procmon

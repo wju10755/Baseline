@@ -7,13 +7,13 @@ taskkill /f /im OfficeC2RClient.exe *> $null
 function Move-ProcessWindowToTopLeft([string]$processName) {
     $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
     if ($null -eq $process) {
-        Write-Host "Process not found."
+        Write-Error "Process not found."
         return
     }
 
     $hWnd = $process.MainWindowHandle
     if ($hWnd -eq [IntPtr]::Zero) {
-        Write-Host "Window handle not found."
+        Write-Error "Window handle not found."
         return
     }
 

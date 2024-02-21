@@ -159,6 +159,7 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
 }
 
+
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
@@ -264,7 +265,7 @@ if ($osVersion -gt "10.0.22000*") {
     [Console]::ResetColor() 
     [Console]::WriteLine()
 } else {
-    Write-Host "Disable notification snooze function is only applicable to Windows 11."
+    [Console]::Write("Disable notification snooze function is only applicable to Windows 11.")
 }
 
 
@@ -404,7 +405,7 @@ Start-Sleep -Seconds 5
 
 # Get the current status of the Windows Update service
 $service = Get-Service -Name wuauserv
-
+Start-Sleep -Seconds 1
 # Check if the service is stopped and the startup type is disabled
 if ($service.Status -eq 'Stopped') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -629,7 +630,7 @@ if (Test-Win10) {
     # Set the value to disable Offline Files
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
     # Output the result
-    Write-Host "Windows 10 Offline Files has been disabled." -NoNewline
+    [Console]::Write("Windows 10 Offline Files has been disabled.")
     Write-Log "Offline files disabled."
     # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
@@ -638,7 +639,7 @@ if (Test-Win10) {
     }
 }
 else {
-    #Write-Host "This script is intended to run only on Windows 10."
+    #[Console]::Write("This script is intended to run only on Windows 10.")
 }
 
 function Test-Win11 {
@@ -665,7 +666,7 @@ if (Test-Win11) {
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
 
     # Output the result
-    Write-Host "Windows 11 Offline Files has been disabled."
+    [Console]::Write("Windows 11 Offline Files has been disabled.")
     Write-Log "Windows 11 Offline Files has been disabled"
     #Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
 
@@ -675,7 +676,7 @@ if (Test-Win11) {
     }
 }
 else {
-    #Write-Host "This script is intended to run only on Windows 11."
+    #[Console]::Write("This script is intended to run only on Windows 11.")
 }
 
 Stop-Transcript *> $null
@@ -700,7 +701,7 @@ if ($manufacturer -eq "Dell Inc.") {
         }
 
 } else {
-    Write-Warning " Skipping Dell debloat module due to device not meeting manufacturer requirements.`n"
+    Write-Warning "Skipping Dell debloat module due to device not meeting manufacturer requirements.`n"
     Write-Log "Skipping Dell debloat module due to device not meeting manufacturer requirements."
     Start-Sleep -Seconds 1
 }
