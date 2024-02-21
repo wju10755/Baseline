@@ -701,7 +701,7 @@ if ($manufacturer -eq "Dell Inc.") {
         }
 
 } else {
-    Write-Warning "Skipping Dell debloat module due to device not meeting manufacturer requirements.`n"
+    Write-Warning "`nSkipping Dell debloat module due to device not meeting manufacturer requirements.`n"
     Write-Log "Skipping Dell debloat module due to device not meeting manufacturer requirements."
     Start-Sleep -Seconds 1
 }
@@ -790,7 +790,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     #[Console]::WriteLine()
     
 } else {
-    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements.`n"
+    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
 }
