@@ -37,8 +37,8 @@ function Print-Middle($Message, $Color = "White") {
 #################################
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
-Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor DarkRed "                                                   version 10.1.8";
+Print-Middle "MITS - New HP Baseline Script";
+Write-Host -ForegroundColor DarkRed "                                                   version 0.0.3";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -66,7 +66,6 @@ function Write-Log {
 # Start baseline transcript log
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
-
 # Start Baseline
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("`n")
@@ -81,68 +80,6 @@ foreach ($Char in $Baseline.ToCharArray()) {
 [Console]::WriteLine()
 [Console]::Write("`n")
 Start-Sleep -Seconds 2
-
-# Start baseline log file
-Write-Log "Automated workstation baseline has started"
-
-
-# Device Identification
-# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
-$computerSystem = Get-WmiObject Win32_ComputerSystem
-$manufacturer = $computerSystem.Manufacturer
-if ($computerSystem.PCSystemType -eq 2) {
-    Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
-} else {
-# Device Identification
-# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
-$flagFilePath = "C:\Temp\WakeLock.flag"
-# Get computer system information using CIM (more efficient and modern compared to WMI)
-try {
-    $computerSystem = Get-CimInstance -ClassName CIM_ComputerSystem
-    $pcSystemType = $computerSystem.PCSystemType
-    $manufacturer = $computerSystem.Manufacturer
-
-    # Check if the system is a mobile device
-    if ($pcSystemType -eq 2) {
-        # Mobile device detected, launching presentation settings
-        Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
-    } else {
-        # Not a mobile device, proceed with wake lock logic
-        $flagFilePath = "C:\Temp\WakeLock.flag"
-        $wakeLockScriptPath = "C:\Temp\WakeLock.ps1"
-
-        # Write the wake lock logic to a separate PowerShell script file
-        @'
-        # Load the necessary assembly for accessing Windows Forms functionality
-Add-Type -AssemblyName System.Windows.Forms
-
-# Define the path to the flag file
-$flagFilePath = 'c:\temp\wakelock.flag'
-
-# Infinite loop to send keys and check for the flag file
-while ($true) {
-    # Check if the flag file exists
-    if (Test-Path $flagFilePath) {
-        # If the flag file is found, exit the loop and script
-        Write-Host "Flag file detected. Exiting script..."
-        break
-    } else {
-        # If the flag file is not found, send the 'Shift + F15' keys
-        [System.Windows.Forms.SendKeys]::SendWait('+{F15}')
-        # Wait for 60 seconds before sending the keys again
-        Start-Sleep -Seconds 60
-    }
-}
-
-'@ | Out-File -FilePath $wakeLockScriptPath
-    }
-} catch {
-    Write-Error "Failed to retrieve computer system information. Error: $_"
-}
-}
-
-Start-Sleep -Seconds 2
-Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
 
 
 $ModChk = "Installing required powershell modules..."
@@ -165,6 +102,35 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
 [Console]::ResetColor()
 [Console]::WriteLine() 
 
+# Start baseline log file
+Write-Log "Automated workstation baseline has started"
+
+# Device Identification
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+if ($computerSystem.PCSystemType -eq 2) {
+    Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
+} else {
+    #Write-Host "This is a Desktop or other non-laptop system. Continuing with the next part of the script."
+}
+
+# Identify device manufacturer and chassis type
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+$deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
+#[Console]::Write("Identifying device type:")
+$Type = "Identifying device type:" 
+foreach ($Char in $Type.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 50
+}
+Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+[Console]::Write(" $deviceType")
+[Console]::ResetColor() 
+[Console]::WriteLine() 
+Write-Log "Manufacturer: $manufacturer - Device Type: $deviceType."
 
 # Stage Procmon
 $Notice = "Staging Process Monitor..."
@@ -176,14 +142,14 @@ foreach ($Char in $Notice.ToCharArray()) {
 # Download Procmon from LabTech server
 Invoke-WebRequest -Uri $config.ProcmonURL -OutFile $config.ProcmonFile *> $null
 
-if (Test-Path $config.ProcmonFile)
-{
+if (Test-Path $config.ProcmonFile) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
     [Console]::WriteLine() 
     Start-Sleep -Seconds 2
-} else {
+}
+else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" failed.")
     [Console]::ResetColor()
@@ -202,7 +168,8 @@ while ($true) {
     if ($process) {
         # Terminate the process
         $process | Stop-Process -Force
-    } else {
+    }
+    else {
         # If the process is not found, exit the loop
         Start-Sleep -Seconds 2
         Write-Host -ForegroundColor Green " done."
@@ -224,7 +191,8 @@ while ($true) {
     if ($process) {
         # Terminate the process
         $process | Stop-Process -Force
-    } else {
+    }
+    else {
         # If the process is not found, exit the loop
         Write-Host -ForegroundColor Green " done."
         break
@@ -264,7 +232,8 @@ if ($osVersion -gt "10.0.22000*") {
     [Console]::Write(" done.")
     [Console]::ResetColor() 
     [Console]::WriteLine()
-} else {
+}
+else {
     [Console]::Write("Disable notification snooze function is only applicable to Windows 11.")
 }
 
@@ -277,7 +246,8 @@ if ($user) {
     # Check if the password is set to 'Never Expire'
     if ($user.PasswordNeverExpires) {
         Write-Host -ForegroundColor Green " done."
-    } else {
+    }
+    else {
         $SPWNE = "Setting mitsadmin password to 'Never Expire'..."
         foreach ($Char in $SPWNE.ToCharArray()) {
             [Console]::Write("$Char")
@@ -292,7 +262,8 @@ if ($user) {
         [Console]::ResetColor() 
         [Console]::WriteLine()
     }
-} else {
+}
+else {
     $PWNE = "Creating local mitsadmin & password set to 'Never Expire'..."
     foreach ($Char in $PWNE.ToCharArray()) {
         [Console]::Write("$Char")
@@ -327,7 +298,8 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     }
     [Console]::ResetColor()
     [Console]::WriteLine()
-} elseif (Test-Path $agentPath) {
+}
+elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     #[Console]::Write("ConnectWise Automate agent files are present, but the service is not installed")
     $Broken = "ConnectWise Automate agent files are present, but the service is not installed."
@@ -337,7 +309,8 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     }
     [Console]::ResetColor() 
     [Console]::WriteLine() 
-} else {
+}
+else {
     #[Console]::WriteLine("Downloading Connectwise Automate Agent...")
     $CWDL = "Downloading ConnectWise Automate Agent..."
     foreach ($Char in $CWDL.ToCharArray()) {
@@ -347,29 +320,30 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
     # Verify dowload
     if (Test-Path $file) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.`n")
-    [Console]::ResetColor()    
-    #[Console]::WriteLine("`n")
-    $LTIns = "Installing ConnectWise Automate Agent..."
-    foreach ($Char in $LTIns.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.`n")
+        [Console]::ResetColor()    
+        #[Console]::WriteLine("`n")
+        $LTIns = "Installing ConnectWise Automate Agent..."
+        foreach ($Char in $LTIns.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 30
+        }
+        Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
+        Start-Sleep -Seconds 30
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine() 
     }
-    Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
-    Start-Sleep -Seconds 30
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine() 
-    } else {
+    else {
         Write-Log "The file [$file] download failed."
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         [Console]::Write(" failed.")
         [Console]::ResetColor()
         [Console]::WriteLine()    
         exit
-}
+    }
     # Wait for the installation to complete
     Start-Sleep -Seconds 30
 
@@ -377,7 +351,8 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     if (Test-Path $agentPath) {
         Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
         #& $config.AutomateSuccess
-    } else {
+    }
+    else {
         Write-Log "ConnectWise Automate Agent installation failed!"
         #& $config.AutomateFailure
     }
@@ -412,7 +387,8 @@ if ($service.Status -eq 'Stopped') {
     [Console]::Write(" done.")
     [Console]::ResetColor()
     [Console]::WriteLine()
-} else {
+}
+else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" failed.")
     [Console]::ResetColor()
@@ -623,16 +599,16 @@ if (Test-Win10) {
     try {
         # Set the path of the Offline Files registry key
         $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
-    # Check if the registry path exists, if not, create it
-    if (-not (Test-Path -Path $registryPath)) {
-        New-Item -Path $registryPath -Force
-    }
-    # Set the value to disable Offline Files
-    Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
-    # Output the result
-    [Console]::Write("Windows 10 Offline Files has been disabled.")
-    Write-Log "Offline files disabled."
-    # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
+        # Check if the registry path exists, if not, create it
+        if (-not (Test-Path -Path $registryPath)) {
+            New-Item -Path $registryPath -Force
+        }
+        # Set the value to disable Offline Files
+        Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
+        # Output the result
+        [Console]::Write("Windows 10 Offline Files has been disabled.")
+        Write-Log "Offline files disabled."
+        # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
@@ -654,21 +630,21 @@ function Test-Win11 {
 # Disable Offline Files on Windows 11
 if (Test-Win11) {
     try {
-    # Set the path of the Offline Files registry key
-    $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
+        # Set the path of the Offline Files registry key
+        $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
 
-    # Check if the registry path exists, if not, create it
-    if (-not (Test-Path -Path $registryPath)) {
-        New-Item -Path $registryPath -Force
-    }
+        # Check if the registry path exists, if not, create it
+        if (-not (Test-Path -Path $registryPath)) {
+            New-Item -Path $registryPath -Force
+        }
 
-    # Set the value to disable Offline Files
-    Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
+        # Set the value to disable Offline Files
+        Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
 
-    # Output the result
-    Write-Host "Windows 11 Offline Files has been disabled."
-    Write-Log "Windows 11 Offline Files has been disabled"
-    #Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
+        # Output the result
+        Write-Host "Windows 11 Offline Files has been disabled."
+        Write-Log "Windows 11 Offline Files has been disabled"
+        #Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
 
     }
     catch {
@@ -679,73 +655,41 @@ else {
     #[Console]::Write("This script is intended to run only on Windows 11.")
 }
 
-Stop-Transcript *> $null
+# Stage Pre-installed Office 365 Removal Script
+Invoke-WebRequest -uri $config.RemoveOfficeURL -OutFile $config.RemoveOfficeScript
+Invoke-WebRequest -uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
+Start-Sleep -Seconds 2
+# Stage Pre-installed Microsoft OneNote Removal Script
+Invoke-WebRequest -uri $config.RemoveOneNoteURL -OutFile $config.RemoveOneNoteFile
+Invoke-WebRequest -uri $config.RemoveOneNoteSpinURL -OutFile $config.RemoveOneNoteSpinner
+Start-Sleep -Seconds 2
+# Trigger Pre-installed Office Uninstall
+if (Test-Path -Path $config.RemoveOfficeSpinner) {
+    & $config.RemoveOfficeSpinner
+    Start-Sleep -Seconds 5
+    & $config.RemoveOneNoteSpinner
+    Write-Log "Pre-Installed Office 365 Applications Removed."
+    }
 
-# Check if the system is manufactured by Dell
-if ($manufacturer -eq "Dell Inc.") {
-    # Set the URL and file path variables
-    $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
-    $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
-    $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall-v2.ps1"
-    $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
-    Set-Location -Path "c:\temp"
-    #& $config.DellHardware
-    Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
-    Start-Sleep -seconds 2
-    Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
+Start-Sleep -Seconds 10
 
-    if (Test-Path -Path $SpinnerFile) {
-    #& $config.DellBloatware
-    & $SpinnerFile
-    Write-Log "Dell Bloatware Removed."
-        }
+# Trigger HP Documentation Uninstall
+Start-Process -FilePath "cmd.exe" -ArgumentList "/C `"C:\Program Files\HP\Documentation\Doc_Uninstall.cmd`""
+Start-Sleep -seconds 10
 
+# Trigger Mcafee Uninstall
+(Get-WmiObject -Class Win32_Product -filter "Name like 'mcafee%'").uninstall()
+Start-Sleep -seconds 10
+
+# Trigger Omen Command Center Uninstall
+$app = Get-AppxPackage | Where-Object { $_.Name -like '*OmenCommand*' }
+
+# If the app is installed, uninstall it
+if ($null -ne $app) {
+    $app | Remove-AppxPackage
 } else {
-    Write-Warning "`nSkipping Dell debloat module due to device not meeting manufacturer requirements.`n"
-    Write-Log "Skipping Dell debloat module due to device not meeting manufacturer requirements."
-    Start-Sleep -Seconds 1
+    Write-Output "App 'Omen Gaming Hub' is not installed."
 }
-
-# Kill procmon 
-#$wshell = New-Object -ComObject wscript.shell
-#Start-Sleep -Seconds 2
-#$wshell.SendKeys("^a")
-#Start-Sleep -Seconds 2
-#taskkill /f /im procmon* *> $null
-
-
-# Registry Check
-$OfficeUninstallStrings = (Get-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft 365 - *"} | Select-Object -ExpandProperty UninstallString)
-if ($null -ne $OfficeUninstallStrings) {
-    #$RPIO = "Removing Pre-Installed Office 365 Applications..."
-    #foreach ($Char in $RPIO.ToCharArray()) {
-    #    [Console]::Write("$Char")
-    #    Start-Sleep -Milliseconds 30
-   # }
-    [Console]::ResetColor()
-    [Console]::WriteLine()    
-    
-    Invoke-WebRequest -Uri $config.RemoveOfficeURL -OutFile $config.RemoveOfficeScript
-    Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
-    Invoke-WebRequest -Uri $config.RemoveOneNoteURL -OutFile $config.RemoveOneNoteFile
-    Invoke-WebRequest -Uri $config.RemoveOneNoteSpinURL -OutFile $config.RemoveOneNoteSpinner
-    Start-Sleep -seconds 2
-    
-    if (Test-Path -Path $config.RemoveOfficeSpinner) {
-        & $config.RemoveOfficeSpinner
-        Start-Sleep -Seconds 5
-        & $config.RemoveOneNoteSpinner
-        Write-Log "Pre-Installed Office 365 Applications Removed."
-        }
-} else {
-    Write-Warning " Skipping Pre-Installed Office Removal module due to not meeting application requirements.`n"
-    Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
-    Start-Sleep -Seconds 1
-}
-
-# Restart transcript
-Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
-
 
 # Check Bitlocker Compatibility
 $WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
@@ -790,7 +734,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     #[Console]::WriteLine()
     
 } else {
-    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    Write-Warning "`nSkipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
 }
@@ -929,7 +873,6 @@ if ($O365) {
     }
 }
 
-
 # Install Google Chrome
 $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
@@ -1060,7 +1003,6 @@ if ($Acrobat) {
         Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
-
 
 
 # Install NetExtender
@@ -1349,11 +1291,6 @@ if (Test-Path "c:\temp\update_windows.ps1") {
         [Console]::WriteLine()  
 }
 
-# Notify device Baseline is complete and ready to join domain.
-$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready to join the domain!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
-Invoke-Expression -command $NTFY2 *> $null
-
- 
 Write-Output " "
 [Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
 Write-Output " "
