@@ -265,7 +265,7 @@ if ($osVersion -gt "10.0.22000*") {
     [Console]::ResetColor() 
     [Console]::WriteLine()
 } else {
-    [Console]::Write("Disable notification snooze function is only applicable to Windows 11.")
+    [Console]::Write("Disable notification snooze function is only applicable to Windows 11.`n")
 }
 
 
@@ -630,7 +630,7 @@ if (Test-Win10) {
     # Set the value to disable Offline Files
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
     # Output the result
-    [Console]::Write("Windows 10 Offline Files has been disabled.")
+    [Console]::Write("Windows 10 Offline Files has been disabled.`n")
     Write-Log "Offline files disabled."
     # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
@@ -711,7 +711,7 @@ if ($manufacturer -eq "Dell Inc.") {
 #Start-Sleep -Seconds 2
 #$wshell.SendKeys("^a")
 #Start-Sleep -Seconds 2
-#taskkill /f /im procmon* *> $null
+taskkill /f /im procmon* *> $null
 
 
 # Registry Check
@@ -795,6 +795,10 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Start-Sleep -Seconds 1
 }
 Write-Host " "
+
+# Kill existing instance of procmon
+taskkill /f /im procmon* *> $null
+Start-Sleep -Seconds 1
 
 # Launch Procmon
 $ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
@@ -1060,7 +1064,6 @@ if ($Acrobat) {
         Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
-
 
 
 # Install NetExtender
@@ -1350,8 +1353,8 @@ if (Test-Path "c:\temp\update_windows.ps1") {
 }
 
 # Notify device Baseline is complete and ready to join domain.
-$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready to join the domain!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
-Invoke-Expression -command $NTFY2 *> $null
+#$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready to join the domain!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
+#Invoke-Expression -command $NTFY2 *> $null
 
  
 Write-Output " "
