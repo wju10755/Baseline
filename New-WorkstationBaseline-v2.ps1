@@ -738,7 +738,7 @@ if ($null -ne $OfficeUninstallStrings) {
         Write-Log "Pre-Installed Office 365 Applications Removed."
         }
 } else {
-    Write-Warning " Skipping Pre-Installed Office Removal module due to not meeting application requirements.`n"
+    Write-Warning " Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
@@ -755,7 +755,6 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
 # Check if Bitlocker is already configured on C:
 $BitLockerStatus = Get-BitLockerVolume -MountPoint $env:SystemDrive
-Write-Host " "
 # Ensure the output directory exists
     $outputDirectory = "C:\temp"
     if (-not (Test-Path -Path $outputDirectory)) {
@@ -1211,8 +1210,6 @@ try {
             [Console]::WriteLine()    
         }
     } else {
-        #[Console]::Write("`n")
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
         $ODINF = "OneDrive installation not found."
         foreach ($Char in $ODINF.ToCharArray()) {
             [Console]::Write("$Char")
@@ -1264,8 +1261,6 @@ try {
             [Console]::WriteLine()
         }
     } else {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        #[Console]::Write("`n")
         $TMWINF = "Teams machine wide installation not found."
         foreach ($Char in $TMWINF.ToCharArray()) {
         [Console]::Write("$Char")
