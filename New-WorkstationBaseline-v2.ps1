@@ -789,7 +789,7 @@ if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         Remove-BitLockerKeyProtector -MountPoint "C:" -KeyProtectorId $Protector.KeyProtectorId | Out-Null
         Remove-BitLockerKeyProtector -MountPoint $env:SystemDrive -KeyProtectorId $tpmProtector.KeyProtectorID
         }
-        Write-Host " "
+        #Write-Host " "
         # Monitor the "Percentage Encrypted" value until it reaches 0.0%
         for (;;) {
     $status = manage-bde -status C:
@@ -813,8 +813,8 @@ Write-Host " "
         Write-Host "Configuring Bitlocker Disk Encryption..."
         Write-Host " "
         # Configure Bitlocker on C:
-        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
-        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector | Out-Null
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
         Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait *> $null
         Write-Host " "
         # Verify volume key protector exists
@@ -831,10 +831,10 @@ Write-Host " "
     Write-Host "Configuring Bitlocker Disk Encryption..."
     Write-Host " "
     # Create the recovery key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
+    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
 
     # Add TPM key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector | Out-Null
+    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
     Start-Sleep -Seconds 15 # Wait for the protectors to take effect
 
     # Enable Encryption
