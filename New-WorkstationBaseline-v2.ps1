@@ -854,6 +854,11 @@ Write-Host " "
         # Check if a protector exists
         if ($BitLockerVolume.KeyProtector) {
             Write-Host "Bitlocker drive encryption configured successfully!`n"
+            Write-Host "Bitlocker Recovery ID: " -NoNewline
+            (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') }
+
+            Write-Host "Bitlocker Recovery Password: " -NoNewline
+            (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword
         } else {
             Write-Host -ForegroundColor Red "Bitlocker drive encryption is not configured!"
         }
