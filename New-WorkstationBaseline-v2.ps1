@@ -753,17 +753,77 @@ $TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tp
 $BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
 if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
-    # Ensure the output directory exists
+# Check if Bitlocker is already configured on C:
+$BitLockerStatus = Get-BitLockerVolume -MountPoint $env:SystemDrive
+Write-Host " "
+# Ensure the output directory exists
     $outputDirectory = "C:\temp"
     if (-not (Test-Path -Path $outputDirectory)) {
         New-Item -Path $outputDirectory -ItemType Directory | Out-Null
     }
-    $SBLC = "`nConfiguring Bitlocker disk encryption:`n"
-    foreach ($Char in $SBLC.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
+if ($BitLockerStatus.ProtectionStatus -eq 'On') {
+    # Bitlocker is already configured
+    Write-Host -ForegroundColor Red "Bitlocker is already configured on drive $env:SystemDrive`n"
+    $userResponse = Read-Host "Do you want to skip configuring Bitlocker? (yes/no)"
+    Write-Host " "
+
+    if ($userResponse -like 'n') {
+        # Remove all protectors from C:
+        manage-bde c: -off *> $null
+        $process = Start-Process -FilePath "manage-bde" -ArgumentList "C: -off" -PassThru -Wait
+
+        # Check if the command was successful
+        if ($process.ExitCode -eq 0) {
+            Write-Host "Decryption now in progress."
+        } else {
+            Write-Host "Failed to start decryption."
+        }   
+        $BitLockerVolume = Get-BitLockerVolume -MountPoint "C:" | Out-Null
+        $Protectors = $BitLockerVolume.KeyProtector | Where-Object { $_.KeyProtectortype -eq 'Tpm' -or $_.KeyProtectortype -eq 'NumericalPassword' }
+        foreach ($Protector in $Protectors) {
+        Remove-BitLockerKeyProtector -MountPoint "C:" -KeyProtectorId $Protector.KeyProtectorId | Out-Null
         }
         Write-Host " "
+        # Monitor the "Percentage Encrypted" value until it reaches 0.0%
+        for (;;) {
+    $status = manage-bde -status C:
+    $percentageEncrypted = ($status | Select-String -Pattern "Percentage Encrypted:.*").ToString().Split(":")[1].Trim()
+
+    # Clear the current line
+    Write-Host "`rCurrent decryption progress: $percentageEncrypted" -NoNewline
+
+    if ($percentageEncrypted -eq "0.0%") {
+        break
+    }
+
+    Start-Sleep -Seconds 1
+}
+Write-Host " "
+Write-Host "`nDecryption of $env:SystemDrive is complete."
+Write-Host " "
+
+        # Wait 5 seconds
+        Start-Sleep -Seconds 5
+        Write-Host "Configuring Bitlocker Disk Encryption..."
+        Write-Host " "
+        # Configure Bitlocker on C:
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector | Out-Null
+        Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait *> $null
+        Write-Host " "
+        # Verify volume key protector exists
+        $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
+
+        # Check if a protector exists
+        if ($BitLockerVolume.KeyProtector) {
+            Write-Host "Bitlocker drive encryption configured successfully."
+        } else {
+            Write-Host "Bitlocker drive encryption is not configured."
+        }     
+    }
+} else {
+    Write-Host "Configuring Bitlocker Disk Encryption..."
+    Write-Host " "
     # Create the recovery key
     Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
 
@@ -772,7 +832,8 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Start-Sleep -Seconds 15 # Wait for the protectors to take effect
 
     # Enable Encryption
-    Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait *> $null
+    Start-Process 'manage-bde.exe' -ArgumentList "-on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait *> $null
+    Write-Host " "
 
     # Get Recovery Key GUID
     $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
@@ -781,13 +842,16 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID *> $null
     manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
 
-    # Retrieve and Output the Recovery Key Password
-    $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
-    #Write-Log "Bitlocker Recovery Key: $RecoveryKeyPW"
-    #[Console]::ForegroundColor = [System.ConsoleColor]::Green
-    #[Console]::Write(" done.")
-    #[Console]::ResetColor()
-    #[Console]::WriteLine()
+    # Verify volume key protector exists
+    $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
+
+        # Check if a protector exists
+        if ($BitLockerVolume.KeyProtector) {
+            Write-Host "Bitlocker drive encryption configured successfully!`n"
+        } else {
+            Write-Host -ForegroundColor Red "Bitlocker drive encryption is not configured!"
+        }
+}
     
 } else {
     Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
@@ -1357,84 +1421,65 @@ if (Test-Path "c:\temp\update_windows.ps1") {
 #Invoke-Expression -command $NTFY2 *> $null
 
  
-[Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
-Write-Output " "
-Start-Sleep -Seconds 1
-
-$ProgressPreference = 'SilentlyContinue'
-Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
-$ProgressPreference = 'Continue'
-
-# Ask the user if they want to connect to SSL VPN
-$choice = Read-Host "Do you want to connect to SSL VPN? (Y/N)"
-
-if ($choice -eq "Y" -or $choice -eq "N") {
-    if ($choice -eq "Y") {
-        if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
-            [Console]::Write("NetExtender detected successfully, starting connection...")
-            start C:\temp\ssl-vpn.bat
-            Start-Sleep -Seconds 5
-            # Get the network connection profile for the specific network adapter
-            $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
-
-            # Check if the network adapter is connected to a network
-            if ($connectionProfile) {
-                Write-Host "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN."
-            } else {
-                Write-Host "The 'Sonicwall NetExtender' adapter is not connected to the SSLVPN."
-            }
-            Write-Output " "
+function Connect-VPN {
+    if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
+        Write-Host "NetExtender detected successfully, starting connection..."
+        Start-Process C:\temp\ssl-vpn.bat
+        Start-Sleep -Seconds 5
+        $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
+        if ($connectionProfile) {
+            Write-Host "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN."
         } else {
-            [Console]::Write("`n")
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Host "SonicWall NetExtender not found"
-            [Console]::ResetColor()
-            [Console]::WriteLine()   
+            Write-Host "The 'Sonicwall NetExtender' adapter is not connected to the SSLVPN."
         }
     } else {
-        Write-Host "Skipping VPN Connection Setup..."
+        Write-Host "SonicWall NetExtender not found" -ForegroundColor Red
     }
-} else {
-    Write-Host "Invalid choice. Please enter Y or N."
 }
 
-# Ask the user if they want to join a domain or Azure AD
-$choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
+[Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
+Write-Output " "
 
-# Validate the user input
-if ($choice -eq "A" -or $choice -eq "S") {
-    # Perform the join operation based on the user choice
-    if ($choice -eq "S") {
-        # Ask the user for credentials and domain name for the domain join operation
+$ProgressPreference = 'SilentlyContinue'
+try {
+    Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
+} catch {
+    Write-Host "Failed to download SSL VPN installer: $_" -ForegroundColor Red
+    exit
+}
+$ProgressPreference = 'Continue'
+
+$choice = Read-Host "Do you want to connect to SSL VPN? (Y/N)"
+switch ($choice) {
+    "Y" { Connect-VPN }
+    "N" { Write-Host "Skipping VPN Connection Setup..." }
+    default { Write-Host "Invalid choice. Please enter Y or N." }
+}
+
+$choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
+switch ($choice) {
+    "S" {
         $username = Read-Host "Enter the username for the domain join operation"
         $password = Read-Host "Enter the password for the domain join operation" -AsSecureString
         $cred = New-Object System.Management.Automation.PSCredential($username, $password)
         $domain = Read-Host "Enter the domain name for the domain join operation"
-
-        # Join the system to the domain using the credentials
         try {
             Add-Computer -DomainName $domain -Credential $cred 
             Write-Host "Domain join operation completed successfully."
         } catch {
             Write-Host "Failed to join the domain."
         }
-    } else {
+    }
+    "A" {
         Write-Host "Starting Azure AD Join operation using Work or School account..."
-        Start-Sleep -Seconds 2
         Start-Process "ms-settings:workplace"
         Start-Sleep -Seconds 3
-        # Run dsregcmd /status and capture its output
         $output = dsregcmd /status | Out-String
-
-        # Extract the AzureAdJoined value
         $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
         $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
-        Start-Sleep -Seconds 3
-        # Display the extracted value
         Write-Host "AzureADJoined: $azureAdJoinedValue"
     }
-} else {
-    Write-Host "Invalid choice. Please enter A or S."
+    default { Write-Host "Invalid choice. Please enter A or S." }
 }
 
 # Aquire Wake Lock (Prevents idle session & screen lock)
