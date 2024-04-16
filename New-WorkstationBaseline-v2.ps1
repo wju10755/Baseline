@@ -744,7 +744,7 @@ if ($null -ne $OfficeUninstallStrings) {
         Write-Log "Pre-Installed Office 365 Applications Removed."
         }
 } else {
-    Write-Warning " Skipping Pre-Installed Office Removal module due to not meeting application requirements."
+   # Write-Warning " Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
@@ -787,6 +787,7 @@ if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         $Protectors = $BitLockerVolume.KeyProtector | Where-Object { $_.KeyProtectortype -eq 'Tpm' -or $_.KeyProtectortype -eq 'NumericalPassword' }
         foreach ($Protector in $Protectors) {
         Remove-BitLockerKeyProtector -MountPoint "C:" -KeyProtectorId $Protector.KeyProtectorId | Out-Null
+        Remove-BitLockerKeyProtector -MountPoint $env:SystemDrive -KeyProtectorId $tpmProtector.KeyProtectorID
         }
         Write-Host " "
         # Monitor the "Percentage Encrypted" value until it reaches 0.0%
