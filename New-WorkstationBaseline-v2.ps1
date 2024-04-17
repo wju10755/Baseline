@@ -831,7 +831,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
 
         if ($BitLockerVolume.KeyProtector) {
-            Write-Host "Bitlocker disk encryption configured successfully!`n"
+            Write-Host "Bitlocker disk encryption configured successfully!"
             Write-Host "Bitlocker Recovery ID: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
             Write-Host "Bitlocker Recovery Password: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
         } else {
@@ -843,8 +843,6 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
 }
-
-Write-Host " "
 
 # Kill existing instance of procmon
 taskkill /f /im procmon* *> $null
