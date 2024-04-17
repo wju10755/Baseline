@@ -709,7 +709,7 @@ if ($dellApps) {
         Start-Sleep -Seconds 1
     }
 } else {
-    Write-Host "No application with 'Dell' in the name is installed."
+    Write-Host "Skipping as no Dell applications are installed."
 }
 
 # Kill procmon 
