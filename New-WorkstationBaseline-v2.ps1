@@ -38,7 +38,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor DarkRed "                                                   version 10.2.2";
+Write-Host -ForegroundColor DarkRed "                                                   version 10.2.3";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -144,7 +144,7 @@ while ($true) {
 Start-Sleep -Seconds 2
 Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
 
-<#
+
 $ModChk = "Installing required powershell modules..."
 
 foreach ($Char in $ModChk.ToCharArray()) {
@@ -165,7 +165,7 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
 [Console]::ResetColor()
 [Console]::WriteLine() 
 
-
+<#
 # Stage Procmon
 $Notice = "Staging Process Monitor..."
 foreach ($Char in $Notice.ToCharArray()) {
@@ -752,7 +752,6 @@ if ($null -ne $OfficeUninstallStrings) {
 # Restart transcript
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
-#>
 # Check Bitlocker Compatibility
 $WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
 $TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
@@ -1362,6 +1361,35 @@ if ($service.Status -eq 'Running') {
 }
 
 
+function Move-ProcessWindowToTopRight([string]$processName) {
+    $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
+    if ($null -eq $process) {
+        Write-Host "Process not found."
+        return
+    }
+
+    $hWnd = $process.MainWindowHandle
+    if ($hWnd -eq [IntPtr]::Zero) {
+        Write-Host "Window handle not found."
+        return
+    }
+
+    $windowRect = New-Object WinAPI+RECT
+    [WinAPI]::GetWindowRect($hWnd, [ref]$windowRect)
+    $windowWidth = $windowRect.Right - $windowRect.Left
+    $windowHeight = $windowRect.Bottom - $windowRect.Top
+
+    # Get the screen width
+    $screenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width
+
+    # Calculate the x-coordinate for the top right corner
+    $x = $screenWidth - $windowWidth
+    $y = 0
+
+    [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
+}
+
+Move-ProcessWindowToTopRight -processName "procmon64" *> $null
 # Installing Windows Updates
 #& $config.UpdateNotice
 $IWU = "Checking for Windows Updates..."
@@ -1369,7 +1397,7 @@ foreach ($Char in $IWU.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 30
 }
-   
+#>   
 $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Update_Windows-v2.ps1" -OutFile "c:\temp\update_windows.ps1"
 $ProgressPreference = 'Continue'
@@ -1417,8 +1445,7 @@ function Connect-VPN {
 }
 
 [Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
-Write-Output " "
-
+1
 $ProgressPreference = 'SilentlyContinue'
 try {
     Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
