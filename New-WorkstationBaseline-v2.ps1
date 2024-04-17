@@ -772,7 +772,6 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         # Bitlocker is already configured
         Write-Host -ForegroundColor Red "Bitlocker is already configured on $env:SystemDrive`n"
         $userResponse = Read-Host "Do you want to skip configuring Bitlocker? (yes/no)"
-        Write-Host " "
 
         if ($userResponse -like 'no') {
             # Disable BitLocker
@@ -1338,7 +1337,7 @@ else {
     #Write-Host "This script is intended to run only on Windows 10."
 }
 
-Write-Output " "
+#Write-Output " "
 # Enable and start Windows Update Service
 $EWUS = "`bEnabling Windows Update Service..."
 foreach ($Char in $EWUS.ToCharArray()) {
