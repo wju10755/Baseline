@@ -804,19 +804,19 @@ if ($BitLockerStatus.ProtectionStatus -eq 'On') {
 
     Start-Sleep -Seconds 1
 }
-Write-Host " "
+
 Write-Host "`nDecryption of $env:SystemDrive is complete."
-Write-Host " "
+
 
         # Wait 5 seconds
         Start-Sleep -Seconds 5
         Write-Host "Configuring Bitlocker Disk Encryption..."
-        Write-Host " "
+        
         # Configure Bitlocker on C:
         Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
         Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
         Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait *> $null
-        Write-Host " "
+        
         # Verify volume key protector exists
         $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
 
