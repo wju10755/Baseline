@@ -862,7 +862,7 @@ Write-Host "`nDecryption of $env:SystemDrive is complete."
         } else {
             Write-Host -ForegroundColor Red "Bitlocker drive encryption is not configured!"
         }
-}
+    }
     
 } else {
     Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
