@@ -144,7 +144,7 @@ while ($true) {
 Start-Sleep -Seconds 2
 Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
 
-
+<#
 $ModChk = "Installing required powershell modules..."
 
 foreach ($Char in $ModChk.ToCharArray()) {
@@ -752,7 +752,7 @@ if ($null -ne $OfficeUninstallStrings) {
 # Restart transcript
 Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
-
+#>
 # Check Bitlocker Compatibility
 $WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
 $TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
@@ -768,7 +768,7 @@ $BitLockerStatus = Get-BitLockerVolume -MountPoint $env:SystemDrive
     }
 if ($BitLockerStatus.ProtectionStatus -eq 'On') {
     # Bitlocker is already configured
-    Write-Host -ForegroundColor Red "Bitlocker is already configured on drive $env:SystemDrive`n"
+    Write-Host -ForegroundColor Red "Bitlocker is already configured on $env:SystemDrive`n"
     $userResponse = Read-Host "Do you want to skip configuring Bitlocker? (yes/no)"
     Write-Host " "
 
@@ -792,20 +792,20 @@ if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         #Write-Host " "
         # Monitor the "Percentage Encrypted" value until it reaches 0.0%
         for (;;) {
-    $status = manage-bde -status C:
-    $percentageEncrypted = ($status | Select-String -Pattern "Percentage Encrypted:.*").ToString().Split(":")[1].Trim()
+        $status = manage-bde -status C:
+        $percentageEncrypted = ($status | Select-String -Pattern "Percentage Encrypted:.*").ToString().Split(":")[1].Trim()
 
-    # Clear the current line
-    Write-Host "`rCurrent decryption progress: $percentageEncrypted" -NoNewline
+        # Clear the current line
+        Write-Host "`rCurrent decryption progress: $percentageEncrypted" -NoNewline
 
-    if ($percentageEncrypted -eq "0.0%") {
-        break
+        if ($percentageEncrypted -eq "0.0%") {
+            break
+        }
+
+        Start-Sleep -Seconds 1
     }
 
-    Start-Sleep -Seconds 1
-}
-
-Write-Host "`nDecryption of $env:SystemDrive is complete."
+    Write-Host "`nDecryption of $env:SystemDrive is complete."
 
 
         # Wait 5 seconds
@@ -822,14 +822,14 @@ Write-Host "`nDecryption of $env:SystemDrive is complete."
 
         # Check if a protector exists
         if ($BitLockerVolume.KeyProtector) {
-            Write-Host "Bitlocker drive encryption configured successfully."
+            Write-Host "Bitlocker disk encryption configured successfully."
         } else {
-            Write-Host "Bitlocker drive encryption is not configured."
+            Write-Host "Bitlocker disk encryption is not configured."
         }     
     }
 } else {
-    Write-Host "Configuring Bitlocker Disk Encryption..."
-    Write-Host " "
+    Write-Host "Configuring Bitlocker Disk Encryption:"
+    #Write-Host " "
     # Create the recovery key
     Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
 
@@ -839,7 +839,7 @@ Write-Host "`nDecryption of $env:SystemDrive is complete."
 
     # Enable Encryption
     Start-Process 'manage-bde.exe' -ArgumentList "-on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait *> $null
-    Write-Host " "
+    #Write-Host " "
 
     # Get Recovery Key GUID
     $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
@@ -853,14 +853,14 @@ Write-Host "`nDecryption of $env:SystemDrive is complete."
 
         # Check if a protector exists
         if ($BitLockerVolume.KeyProtector) {
-            Write-Host "Bitlocker drive encryption configured successfully!`n"
+            Write-Host "Bitlocker disk encryption configured successfully!`n"
             Write-Host "Bitlocker Recovery ID: " -NoNewline
             (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') }
 
             Write-Host "Bitlocker Recovery Password: " -NoNewline
             (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword
         } else {
-            Write-Host -ForegroundColor Red "Bitlocker drive encryption is not configured!"
+            Write-Host -ForegroundColor Red "Bitlocker disk encryption is not configured!"
         }
     }
     
