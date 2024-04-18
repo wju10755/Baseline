@@ -159,7 +159,7 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
 }
 
-
+<#
 #[Console]::ForegroundColor = [System.ConsoleColor]::Green
 #[Console]::Write(" done.")
 #[Console]::ResetColor()
@@ -1335,7 +1335,7 @@ if (Is-Windows10) {
 else {
     #Write-Host "This script is intended to run only on Windows 10."
 }
-
+#>
 #Write-Output " "
 # Enable and start Windows Update Service
 $EWUS = "`bEnabling Windows Update Service..."
