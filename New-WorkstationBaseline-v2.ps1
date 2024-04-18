@@ -1444,7 +1444,6 @@ function Connect-VPN {
 }
 
 [Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
-1
 $ProgressPreference = 'SilentlyContinue'
 try {
     Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
