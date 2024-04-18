@@ -769,10 +769,10 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
     if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         # Bitlocker is already configured
-        Write-Host -ForegroundColor Red "Bitlocker is already configured on $env:SystemDrive`n"
+        Write-Host -ForegroundColor Red "Bitlocker is already configured on $env:SystemDrive"
         $userResponse = Read-Host "Do you want to skip configuring Bitlocker? (yes/no)"
 
-        if ($userResponse -like 'no') {
+        if ($userResponse -like 'n') {
             # Disable BitLocker
             manage-bde -off $env:SystemDrive | Out-Null
 
@@ -781,7 +781,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
                 $status = manage-bde -status $env:SystemDrive
                 $percentageEncrypted = ($status | Select-String -Pattern "Percentage Encrypted:.*").ToString().Split(":")[1].Trim()
 
-                Write-Host "`rCurrent decryption progress: $percentageEncrypted" -NoNewline
+                Write-Host "Current decryption progress: $percentageEncrypted" -NoNewline
 
                 Start-Sleep -Seconds 1
             } until ($percentageEncrypted -eq "0.0%")
