@@ -830,8 +830,8 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
         if ($BitLockerVolume.KeyProtector) {
             Write-Host "Bitlocker disk encryption configured successfully!"
-            Write-Host "Bitlocker Recovery ID: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
-            Write-Host "Bitlocker Recovery Password: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
+            Write-Host "Recovery ID: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
+            Write-Host "Recovery Password: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
         } else {
             Write-Host -ForegroundColor Red "Bitlocker disk encryption is not configured!"
         }
