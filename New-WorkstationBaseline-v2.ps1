@@ -165,7 +165,7 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
 [Console]::ResetColor()
 [Console]::WriteLine() 
 
-
+<#
 # Stage Procmon
 $Notice = "Staging Process Monitor..."
 foreach ($Char in $Notice.ToCharArray()) {
@@ -1396,13 +1396,13 @@ foreach ($Char in $IWU.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 30
 }
-   
+#>   
 $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Update_Windows-v2.ps1" -OutFile "c:\temp\update_windows.ps1"
 $ProgressPreference = 'Continue'
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
-    Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
+    $null = Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
     Start-Sleep -seconds 3
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
