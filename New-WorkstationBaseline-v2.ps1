@@ -637,6 +637,8 @@ if (Test-Win10) {
     Start-Sleep -Seconds 1
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
     # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
     catch {
@@ -676,6 +678,8 @@ if (Test-Win11) {
     Start-Sleep -Seconds 1
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
     Write-Log "Windows 11 Offline Files has been disabled"
     #Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
     }
