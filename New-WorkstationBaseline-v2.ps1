@@ -1402,11 +1402,11 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main
 $ProgressPreference = 'Continue'
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
-    $null = Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
+    $null = Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath *> $null
     Start-Sleep -seconds 3
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
-    Move-ProcessWindowToTopRight -processName "Windows PowerShell"
+    Move-ProcessWindowToTopRight -processName "Windows PowerShell" | Out-Null
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
