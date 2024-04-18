@@ -780,9 +780,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
             do {
                 $status = manage-bde -status $env:SystemDrive
                 $percentageEncrypted = ($status | Select-String -Pattern "Percentage Encrypted:.*").ToString().Split(":")[1].Trim()
-
-                Write-Host "Current decryption progress: $percentageEncrypted" -NoNewline
-
+                Write-Host "`rCurrent decryption progress: $percentageEncrypted" -NoNewline
                 Start-Sleep -Seconds 1
             } until ($percentageEncrypted -eq "0.0%")
 
