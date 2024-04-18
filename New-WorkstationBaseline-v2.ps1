@@ -265,7 +265,7 @@ if ($osVersion -gt "10.0.22000*") {
     [Console]::ResetColor() 
     [Console]::WriteLine()
 } else {
-    [Console]::Write("Disable notification snooze function is only applicable to Windows 11.`n")
+    #[Console]::Write("Disable notification snooze function is only applicable to Windows 11.`n")
 }
 
 
