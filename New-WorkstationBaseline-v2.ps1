@@ -158,11 +158,13 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Import-PackageProvider -Name NuGet -Force | Out-Null
     Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
 }
-
+Start-Sleep -Seconds 1
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
 
 #[Console]::ForegroundColor = [System.ConsoleColor]::Green
 #[Console]::Write(" done.")
-#[Console]::ResetColor()
+[Console]::ResetColor()
 [Console]::WriteLine() 
 
 
