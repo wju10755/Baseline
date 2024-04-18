@@ -1362,7 +1362,7 @@ if ($service.Status -eq 'Running') {
 
 
 function Move-ProcessWindowToTopRight([string]$processName) {
-    $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
+    $process = Get-Process | Where-Object { $_.MainWindowTitle -match $processName } | Select-Object -First 1
     if ($null -eq $process) {
         Write-Host "Process not found."
         return
@@ -1389,7 +1389,6 @@ function Move-ProcessWindowToTopRight([string]$processName) {
     [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
 }
 
-Move-ProcessWindowToTopRight -processName "procmon64" *> $null
 # Installing Windows Updates
 #& $config.UpdateNotice
 $IWU = "Checking for Windows Updates..."
@@ -1407,6 +1406,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     Start-Sleep -seconds 3
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
+    Move-ProcessWindowToTopRight -processName "Windows PowerShell"
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -1422,7 +1422,6 @@ if (Test-Path "c:\temp\update_windows.ps1") {
         [Console]::ResetColor()
         [Console]::WriteLine()  
 }
-
 # Notify device Baseline is complete and ready to join domain.
 #$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready to join the domain!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
 #Invoke-Expression -command $NTFY2 *> $null
