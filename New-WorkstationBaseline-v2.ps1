@@ -632,8 +632,11 @@ if (Test-Win10) {
     # Set the value to disable Offline Files
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
     # Output the result
-    [Console]::Write("Windows 10 Offline Files has been disabled.`n")
+    [Console]::Write("Disabling Windows 10 Offline Files...")
     Write-Log "Offline files disabled."
+    Start-Sleep -Seconds 1
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
     # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
     catch {
