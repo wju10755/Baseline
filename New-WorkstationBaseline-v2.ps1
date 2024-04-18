@@ -160,10 +160,10 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
 }
 
 
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor()
-[Console]::WriteLine() 
+#[Console]::ForegroundColor = [System.ConsoleColor]::Green
+#[Console]::Write(" done.")
+#[Console]::ResetColor()
+#[Console]::WriteLine() 
 
 <#
 # Stage Procmon
