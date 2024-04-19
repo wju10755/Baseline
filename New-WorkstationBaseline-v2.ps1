@@ -1292,43 +1292,34 @@ switch ($choice) {
         $domain = Read-Host "Enter the domain name for the domain join operation"
         try {
             Add-Computer -DomainName $domain -Credential $cred 
-            Write-Host "Domain join operation completed successfully."
+            Write-Delayed "Domain join operation completed successfully." -NewLine:$true
         } catch {
-            Write-Host "Failed to join the domain."
+            Write-Delayed "Failed to join the domain." -NewLine:$true
         }
     }
     "A" {
-        Write-Host "Starting Azure AD Join operation using Work or School account..."
+        Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
         Start-Process "ms-settings:workplace"
         Start-Sleep -Seconds 3
         $output = dsregcmd /status | Out-String
         $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
         $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
-        Write-Host "AzureADJoined: $azureAdJoinedValue"
+        Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
     }
-    default { Write-Host "Invalid choice. Please enter A or S." }
+    default { Write-Delayed "Invalid choice. Please enter A or S." -NewLine:$true }
 }
 
 # Aquire Wake Lock (Prevents idle session & screen lock)
 New-Item -ItemType File -Path "c:\temp\WakeLock.flag" -Force *> $null
 
 # Final log entry
-#& $config.baselineComplete
 Write-Log "Baseline configuration completed successfully."
-$BCCS = "Baseline configuration completed successfully!"
-foreach ($Char in $BCCS.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30    
-    }
-    [Console]::ResetColor()
-    [Console]::WriteLine()
-Write-Host " "
+Write-Delayed "Baseline configuration completed successfully." -NewLine:$true
 Stop-Transcript  
 Start-Sleep -seconds 1
 Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1" -UseBasicParsing
 $scriptPath = "c:\temp\BaselineComplete.ps1"
 Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
-#Start-Process "appwiz.cpl"
 Write-Host " "
 Write-Host " "
 Read-Host -Prompt "Press Enter to exit"
