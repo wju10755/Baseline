@@ -165,11 +165,7 @@ Start-Sleep -Seconds 1
 
 
 # Stage Procmon
-$Notice = "Staging Process Monitor..."
-foreach ($Char in $Notice.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Staging Process Monitor..." -NewLine:$false
 
 # Download Procmon from LabTech server
 Invoke-WebRequest -Uri $config.ProcmonURL -OutFile $config.ProcmonFile *> $null
@@ -189,50 +185,6 @@ if (Test-Path $config.ProcmonFile)
     Start-Sleep -Seconds 2
 }
 
-
-# Terminate any existing msiexec processes
-Write-Host "Checking for active MSIExec process..." -NoNewline
-while ($true) {
-    # Get the process
-    $process = Get-Process -Name "msiexec" -ErrorAction SilentlyContinue
-
-    # Check if the process is running
-    if ($process) {
-        # Terminate the process
-        $process | Stop-Process -Force
-    } else {
-        # If the process is not found, exit the loop
-        Start-Sleep -Seconds 2
-        Write-Host -ForegroundColor Green " done."
-        break
-    }
-
-    # Wait for a short period before checking again
-    Start-Sleep -Seconds 1
-}
-
-
-# Terminate any existing OfficeClickToRun processes
-Write-Host "Checking for OfficeClickToRun process to exit..." -NoNewline
-while ($true) {
-    # Get the process
-    $process = Get-Process -Name "OfficeClickToRun" -ErrorAction SilentlyContinue
-
-    # Check if the process is running
-    if ($process) {
-        # Terminate the process
-        $process | Stop-Process -Force
-    } else {
-        # If the process is not found, exit the loop
-        Write-Host -ForegroundColor Green " done."
-        break
-    }
-
-    # Wait for a short period before checking again
-    Start-Sleep -Seconds 1
-}
-
-
 # Disable Notification Snooze
 $url = $config.SendWurl
 $filePath = $config.TempFolder
@@ -240,11 +192,7 @@ $filePath = $config.TempFolder
 $osVersion = (Get-CimInstance Win32_OperatingSystem).Version
 if ($osVersion -gt "10.0.22000*") {
     # The code that should only run on Windows 11
-    $Snooze = "Disabling notification snooze..."
-    foreach ($Char in $Snooze.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
+    Write-Delayed "Disabling notification snooze..." -NewLine $false
     Add-Type -AssemblyName System.Windows.Forms
     Start-Sleep -Seconds 5
     $ProgressPreference = 'SilentlyContinue'
@@ -952,6 +900,25 @@ Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
 Start-Sleep -Seconds 2
 
+# Terminate any existing OfficeClickToRun processes
+Write-Host "Checking for OfficeClickToRun process to exit..." -NoNewline
+while ($true) {
+    # Get the process
+    $process = Get-Process -Name "OfficeClickToRun" -ErrorAction SilentlyContinue
+
+    # Check if the process is running
+    if ($process) {
+        # Terminate the process
+        $process | Stop-Process -Force
+    } else {
+        # If the process is not found, exit the loop
+        Write-Host -ForegroundColor Green " done."
+        break
+    }
+
+    # Wait for a short period before checking again
+    Start-Sleep -Seconds 1
+}
 
 # Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
