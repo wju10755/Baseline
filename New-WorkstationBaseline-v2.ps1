@@ -26,7 +26,7 @@ $config = @{
     TempFolder           = "C:\temp"
 }
 
-
+ 
 # Set console formatting
 function Print-Middle($Message, $Color = "White") {
     Write-Host (" " * [System.Math]::Floor(([System.Console]::BufferWidth / 2) - ($Message.Length / 2))) -NoNewline;
