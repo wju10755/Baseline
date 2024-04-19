@@ -532,7 +532,7 @@ if (Test-Win10) {
     # Set the value to disable Offline Files
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
     # Output the result
-    Write-Delayed "Disabling Windows 10 Offline Files..."
+    Write-Delayed "Disabling Windows 10 Offline Files..." -NewLine:$false
     Write-Log "Offline files disabled."
     Start-Sleep -Seconds 1
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
