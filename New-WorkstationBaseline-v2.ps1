@@ -256,7 +256,7 @@ $agentIdValueName = "ID"
 
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Delayed "ConnectWise Automate agent is already installed" -NewLine:$true
+    Write-Delayed "ConnectWise Automate agent is installed." -NewLine:$true
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     Write-Delayed "ConnectWise Automate agent files are present, but the service is not installed." -NewLine:$true
