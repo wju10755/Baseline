@@ -994,8 +994,7 @@ Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
 if ($SWNE) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
     Write-Delayed "Existing Sonicwall NetExtender installation found."
-    [Console]::ResetColor()
-    [Console]::WriteLine()    
+    [Console]::ResetColor()   
 } else {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
