@@ -224,12 +224,7 @@ if ($user) {
     if ($user.PasswordNeverExpires) {
         Write-Host -ForegroundColor Green " done."
     } else {
-        $SPWNE = "Setting mitsadmin password to 'Never Expire'..."
-        foreach ($Char in $SPWNE.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30
-        }
-        # Set the password to 'Never Expire'
+        Write-Delayed "Setting mitsadmin password to 'Never Expire'..." -NewLine $false
         $user | Set-LocalUser -PasswordNeverExpires $true
         Start-Sleep -Seconds 2
         #Write-Log "mitsadmin password set to 'Never Expire'."
@@ -239,11 +234,7 @@ if ($user) {
         [Console]::WriteLine()
     }
 } else {
-    $PWNE = "Creating local mitsadmin & password set to 'Never Expire'..."
-    foreach ($Char in $PWNE.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
+    Write-Delayed "Creating local mitsadmin & setting password to 'Never Expire'..."
     $Password = ConvertTo-SecureString "@dvances10755" -AsPlainText -Force
     New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
     $user | set-LocalUser -PasswordNeverExpires $true
@@ -265,6 +256,7 @@ $agentIdValueName = "ID"
 
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
+    Write-Delayed "ConnectWise Automate agent is already installed"
     $LTInstalled = "ConnectWise Automate agent is already installed."
     Start-Sleep -Seconds 1
     foreach ($Char in $LTInstalled.ToCharArray()) {
@@ -342,7 +334,7 @@ if ($null -ne $service) {
         # Get the agent ID
         $agentId = Get-ItemProperty -Path $agentIdKeyPath -Name $agentIdValueName -ErrorAction SilentlyContinue
         if ($null -ne $agentId) {
-            $LTAID = "Automate agent signup successful! Agent ID:"
+            $LTAID = "Automate Agent ID:"
             foreach ($Char in $LTAID.ToCharArray()) {
                 [Console]::Write("$Char")
                 Start-Sleep -Milliseconds 30
