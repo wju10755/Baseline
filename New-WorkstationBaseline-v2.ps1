@@ -38,7 +38,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.2.6";
+Write-Host -ForegroundColor Cyan "                                                   version 10.2.7";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -66,16 +66,21 @@ function Write-Log {
 # Start baseline transcript log
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
+# Function to write text with delay
+function Write-Delayed {
+    param([string]$Text)
+    foreach ($Char in $Text.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
+    [Console]::WriteLine()
+}
 
 # Start Baseline
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("`n")
 [Console]::Write("`n")
-$Baseline = "Starting workstation baseline..."
-foreach ($Char in $Baseline.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Starting workstation baseline..."
 [Console]::Write(" ")
 [Console]::ResetColor() 
 [Console]::WriteLine()
@@ -407,6 +412,7 @@ if ($null -ne $service) {
             [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
             [Console]::Write(" $($agentId.$agentIdValueName)")
             [Console]::ResetColor()
+            [Console]::WriteLine()    
         } else {
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
             $LTAIDNF = "ConnectWise Automate agent ID not found."
