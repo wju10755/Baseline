@@ -41,7 +41,7 @@ Print-Middle "MITS - New Workstation Baseline Script";
 Write-Host -ForegroundColor Cyan "                                                   version 10.2.7";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
-
+ 
 
 # Create temp directory and baseline log
 function Initialize-Environment {
