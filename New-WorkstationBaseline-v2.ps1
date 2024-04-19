@@ -38,7 +38,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.2.7";
+Write-Host -ForegroundColor Cyan "                                                   version 10.2.8";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -148,14 +148,6 @@ while ($true) {
 
 Start-Sleep -Seconds 2
 Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
-
-
-$ModChk = "Installing required powershell modules..."
-
-foreach ($Char in $ModChk.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
 Write-Delayed "Installing required powershell modules..." -NewLine:$false
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
