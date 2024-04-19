@@ -81,7 +81,6 @@ function Write-Delayed {
 # Start Baseline
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("`n")
-[Console]::Write("`n")
 Write-Delayed "Starting workstation baseline..."
 [Console]::Write(" ")
 [Console]::ResetColor() 
