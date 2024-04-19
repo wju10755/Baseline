@@ -38,10 +38,10 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.2.7";
+Write-Host -ForegroundColor Cyan "                                                   version 10.2.6";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
- 
+
 
 # Create temp directory and baseline log
 function Initialize-Environment {
@@ -66,17 +66,6 @@ function Write-Log {
 # Start baseline transcript log
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
-# Function to write text with delay
-function Write-Delayed {
-    param([string]$Text, [switch]$NewLine = $true)
-    foreach ($Char in $Text.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-    if ($NewLine) {
-        [Console]::WriteLine()
-    }
-}
 
 # Start Baseline
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
@@ -417,8 +406,6 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
             return
         }
     }
-}
-
 
 # Stop & disable the Windows Update service
 $WU = "Suspending Windows Update..."
@@ -1553,3 +1540,4 @@ Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
 Write-Host " "
 Write-Host " "
 Read-Host -Prompt "Press Enter to exit"
+}
