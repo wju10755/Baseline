@@ -38,7 +38,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.3.0";
+Write-Host -ForegroundColor Cyan "                                                   version 10.3.1";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -816,7 +816,6 @@ if ($O365) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
     Write-Delayed "Existing Microsoft Office installation found."
     [Console]::ResetColor()
-    [Console]::WriteLine()
     goto NE_Install    
 } else {
     $OfficePath = "c:\temp\OfficeSetup.exe"
@@ -1119,8 +1118,6 @@ if (Is-Windows11) {
         Start-Sleep -seconds 2
         Expand-Archive $Win11DebloatFile -DestinationPath 'c:\temp\MITS-Debloat'
         Start-Sleep -Seconds 2
-        #& $config.Win11
-        #& 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
         Start-Process powershell -ArgumentList "-noexit","-Command Invoke-Expression -Command '& ''C:\temp\MITS-Debloat\MITS-Debloat.ps1'' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent'"
         Start-Sleep -Seconds 2
         Add-Type -AssemblyName System.Windows.Forms
@@ -1187,13 +1184,13 @@ if ($service.Status -eq 'Running') {
 function Move-ProcessWindowToTopRight([string]$processName) {
     $process = Get-Process | Where-Object { $_.MainWindowTitle -match $processName } | Select-Object -First 1
     if ($null -eq $process) {
-        Write-Host "Process not found."
+        Write-Delayed "Process not found." -NewLine:$true
         return
     }
 
     $hWnd = $process.MainWindowHandle
     if ($hWnd -eq [IntPtr]::Zero) {
-        Write-Host "Window handle not found."
+        Write-Delayed "Window handle not found." -NewLine:$true
         return
     }
 
