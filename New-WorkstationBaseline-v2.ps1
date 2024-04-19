@@ -68,12 +68,14 @@ Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
 # Function to write text with delay
 function Write-Delayed {
-    param([string]$Text)
+    param([string]$Text, [switch]$NewLine = $true)
     foreach ($Char in $Text.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30
     }
-    [Console]::WriteLine()
+    if ($NewLine) {
+        [Console]::WriteLine()
+    }
 }
 
 # Start Baseline
