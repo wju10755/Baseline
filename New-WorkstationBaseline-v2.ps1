@@ -86,7 +86,6 @@ Write-Delayed "Starting workstation baseline..."
 [Console]::Write(" ")
 [Console]::ResetColor() 
 [Console]::WriteLine()
-[Console]::Write("`n")
 Start-Sleep -Seconds 2
 
 # Start baseline log file
@@ -608,7 +607,6 @@ if ($dellApps) {
         Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
         Start-Sleep -seconds 2
         Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
-
         if (Test-Path -Path $SpinnerFile) {
             & $SpinnerFile
             Write-Log "Dell Bloatware Removed."
@@ -623,30 +621,17 @@ if ($dellApps) {
 }
 
 # Kill procmon 
-#$wshell = New-Object -ComObject wscript.shell
-#Start-Sleep -Seconds 2
-#$wshell.SendKeys("^a")
-#Start-Sleep -Seconds 2
 taskkill /f /im procmon* *> $null
 
 
 # Registry Check
 $OfficeUninstallStrings = (Get-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft 365 - *"} | Select-Object -ExpandProperty UninstallString)
-if ($null -ne $OfficeUninstallStrings) {
-    #$RPIO = "Removing Pre-Installed Office 365 Applications..."
-    #foreach ($Char in $RPIO.ToCharArray()) {
-    #    [Console]::Write("$Char")
-    #    Start-Sleep -Milliseconds 30
-   # }
-    [Console]::ResetColor()
-    [Console]::WriteLine()    
-    
+if ($null -ne $OfficeUninstallStrings) {    
     Invoke-WebRequest -Uri $config.RemoveOfficeURL -OutFile $config.RemoveOfficeScript
     Invoke-WebRequest -Uri $config.RemoveOfficeSpinURL -OutFile $config.RemoveOfficeSpinner
     Invoke-WebRequest -Uri $config.RemoveOneNoteURL -OutFile $config.RemoveOneNoteFile
     Invoke-WebRequest -Uri $config.RemoveOneNoteSpinURL -OutFile $config.RemoveOneNoteSpinner
     Start-Sleep -seconds 2
-    
     if (Test-Path -Path $config.RemoveOfficeSpinner) {
         & $config.RemoveOfficeSpinner
         Start-Sleep -Seconds 5
@@ -654,7 +639,7 @@ if ($null -ne $OfficeUninstallStrings) {
         Write-Log "Pre-Installed Office 365 Applications Removed."
         }
 } else {
-   # Write-Warning " Skipping Pre-Installed Office Removal module due to not meeting application requirements."
+    Write-Delayed " Skipping Pre-Installed Office Removal task due to not meeting application requirements."
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
@@ -670,13 +655,11 @@ $BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAc
 if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     # Check if Bitlocker is already configured on C:
     $BitLockerStatus = Get-BitLockerVolume -MountPoint $env:SystemDrive
-
     # Ensure the output directory exists
     $outputDirectory = "C:\temp"
     if (-not (Test-Path -Path $outputDirectory)) {
         New-Item -Path $outputDirectory -ItemType Directory | Out-Null
     }
-
     if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         # Bitlocker is already configured
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
@@ -693,18 +676,14 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
                 Write-Host "`rCurrent decryption progress: $percentageEncrypted" -NoNewline
                 Start-Sleep -Seconds 1
             } until ($percentageEncrypted -eq "0.0%")
-
             Write-Host "`nDecryption of $env:SystemDrive is complete."
-
             # Reconfigure BitLocker
             Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
             Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
             Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
             Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait | Out-Null
-
             # Verify volume key protector exists
             $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
-
             if ($BitLockerVolume.KeyProtector) {
                 Write-Host "Bitlocker disk encryption configured successfully."
             } else {
@@ -716,25 +695,18 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
         # Create the recovery key
         Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
-
         # Add TPM key
         Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
-
         Start-Sleep -Seconds 15 # Wait for the protectors to take effect
-
         # Enable Encryption
         Start-Process 'manage-bde.exe' -ArgumentList "-on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait | Out-Null
-
         # Backup the Recovery to AD
         $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
         manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID | Out-Null
-
         # Write Recovery Key to a file
         manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
-
         # Verify volume key protector exists
         $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
-
         if ($BitLockerVolume.KeyProtector) {
             Write-Delayed "Bitlocker disk encryption configured successfully." -NewLine:$true
             Write-Host "Recovery ID: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
@@ -753,7 +725,9 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 }
 
 # Kill existing instance of procmon
-taskkill /f /im procmon* *> $null
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2
+taskkill /f /im procmon64.exe *> $null
 Start-Sleep -Seconds 1
 
 # Launch Procmon
@@ -784,6 +758,7 @@ Add-Type @"
     }
 "@
 
+# Move Procmon to the left
 function Move-ProcessWindowToTopLeft([string]$processName) {
     $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
     if ($null -eq $process) {
@@ -814,21 +789,21 @@ Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 Start-Sleep -Seconds 2
 
 # Terminate any existing OfficeClickToRun processes
-Write-Host "Checking for OfficeClickToRun process to exit..." -NoNewline
+Write-Delayed "Checking for active OfficeClickToRun processes..." -NewLine:$false
 while ($true) {
     # Get the process
     $process = Get-Process -Name "OfficeClickToRun" -ErrorAction SilentlyContinue
-
     # Check if the process is running
     if ($process) {
         # Terminate the process
         $process | Stop-Process -Force
     } else {
         # If the process is not found, exit the loop
-        Write-Host -ForegroundColor Green " done."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$true
+    [Console]::ResetColor()
         break
     }
-
     # Wait for a short period before checking again
     Start-Sleep -Seconds 1
 }
@@ -840,11 +815,7 @@ Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*
 
 if ($O365) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    $EMOIF = "Existing Microsoft Office installation found."
-    foreach ($Char in $EMOIF.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
+    Write-Delayed "Existing Microsoft Office installation found."
     [Console]::ResetColor()
     [Console]::WriteLine()
     goto NE_Install    
@@ -852,24 +823,19 @@ if ($O365) {
     $OfficePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $OfficePath)) {
         $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        $DLMOI = "Downloading Microsoft Office 365..."
-    foreach ($Char in $DLMOI.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
+        Write-Delayed "Downloading Microsoft Office 365..." -NewLine:$false
         Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done."
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $OfficePath).Length
     $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         #& $config.officeNotice
-        $IO365 = "Installing Microsoft Office 365..."
-        foreach ($Char in $IO365.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
+        Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
             taskkill /f /im OfficeClickToRun.exe *> $null
             taskkill /f /im OfficeC2RClient.exe *> $null
             Start-Sleep -Seconds 3
@@ -884,23 +850,14 @@ if ($O365) {
             Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
             } else {
             Write-Log "Office 365 installation failed."
-            $MO365IF = "Microsoft Office 365 installation failed.`n"
-            foreach ($Char in $MO365IF.ToCharArray()) {
-                [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 30    
-                }
-            }
-        
+            Write-Delayed "Microsoft Office 365 installation failed."
+            }   
     }
     else {
         # Report download error
         Write-Log "Office download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        $O365DLF = "Download failed or file size does not match"
-        foreach ($Char in $O365DLF.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
+        Write-Delayed "Download failed or file size does not match."
         [Console]::ResetColor()
         [Console]::WriteLine()
         Start-Sleep -Seconds 10
@@ -913,7 +870,6 @@ if ($O365) {
 $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Google Chrome*" }
-
 if ($Chrome) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
     $FoundChrome = "Existing Google Chrome installation found."
@@ -933,7 +889,6 @@ if ($Chrome) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30
     }   
-        
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.`n")
@@ -943,16 +898,11 @@ if ($Chrome) {
     $FileSize = (Get-Item $ChromePath).Length
     $ExpectedSize = 1373744 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
-       
-        $IGC = "Installing Google Chrome..."
-        foreach ($Char in $IGC.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
+       Write-Delayed "Installing Google Chrome..." -NewLine:$false
         Start-Process -FilePath $ChromePath -ArgumentList "/silent /install" -Wait
         Write-Log "Google Chrome installed successfully."
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
+        Write-Delayed " done."
         [Console]::ResetColor()
         [Console]::WriteLine()    
         Start-Sleep -Seconds 10
@@ -962,11 +912,7 @@ if ($Chrome) {
         # Report download error
         Write-Log "Google Chrome download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        $GCDE = "Download failed! file not found or size does not match"
-        foreach ($Char in $GCDE.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
+        Write-Delayed "Download failed or file size does not match."
         [Console]::ResetColor()
         [Console]::WriteLine() 
         Start-Sleep -Seconds 10
@@ -978,26 +924,30 @@ if ($Chrome) {
 $AcroFilePath = "c:\temp\AcroRead.exe"
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                             HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-          Where-Object { $_.DisplayName -like "*Adobe Acrobat (64-bit)*" }
+Where-Object { $_.DisplayName -like "*Adobe Acrobat (64-bit)*" }
 Start-Sleep -Seconds 1
-
 if ($Acrobat) {
     Write-Host "Existing Acrobat Reader installation found." -ForegroundColor "Cyan"
 } else {
     if (-not (Test-Path $AcroFilePath)) {
         # If not found, download it
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRead.exe"
-        Write-Host "Downloading Adobe Acrobat Reader ( 1,452,648 bytes)..." -NoNewline
+        $ProgressPreference = 'SilentlyContinue'
+        $response = Invoke-WebRequest -Uri $URL -Method Head
+        $fileSize = $response.Headers["Content-Length"]
+        $ProgressPreference = 'Continue'
+        Write-Delayed "Downloading Adobe Acrobat Reader ($fileSize bytes)..." -NewLine:$false
         Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done."
+        [Console]::ResetColor()
+        [Console]::WriteLine() 
     }
-
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $AcroFilePath).Length
     $ExpectedSize = 1452648 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
-        Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
+        Write-Delayed "Installing Adobe Acrobat Reader..." -NewLine:$false
         Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -PassThru | Out-Null
         Start-Sleep -Seconds 150
         # Create a FileSystemWatcher to monitor the specified file
@@ -1006,21 +956,18 @@ if ($Acrobat) {
         $watcher.Filter = "installer.bin"
         $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName
         $watcher.EnableRaisingEvents = $true
-
         # When installer.bin is deleted, kill the acroread.exe process
         Register-ObjectEvent $watcher "Deleted" -Action {
             Start-Sleep -Seconds 15
             #& taskkill /f /im acroread.exe
             #Write-Host "acroread.exe process killed" -ForegroundColor "Green"
         } | Out-Null
-
         function Check-MsiexecSession {
             $msiexecProcesses = Get-Process msiexec -ErrorAction SilentlyContinue
             $hasSessionOne = $msiexecProcesses | Where-Object { $_.SessionId -eq 1 }
         
             return $hasSessionOne
         }
-
         # Loop to continually check the msiexec process
         do {
         Start-Sleep -Seconds 10  # Wait for 10 seconds before checking again
@@ -1029,9 +976,11 @@ if ($Acrobat) {
         # Once there are no msiexec processes with Session ID 1, kill acroread.exe
         Start-Sleep 15
         taskkill /f /im acroread.exe *> $null
-        Write-Host " done." -ForegroundColor "Green"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done."
+        [Console]::ResetColor()
+        [Console]::WriteLine() 
         Write-Log "Adobe Acrobat installation complete." -ForegroundColor Green
-
         } else {
         # Report download error
         Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
@@ -1045,14 +994,9 @@ if ($Acrobat) {
 $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
-
 if ($SWNE) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    $ENEIF = "Existing NetExtender installation found."
-    foreach ($Char in $ENEIF.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
+    Write-Delayed "Existing Sonicwall NetExtender installation found."
     [Console]::ResetColor()
     [Console]::WriteLine()    
 } else {
@@ -1065,12 +1009,12 @@ if ($SWNE) {
     $FileSize = (Get-Item $NEFilePath).Length
     $ExpectedSize = 4788816 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
-        [Console]::Write("Installing Sonicwall NetExtender...")
+        Write-Delayed "Installing Sonicwall NetExtender..." -NewLine:$false
         start-process -filepath $NEFilePath /S -Wait
         if (Test-Path $config.NEGui) {
             Write-Log "Sonicwall NetExtender installation completed successfully."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
+            Write-Delayed " done."
             [Console]::ResetColor()
             [Console]::WriteLine()
             Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
@@ -1079,12 +1023,7 @@ if ($SWNE) {
         # Report download error
         Write-Log "Sonicwall NetExtender download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write("Download failed! File does not exist or size does not match.")
-        $NEDF = "Download failed! File does not exist or size does not match"
-        foreach ($Char in $NEDF.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
+        Write-Delayed "Download failed! File does not exist or size does not match."
         [Console]::ResetColor()
         [Console]::WriteLine()    
         Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
@@ -1095,48 +1034,31 @@ if ($SWNE) {
 try {
     $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
     if ($OneDriveProduct) {
-        $ROD = "Removing Microsoft OneDrive (Personal)..."
-        foreach ($Char in $ROD.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-
+        Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
         $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
         # Recheck if OneDrive is uninstalled
         $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
         if (-not $OneDriveProduct) {
             Write-Log "OneDrive has been successfully removed."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
+            Write-Delayed " done."
             [Console]::ResetColor()
             [Console]::WriteLine()    
         } else {
             Write-Log "Failed to remove OneDrive."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            $FROD = " Failed to remove OneDrive"
-            foreach ($Char in $FROD.ToCharArray()) {
-                [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 30    
-                }
+            Write-Delayed "Failed to remove OneDrive."
             [Console]::ResetColor()
             [Console]::WriteLine()    
         }
     } else {
-        $ODINF = "OneDrive installation not found."
-        foreach ($Char in $ODINF.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30    
-            }
+            Write-Delayed "OneDrive installation not found."
             [Console]::ResetColor()
             [Console]::WriteLine()
     }
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    $ODE = "An error occurred: $_"
-    foreach ($Char in $ODE.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
+    Write-Delayed "An error occurred: $_"
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
@@ -1146,11 +1068,7 @@ try {
 try {
     $TeamsMWI = Get-Package -Name 'Teams Machine*'
     if ($TeamsMWI) {
-        $RTMWI = "Removing Microsoft Teams Machine-Wide Installer..."
-        foreach ($Char in $RTMWI.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-        }
+        Write-Delayed "Removing Microsoft Teams Machine-Wide Installer..." -NewLine:$false
         [Console]::ResetColor()
         [Console]::WriteLine()
         Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
@@ -1158,36 +1076,24 @@ try {
         if (-not $MWICheck) {
             Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
+            Write-Delayed " done."
             [Console]::ResetColor()
             [Console]::WriteLine()   
         } else {
             Write-Log "Failed to uninstall Teams Machine Wide Installer."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            $FTMWU = "Failed to uninstall Teams machine wide installer."
-            foreach ($Char in $FTMWU.ToCharArray()) {
-                [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 30    
-                }
+            Write-Delayed "Failed to uninstall Teams Machine Wide Installer."
             [Console]::ResetColor()
             [Console]::WriteLine()
         }
     } else {
-        $TMWINF = "Teams machine wide installation not found."
-        foreach ($Char in $TMWINF.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
+        Write-Delayed "Teams machine wide installation not found."
         [Console]::ResetColor()
         [Console]::WriteLine()    
     }
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    $RTMWIE = "An error occurred: $_"
-    foreach ($Char in $RTMWI.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
+    Write-Delayed "An error occurred: $_"
 }
 
 
@@ -1202,11 +1108,9 @@ function Is-Windows11 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
     $osVersion = $osInfo.Version
     $osProduct = $osInfo.Caption
-
     # Check for Windows 11
     return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
 }
-
 # Check if the OS is Windows 11
 if (Is-Windows11) {
     try {
@@ -1238,11 +1142,9 @@ function Is-Windows10 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
     $osVersion = $osInfo.Version
     $osProduct = $osInfo.Caption
-
     # Check for Windows 10
     return $osVersion -lt "10.0.22000" -and $osProduct -like "*Windows 10*"
 }
-
 # Trigger MITS Debloat for Windows 10
 if (Is-Windows10) {
     try {
@@ -1252,8 +1154,6 @@ if (Is-Windows10) {
         Start-Sleep -seconds 2
         Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
         Start-Sleep -Seconds 2
-        #& $config.win10
-        #& 'C:\temp\MITS-Debloat\MITS-Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent
         Start-Process powershell -ArgumentList "-noexit","-Command Invoke-Expression -Command '& ''C:\temp\MITS-Debloat\MITS-Debloat.ps1'' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent'"
         Write-Log "Windows 10 Debloat completed successfully."
     }
@@ -1265,13 +1165,8 @@ else {
     #Write-Host "This script is intended to run only on Windows 10."
 }
 
-#Write-Output " "
 # Enable and start Windows Update Service
-$EWUS = "`bEnabling Windows Update Service..."
-foreach ($Char in $EWUS.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30    
-    }
+Write-Delayed "Enabling Windows Update Service..." -NewLine:$false
 Set-Service -Name wuauserv -StartupType Manual
 Start-Sleep -seconds 3
 Start-Service -Name wuauserv
@@ -1279,17 +1174,17 @@ Start-Sleep -Seconds 5
 $service = Get-Service -Name wuauserv
 if ($service.Status -eq 'Running') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
+    Write-Delayed " done."
     [Console]::ResetColor()
     [Console]::WriteLine() 
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    [Console]::Write(" failed.")
+    Write-Delayed " failed."
     [Console]::ResetColor()
     [Console]::WriteLine()    
 }
 
-
+# Function to move Process Monitor to the 
 function Move-ProcessWindowToTopRight([string]$processName) {
     $process = Get-Process | Where-Object { $_.MainWindowTitle -match $processName } | Select-Object -First 1
     if ($null -eq $process) {
@@ -1343,41 +1238,40 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     Write-Log "All available Windows updates are installed."  
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    $WUEF = "Windows Update execution failed!"
-    foreach ($Char in $WUEF.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30    
-        }
+    Write-Delayed "Windows Update execution failed!"
         [Console]::ResetColor()
         [Console]::WriteLine()  
 }
-# Notify device Baseline is complete and ready to join domain.
-#$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete & ready to join the domain!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
-#Invoke-Expression -command $NTFY2 *> $null
-
  
 function Connect-VPN {
     if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
-        Write-Host "NetExtender detected successfully, starting connection..."
+        Write-Delayed "NetExtender detected successfully, starting connection..." -NewLine:$false
         Start-Process C:\temp\ssl-vpn.bat
-        Start-Sleep -Seconds 5
+        Start-Sleep -Seconds 6
         $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
         if ($connectionProfile) {
-            Write-Host "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN."
+            Write-Delayed "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN." -NewLine:$true
         } else {
-            Write-Host "The 'Sonicwall NetExtender' adapter is not connected to the SSLVPN."
+            Write-Delayed "The 'Sonicwall NetExtender' adapter is not connected to the SSLVPN." -NewLine:$true
         }
     } else {
-        Write-Host "SonicWall NetExtender not found" -ForegroundColor Red
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "SonicWall NetExtender not found"
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
 }
 
-[Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
+#[Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
+Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$false
 $ProgressPreference = 'SilentlyContinue'
 try {
     Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 } catch {
-    Write-Host "Failed to download SSL VPN installer: $_" -ForegroundColor Red
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "Failed to download SSL VPN installer: $_"
+    [Console]::ResetColor()
+    [Console]::WriteLine()
     exit
 }
 $ProgressPreference = 'Continue'
@@ -1385,10 +1279,10 @@ $ProgressPreference = 'Continue'
 $choice = Read-Host "Do you want to connect to SSL VPN? (Y/N)"
 switch ($choice) {
     "Y" { Connect-VPN }
-    "N" { Write-Host "Skipping VPN Connection Setup..." }
-    default { Write-Host "Invalid choice. Please enter Y or N." }
+    "N" { Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true }
+    default { Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true }
 }
-
+[Console]::WriteLine()
 $choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
 switch ($choice) {
     "S" {
