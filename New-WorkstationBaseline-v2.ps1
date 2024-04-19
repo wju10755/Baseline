@@ -156,7 +156,7 @@ foreach ($Char in $ModChk.ToCharArray()) {
     [Console]::Write("$Char")
     Start-Sleep -Milliseconds 30
 }
-
+Write-Delayed "Installing required powershell modules..." -NewLine:$false
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
@@ -166,9 +166,6 @@ if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
 Start-Sleep -Seconds 1
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
-
-#[Console]::ForegroundColor = [System.ConsoleColor]::Green
-#[Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
 
