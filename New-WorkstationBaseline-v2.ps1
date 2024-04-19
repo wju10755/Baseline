@@ -1094,8 +1094,6 @@ try {
 
 
 # Stop Procmon
-$wshell.SendKeys("^a")
-Start-Sleep -Seconds 2
 taskkill /f /im procmon64.exe *> $null
 
 
