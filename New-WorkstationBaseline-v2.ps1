@@ -38,7 +38,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.2.7";
+Write-Host -ForegroundColor Cyan "                                                   version 10.2.6";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -319,93 +319,114 @@ $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/
 $agentIdKeyPath = "HKLM:\SOFTWARE\LabTech\Service"
 $agentIdValueName = "ID"
 
-# Function to write text with delay
-function Write-Delayed {
-    param([string]$Text, [switch]$NewLine = $true)
-    foreach ($Char in $Text.ToCharArray()) {
+# Check for existing LabTech agent
+if (Get-Service $agentName -ErrorAction SilentlyContinue) {
+    $LTInstalled = "ConnectWise Automate agent is already installed."
+    Start-Sleep -Seconds 1
+    foreach ($Char in $LTInstalled.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30
     }
-    if ($NewLine) {
-        [Console]::WriteLine()
-    }
-}
-
-# Check for existing LabTech agent
-if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Delayed "ConnectWise Automate agent is already installed."
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed "ConnectWise Automate agent files are present, but the service is not installed."
+    $Broken = "ConnectWise Automate agent files are present, but the service is not installed."
+    foreach ($Char in $Broken.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
     [Console]::ResetColor() 
+    [Console]::WriteLine()
 } else {
-    Write-Delayed "Downloading ConnectWise Automate Agent..." -NewLine:$false
+    $CWDL = "Downloading ConnectWise Automate Agent..."
+    foreach ($Char in $CWDL.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
+
     try {
         Invoke-WebRequest -Uri $installerUri -OutFile $file
         Start-Sleep -Seconds 1
     } catch {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "ConnectWise Automate agent download failed!" -NewLine $true
-        [Console]::ResetColor()
+        $CWDLF = "ConnectWise Automate agent download failed!"
+        foreach ($Char in $CWDLF.ToCharArray()) {
+            [Console]::Write("$Char")
+            Start-Sleep -Milliseconds 30
+        }
+        [Console]::ResetColor() 
+        [Console]::WriteLine()
         exit
     }
+
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    Write-Delayed " done." -NewLine $true
+    [Console]::Write(" done.`n")
     [Console]::ResetColor()    
-    Write-Delayed "Installing ConnectWise Automate Agent..." -NewLine:$false
+
+    $LTIns = "Installing ConnectWise Automate Agent..."
+    foreach ($Char in $LTIns.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
+
     $process = Start-Process msiexec.exe -ArgumentList "/I $file /quiet" -PassThru
     $process.WaitForExit()
+
     if ($process.ExitCode -eq 0) {
         # Wait for the installation to complete
         Start-Sleep -Seconds 60
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine $true
-        [Console]::ResetColor()   
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
     } else {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed " failed." -NewLine $true
-        [Console]::ResetColor() 
+        [Console]::Write(" failed.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
         exit
     }
 }
 
 $agentServiceName = "LTService" # The name of the service installed by the ConnectWise Automate agent
 
-# Check for existing LabTech agent
-if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Delayed "ConnectWise Automate agent is installed!" -NewLine $true
+# Check for the service
+$service = Get-Service -Name $agentServiceName -ErrorAction SilentlyContinue
+if ($null -ne $service) {
     if (Test-Path $agentIdKeyPath) {
         # Get the agent ID
         $agentId = Get-ItemProperty -Path $agentIdKeyPath -Name $agentIdValueName -ErrorAction SilentlyContinue
         if ($null -ne $agentId) {
-            Write-Host "Automate Agent ID: " -NoNewline
-            Write-host -ForegroundColor Cyan "$($agentId.$agentIdValueName)"
-            [Console]::ResetColor() 
-        } else {
-            Write-Delayed "ConnectWise Automate agent ID not found."
-        }
-    } else {
-        Write-Delayed "ConnectWise Automate agent ID not found."
-    }
-    return
-} elseif (Test-Path $agentPath) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed "ConnectWise Automate agent files are present, but the service is not installed."
-    [Console]::ResetColor()
-} else {
-    if (Test-Path $file) {
-        Write-Delayed "ConnectWise Automate Agent MSI file already exists."
-    } else {
-        Write-Delayed "Downloading ConnectWise Automate Agent..."
-        try {
-            Invoke-WebRequest -Uri $installerUri -OutFile $file
-        } catch {
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "ConnectWise Automate agent download failed!"
+            $LTAID = "Automate agent signup successful! Agent ID:"
+            foreach ($Char in $LTAID.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 30
+            }
+            Start-Sleep -Seconds 1
+            [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+            [Console]::Write(" $($agentId.$agentIdValueName)")
             [Console]::ResetColor()
-            return
+        } else {
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            $LTAIDNF = "ConnectWise Automate agent ID not found."
+            foreach ($Char in $LTAIDNF.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 30
+            }
+            [Console]::ResetColor()
         }
-    }
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    $LTANI = "ConnectWise Automate agent is not installed."
+            foreach ($Char in $LTANI.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 30
+            }
+            [Console]::ResetColor()
+}
+}
+
 
 # Stop & disable the Windows Update service
 $WU = "Suspending Windows Update..."
@@ -1540,4 +1561,3 @@ Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
 Write-Host " "
 Write-Host " "
 Read-Host -Prompt "Press Enter to exit"
-}
