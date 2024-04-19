@@ -256,59 +256,30 @@ $agentIdValueName = "ID"
 
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Delayed "ConnectWise Automate agent is already installed"
-    $LTInstalled = "ConnectWise Automate agent is already installed."
-    Start-Sleep -Seconds 1
-    foreach ($Char in $LTInstalled.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-    [Console]::ResetColor()
-    [Console]::WriteLine()
+    Write-Delayed "ConnectWise Automate agent is already installed" -NewLine $true
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    $Broken = "ConnectWise Automate agent files are present, but the service is not installed."
-    foreach ($Char in $Broken.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
+    Write-Delayed "ConnectWise Automate agent files are present, but the service is not installed." -NewLine $true
     [Console]::ResetColor() 
     [Console]::WriteLine()
 } else {
-    $CWDL = "Downloading ConnectWise Automate Agent..."
-    foreach ($Char in $CWDL.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-
+    Write-Delayed "Downloading ConnectWise Automate Agent..." -NewLine $false
     try {
         Invoke-WebRequest -Uri $installerUri -OutFile $file
         Start-Sleep -Seconds 1
     } catch {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        $CWDLF = "ConnectWise Automate agent download failed!"
-        foreach ($Char in $CWDLF.ToCharArray()) {
-            [Console]::Write("$Char")
-            Start-Sleep -Milliseconds 30
-        }
+        Write-Delayed "ConnectWise Automate agent download failed!" -NewLine $true
         [Console]::ResetColor() 
         [Console]::WriteLine()
         exit
     }
-
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.`n")
     [Console]::ResetColor()    
-
-    $LTIns = "Installing ConnectWise Automate Agent..."
-    foreach ($Char in $LTIns.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-
+    Write-Delayed "Installing ConnectWise Automate Agent..." -NewLine $false
     $process = Start-Process msiexec.exe -ArgumentList "/I $file /quiet" -PassThru
     $process.WaitForExit()
-
     if ($process.ExitCode -eq 0) {
         # Wait for the installation to complete
         Start-Sleep -Seconds 60
@@ -346,11 +317,7 @@ if ($null -ne $service) {
             [Console]::WriteLine()    
         } else {
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            $LTAIDNF = "ConnectWise Automate agent ID not found."
-            foreach ($Char in $LTAIDNF.ToCharArray()) {
-                [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 30
-            }
+            Write-Delayed "ConnectWise Automate agent ID not found." -NewLine $true
             [Console]::ResetColor()
         }
 } else {
@@ -366,11 +333,7 @@ if ($null -ne $service) {
 
 
 # Stop & disable the Windows Update service
-$WU = "Suspending Windows Update..."
-foreach ($Char in $WU.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Suspending Windows Update..." -NewLine $false
 
 # Stop the Windows Update service
 Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue *> $null
@@ -408,12 +371,7 @@ $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
 if (-not (Test-Path -Path $registryPath)) {
     New-Item -Path $registryPath -Force *> $null
 }
-
-$OfflineFiles = "Disabling Offline File Sync..."
-foreach ($Char in $OfflineFiles.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Disabling Offline File Sync..."
 Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 Start-Sleep -Seconds 2
@@ -425,11 +383,7 @@ Start-Sleep -Seconds 3
 
 
 # Set power profile to 'Balanced'
-$Pwr = "Setting 'Balanced' Power Profile..."
-foreach ($Char in $Pwr.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Setting 'Balanced' Power Profile..." -NewLine $false
 Start-Sleep -Seconds 2
 powercfg /S SCHEME_BALANCED *> $null
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -442,11 +396,7 @@ Start-Sleep -Seconds 5
 
 # Disable sleep and hibernation modes
 Start-Sleep -Seconds 1
-$HibSlp = "Disabling Sleep & Hibernation..."
-foreach ($Char in $HibSlp.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Disabling Sleep & Hibernation..." -NewLine $false
 powercfg /change standby-timeout-ac 0 *> $null
 powercfg /change hibernate-timeout-ac 0 *> $null
 powercfg /h off *> $null
@@ -461,11 +411,7 @@ Start-Sleep -Seconds 2
 
 # Disable fast startup
 Start-Sleep -Seconds 2
-$FStart = "Disabling Fast Startup...."
-foreach ($Char in $FStart.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Disabling Fast Startup..." -NewLine $false
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
 Write-Log "Fast startup disabled."
