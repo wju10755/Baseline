@@ -192,7 +192,7 @@ $filePath = $config.TempFolder
 $osVersion = (Get-CimInstance Win32_OperatingSystem).Version
 if ($osVersion -gt "10.0.22000*") {
     # The code that should only run on Windows 11
-    Write-Delayed "Disabling notification snooze..." -NewLine $false
+    Write-Delayed "Disabling notification snooze..." -NewLine:$false
     Add-Type -AssemblyName System.Windows.Forms
     Start-Sleep -Seconds 5
     $ProgressPreference = 'SilentlyContinue'
@@ -224,7 +224,7 @@ if ($user) {
     if ($user.PasswordNeverExpires) {
         Write-Host -ForegroundColor Green " done."
     } else {
-        Write-Delayed "Setting mitsadmin password to 'Never Expire'..." -NewLine $false
+        Write-Delayed "Setting mitsadmin password to 'Never Expire'..." -NewLine:$false
         $user | Set-LocalUser -PasswordNeverExpires $true
         Start-Sleep -Seconds 2
         #Write-Log "mitsadmin password set to 'Never Expire'."
@@ -234,7 +234,7 @@ if ($user) {
         [Console]::WriteLine()
     }
 } else {
-    Write-Delayed "Creating local mitsadmin & setting password to 'Never Expire'..."
+    Write-Delayed "Creating local mitsadmin & setting password to 'Never Expire'..." -NewLine:$false
     $Password = ConvertTo-SecureString "@dvances10755" -AsPlainText -Force
     New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
     $user | set-LocalUser -PasswordNeverExpires $true
@@ -256,20 +256,20 @@ $agentIdValueName = "ID"
 
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Delayed "ConnectWise Automate agent is already installed" -NewLine $true
+    Write-Delayed "ConnectWise Automate agent is already installed" -NewLine:$true
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed "ConnectWise Automate agent files are present, but the service is not installed." -NewLine $true
+    Write-Delayed "ConnectWise Automate agent files are present, but the service is not installed." -NewLine:$true
     [Console]::ResetColor() 
     [Console]::WriteLine()
 } else {
-    Write-Delayed "Downloading ConnectWise Automate Agent..." -NewLine $false
+    Write-Delayed "Downloading ConnectWise Automate Agent..." -NewLine:$false
     try {
         Invoke-WebRequest -Uri $installerUri -OutFile $file
         Start-Sleep -Seconds 1
     } catch {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "ConnectWise Automate agent download failed!" -NewLine $true
+        Write-Delayed "ConnectWise Automate agent download failed!" -NewLine:$true
         [Console]::ResetColor() 
         [Console]::WriteLine()
         exit
@@ -277,7 +277,7 @@ if (Get-Service $agentName -ErrorAction SilentlyContinue) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.`n")
     [Console]::ResetColor()    
-    Write-Delayed "Installing ConnectWise Automate Agent..." -NewLine $false
+    Write-Delayed "Installing ConnectWise Automate Agent..." -NewLine:$false
     $process = Start-Process msiexec.exe -ArgumentList "/I $file /quiet" -PassThru
     $process.WaitForExit()
     if ($process.ExitCode -eq 0) {
@@ -317,23 +317,19 @@ if ($null -ne $service) {
             [Console]::WriteLine()    
         } else {
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "ConnectWise Automate agent ID not found." -NewLine $true
+            Write-Delayed "ConnectWise Automate agent ID not found." -NewLine:$true
             [Console]::ResetColor()
         }
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    $LTANI = "ConnectWise Automate agent is not installed."
-            foreach ($Char in $LTANI.ToCharArray()) {
-                [Console]::Write("$Char")
-                Start-Sleep -Milliseconds 30
-            }
+    Write-Delayed "ConnectWise Automate agent is not installed." -NewLine:$true
             [Console]::ResetColor()
 }
 }
 
 
 # Stop & disable the Windows Update service
-Write-Delayed "Suspending Windows Update..." -NewLine $false
+Write-Delayed "Suspending Windows Update..." -NewLine:$false
 
 # Stop the Windows Update service
 Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue *> $null
@@ -371,7 +367,7 @@ $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
 if (-not (Test-Path -Path $registryPath)) {
     New-Item -Path $registryPath -Force *> $null
 }
-Write-Delayed "Disabling Offline File Sync..."
+Write-Delayed "Disabling Offline File Sync..." -NewLine:$false
 Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 Start-Sleep -Seconds 2
@@ -379,11 +375,11 @@ Write-Log "Offline file sync disabled."
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 2
 
 
 # Set power profile to 'Balanced'
-Write-Delayed "Setting 'Balanced' Power Profile..." -NewLine $false
+Write-Delayed "Setting 'Balanced' Power Profile..." -NewLine:$false
 Start-Sleep -Seconds 2
 powercfg /S SCHEME_BALANCED *> $null
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -396,7 +392,7 @@ Start-Sleep -Seconds 5
 
 # Disable sleep and hibernation modes
 Start-Sleep -Seconds 1
-Write-Delayed "Disabling Sleep & Hibernation..." -NewLine $false
+Write-Delayed "Disabling Sleep & Hibernation..." -NewLine:$false
 powercfg /change standby-timeout-ac 0 *> $null
 powercfg /change hibernate-timeout-ac 0 *> $null
 powercfg /h off *> $null
@@ -411,7 +407,7 @@ Start-Sleep -Seconds 2
 
 # Disable fast startup
 Start-Sleep -Seconds 2
-Write-Delayed "Disabling Fast Startup..." -NewLine $false
+Write-Delayed "Disabling Fast Startup..." -NewLine:$false
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
 Write-Log "Fast startup disabled."
@@ -426,11 +422,7 @@ Start-Sleep -Seconds 5
 
 # Set power button action to 'Shutdown'
 Start-Sleep -Seconds 2
-$PwrBtn = "Configuring 'Shutdown' power button action..."
-foreach ($Char in $PwrBtn.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Configuring 'Shutdown' power button action..." -NewLine:$false
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
 & $config.PwrButton
@@ -446,11 +438,7 @@ Start-Sleep -Seconds 5
 # Set 'lid close action' to do nothing on laptops
 Start-Sleep -Seconds 1
 if ($deviceType -eq "Laptop") {
-    $Lid = "Setting 'Do Nothing' lid close action..."
-    foreach ($Char in $Lid.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
+    Write-Delayed "Setting 'Do Nothing' lid close action..." -NewLine:$false
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
     Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
@@ -465,11 +453,7 @@ if ($deviceType -eq "Laptop") {
 
 
 # Set the time zone to 'Eastern Standard Time'
-$EST = "Setting EST as default timezone..."
-foreach ($Char in $EST.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Setting EST as default timezone..." -NewLine:$false
 Start-Sleep -Seconds 2
 Start-Service W32Time
 Set-TimeZone -Id "Eastern Standard Time" 
@@ -480,11 +464,7 @@ Start-Sleep -Seconds 2
 [Console]::ResetColor()
 [Console]::WriteLine() 
 Start-Sleep -Seconds 3
-$Sync = "Syncing system clock..."
-foreach ($Char in $Sync.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Syncing system clock..." -NewLine:$false
 w32tm /resync -ErrorAction SilentlyContinue | out-null
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -500,14 +480,9 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Syste
 
 
 # Enable system restore
-$Restore = "Enabling System Restore..."
-foreach ($Char in $Restore.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
+Write-Delayed "Enabling System Restore..." -NewLine:$false
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
 Write-Log "System Restore Enabled."
-
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
@@ -557,7 +532,7 @@ if (Test-Win10) {
     # Set the value to disable Offline Files
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
     # Output the result
-    [Console]::Write("Disabling Windows 10 Offline Files...")
+    Write-Delayed "Disabling Windows 10 Offline Files..."
     Write-Log "Offline files disabled."
     Start-Sleep -Seconds 1
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -598,7 +573,7 @@ if (Test-Win11) {
     Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
 
     # Output the result
-    [Console]::Write("Disabling Windows 11 Offline Files...")
+    Write-Delayed "Disabling Windows 11 Offline Files..." -NewLine:$false
     Write-Log "Offline files disabled."
     Start-Sleep -Seconds 1
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -630,13 +605,11 @@ if ($dellApps) {
         $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall-v2.ps1"
         $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
         Set-Location -Path "c:\temp"
-        #& $config.DellHardware
         Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
         Start-Sleep -seconds 2
         Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
 
         if (Test-Path -Path $SpinnerFile) {
-            #& $config.DellBloatware
             & $SpinnerFile
             Write-Log "Dell Bloatware Removed."
         }
@@ -646,7 +619,7 @@ if ($dellApps) {
         Start-Sleep -Seconds 1
     }
 } else {
-    Write-Host "Skipping as no Dell applications are installed."
+    Write-Delayed "Skipping Dell bloatware cleanup as no Dell applications are installed." -NewLine:$true
 }
 
 # Kill procmon 
@@ -706,9 +679,9 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 
     if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         # Bitlocker is already configured
-        Write-Host -ForegroundColor Red "Bitlocker is already configured on $env:SystemDrive"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Bitlocker is already configured on $env:SystemDrive" -NewLine:$true
         $userResponse = Read-Host "Do you want to skip configuring Bitlocker? (yes/no)"
-
         if ($userResponse -like 'n') {
             # Disable BitLocker
             manage-bde -off $env:SystemDrive | Out-Null
@@ -724,7 +697,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
             Write-Host "`nDecryption of $env:SystemDrive is complete."
 
             # Reconfigure BitLocker
-            Write-Host "Configuring Bitlocker Disk Encryption..."
+            Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
             Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
             Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
             Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait | Out-Null
@@ -740,8 +713,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         }
     } else {
         # Bitlocker is not configured
-        Write-Host "Configuring Bitlocker Disk Encryption:"
-
+        Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
         # Create the recovery key
         Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
 
@@ -764,11 +736,14 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
 
         if ($BitLockerVolume.KeyProtector) {
-            Write-Host "Bitlocker disk encryption configured successfully!"
+            Write-Delayed "Bitlocker disk encryption configured successfully." -NewLine:$true
             Write-Host "Recovery ID: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
             Write-Host "Recovery Password: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
         } else {
-            Write-Host -ForegroundColor Red "Bitlocker disk encryption is not configured!"
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Bitlocker disk encryption is not configured." -NewLine:$true
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
         }
     }
 } else {
