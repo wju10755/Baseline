@@ -161,7 +161,6 @@ Start-Sleep -Seconds 1
 [Console]::ResetColor()
 [Console]::WriteLine() 
 
-
 # Stage Procmon
 Write-Delayed "Staging Process Monitor..." -NewLine:$false
 
@@ -182,7 +181,7 @@ if (Test-Path $config.ProcmonFile)
     [Console]::WriteLine() 
     Start-Sleep -Seconds 2
 }
-<#
+
 # Disable Notification Snooze
 $url = $config.SendWurl
 $filePath = $config.TempFolder
@@ -728,7 +727,7 @@ $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2
 taskkill /f /im procmon64.exe *> $null
 Start-Sleep -Seconds 1
-#>
+
 # Launch Procmon
 $ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
 $wshell = New-Object -ComObject wscript.shell
