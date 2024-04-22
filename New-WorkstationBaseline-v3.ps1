@@ -232,3 +232,18 @@ try {
 } catch {
     Write-Error "Failed to retrieve computer system information. Error: $_"
 }
+
+Start-Sleep -Seconds 2
+Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
+Write-Delayed "Installing required powershell modules..." -NewLine:$false
+# Check and Install NuGet Provider if not found
+if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
+    Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
+    Import-PackageProvider -Name NuGet -Force | Out-Null
+    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
+}
+Start-Sleep -Seconds 1
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
