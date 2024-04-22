@@ -189,11 +189,19 @@ Write-Log "Automated workstation baseline has started"
 
 # Device Identification
 # PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+if ($computerSystem.PCSystemType -eq 2) {
+    Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
+} else {
+# Device Identification
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
 $flagFilePath = "C:\Temp\WakeLock.flag"
 # Get computer system information using CIM (more efficient and modern compared to WMI)
 try {
     $computerSystem = Get-CimInstance -ClassName CIM_ComputerSystem
     $pcSystemType = $computerSystem.PCSystemType
+    $manufacturer = $computerSystem.Manufacturer
 
     # Check if the system is a mobile device
     if ($pcSystemType -eq 2) {
@@ -201,10 +209,11 @@ try {
         Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
     } else {
         # Not a mobile device, proceed with wake lock logic
+        $flagFilePath = "C:\Temp\WakeLock.flag"
         $wakeLockScriptPath = "C:\Temp\WakeLock.ps1"
 
         # Write the wake lock logic to a separate PowerShell script file
-        $wakeLockScript = @'
+        @'
         # Load the necessary assembly for accessing Windows Forms functionality
         Add-Type -AssemblyName System.Windows.Forms
 
@@ -225,12 +234,11 @@ try {
                 Start-Sleep -Seconds 60
             }
         }
-'@
-
-        Set-Content -Path $wakeLockScriptPath -Value $wakeLockScript
+'@ | Out-File -FilePath $wakeLockScriptPath
     }
 } catch {
     Write-Error "Failed to retrieve computer system information. Error: $_"
+}
 }
 
 Start-Sleep -Seconds 2
