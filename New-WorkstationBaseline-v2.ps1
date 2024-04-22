@@ -66,6 +66,21 @@ function Write-Log {
 # Start baseline transcript log
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
+
+Function Remove-M365([String]$appName)
+{
+    $uninstall = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like $appName} | Select UninstallString)
+    if($uninstall -ne $null){
+        Write-Host "Removing $appName..."
+        $uninstall = $uninstall.UninstallString + " DisplayLevel=False"
+        cmd /c $uninstall
+    }
+    else{
+        Write-Host "$appName is not installed."
+    }
+}
+
+
 # Function to write text with delay
 function Write-Delayed {
     param([string]$Text, [switch]$NewLine = $true)
@@ -588,7 +603,7 @@ else {
     #[Console]::Write("This script is intended to run only on Windows 11.")
 }
 
-Stop-Transcript *> $null
+#Stop-Transcript *> $null
 
 # Check if any application with "Dell" in the name is installed
 $dellApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Dell*" }
@@ -619,9 +634,9 @@ if ($dellApps) {
 }
 
 # Kill procmon 
-taskkill /f /im procmon* *> $null
+#taskkill /f /im procmon* *> $null
 
-
+<#
 # Registry Check
 $OfficeUninstallStrings = (Get-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft 365 - *"} | Select-Object -ExpandProperty UninstallString)
 if ($null -ne $OfficeUninstallStrings) {    
@@ -641,9 +656,20 @@ if ($null -ne $OfficeUninstallStrings) {
     Write-Log "Skipping Pre-Installed Office Removal module due to not meeting application requirements."
     Start-Sleep -Seconds 1
 }
+#>
+
+Remove-M365 "Microsoft 365 - en-us"                                                        
+Remove-M365 "Microsoft 365 - fr-fr"                                                
+Remove-M365 "Microsoft 365 - es-es"                                                                                            
+Remove-M365 "Microsoft 365 - pt-br"                                               
+Remove-M365 "Microsoft OneNote - en-us"                                           
+Remove-M365 "Microsoft OneNote - fr-fr"                                         
+Remove-M365 "Microsoft OneNote - es-es"                                           
+Remove-M365 "Microsoft OneNote - pt-br"                                           
+
 
 # Restart transcript
-Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
+#Start-Transcript -Append -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt *> $null
 
 # Check Bitlocker Compatibility
 $WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
