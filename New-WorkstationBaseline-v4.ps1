@@ -58,7 +58,7 @@ Function Remove-App-EXE-SILENT([String]$appName)
     if($null -ne $appCheck){
         Write-Delayed "Removing " -NewLine:$false
         Write-Delayed $appCheck.DisplayName -NewLine:$false
-        Write-Delayed "..."
+        Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString + " -silent"
         cmd /c $uninst
     }
