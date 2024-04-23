@@ -587,7 +587,7 @@ If ($null -ne $ProvisionedPackage)
 }
 
 ##Tweak reg permissions
-invoke-webrequest -uri "https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/SetACL.exe" -outfile "C:\Temp\SetACL.exe"
+invoke-webrequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/SetACL.exe" -outfile "C:\Temp\SetACL.exe"
 C:\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn setowner -ownr "n:$everyone"
  C:\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn ace -ace "n:$everyone;p:full"
 
@@ -687,11 +687,6 @@ if (!(Test-Path $registryPath)) {
     [Microsoft.Win32.RegistryKey]$HKUCoPilot = [Microsoft.Win32.Registry]::Users.CreateSubKey("temphive\Software\Policies\Microsoft\Windows\WindowsCopilot", [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree)
     $HKUCoPilot.SetValue("TurnOffWindowsCopilot", 0x1, [Microsoft.Win32.RegistryValueKind]::DWord)
 }
-
-        
-
-
-
     $HKUCoPilot.Flush()
     $HKUCoPilot.Close()
 [gc]::Collect()
@@ -805,8 +800,8 @@ Set-ScheduledTask -TaskPath $task.TaskPath -Enabled $false
 ##Check if GamePresenceWriter.exe exists
 if (Test-Path "$env:WinDir\System32\GameBarPresenceWriter.exe") {
     write-host "GamePresenceWriter.exe exists"
-    C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn setowner -ownr "n:$everyone"
-C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn ace -ace "n:$everyone;p:full"
+    C:\temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn setowner -ownr "n:$everyone"
+C:\temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn ace -ace "n:$everyone;p:full"
 
 #Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
 $NewAcl = Get-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
@@ -828,7 +823,7 @@ Remove-Item "$env:WinDir\System32\GameBarPresenceWriter.exe" -Force -Confirm:$fa
 
 New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\GameDVR" -Name "AllowgameDVR" -PropertyType DWORD -Value 0 -Force
 New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "SettingsPageVisibility" -PropertyType String -Value "hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode;gaming-xboxnetworking" -Force
-Remove-Item C:\Windows\Temp\SetACL.exe -recurse
+Remove-Item C:\temp\SetACL.exe -recurse
 
 ############################################################################################################
 #                                        Disable Edge Surf Game                                            #
@@ -1103,9 +1098,9 @@ $A = Start-Process -FilePath "C:\Program Files\HP\Documentation\Doc_uninstall.cm
 
 ##Remove HP Connect Optimizer if setup.exe exists
 if (test-path -Path 'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe') {
-invoke-webrequest -uri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/De-Bloat/HPConnOpt.iss" -outfile "C:\Windows\Temp\HPConnOpt.iss"
+invoke-webrequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/HPConnOpt.iss" -outfile "C:\temp\HPConnOpt.iss"
 
-&'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe' @('-s', '-f1C:\Windows\Temp\HPConnOpt.iss')
+&'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe' @('-s', '-f1C:\temp\HPConnOpt.iss')
 }
 
 ##Remove other crap
