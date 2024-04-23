@@ -16,10 +16,14 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.5.41";
+Write-Host -ForegroundColor Cyan "                                                   version 10.5.5";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
+############################################################################################################
+#                                               Functions                                                  #
+#                                                                                                          #
+############################################################################################################
 # Create temp directory and baseline log
 function Initialize-Environment {
     if (-not (Test-Path $config.TempFolder)) {
@@ -192,6 +196,56 @@ function Write-Delayed {
     }
 }
 
+# Move Procmon to the left
+function Move-ProcessWindowToTopLeft([string]$processName) {
+    $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
+    if ($null -eq $process) {
+        Write-Host "Process not found."
+        return
+    }
+
+    $hWnd = $process.MainWindowHandle
+    if ($hWnd -eq [IntPtr]::Zero) {
+        Write-Host "Window handle not found."
+        return
+    }
+
+    $windowRect = New-Object WinAPI+RECT
+    [WinAPI]::GetWindowRect($hWnd, [ref]$windowRect)
+    $windowWidth = $windowRect.Right - $windowRect.Left
+    $windowHeight = $windowRect.Bottom - $windowRect.Top
+
+    # Set coordinates to the top left corner of the screen
+    $x = 0
+    $y = 0
+
+    [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
+}
+# Move Procmon left
+Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class WinAPI {
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+    }
+"@
+
+############################################################################################################
+#                                             Start Baseline                                               #
+#                                                                                                          #
+############################################################################################################
 
 # Start baseline transcript log
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
@@ -300,6 +354,11 @@ if (Test-Path $ProcmonFile)
     [Console]::WriteLine() 
     Start-Sleep -Seconds 2
 }
+
+############################################################################################################
+#                                        Profile Customization                                             #
+#                                                                                                          #
+############################################################################################################
 
 # Check if the user 'mitsadmin' exists
 $user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
@@ -685,14 +744,14 @@ if (Test-Win11) {
     [Console]::WriteLine()    
         
     # Disable live tiles
-    Write-Delayed "Disabling live tiles" -NewLine:$false
+    Write-Delayed "Disabling live tiles..." -NewLine:$false
     $Live = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"    
     If (!(Test-Path $Live)) {      
         New-Item $Live | Out-Null
     }
     Set-ItemProperty $Live  NoTileApplicationNotification -Value 1 
 
-    ##Loop through users and do the same
+    # Loop through users and do the same
     foreach ($sid in $UserSIDs) {
         $Live = "Registry::HKU\$sid\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"    
         If (!(Test-Path $Live)) {      
@@ -705,22 +764,26 @@ if (Test-Win11) {
         [Console]::WriteLine()    
     }
 
-#Disables People icon on Taskbar
-    Write-Host "Disabling People icon on Taskbar"
+# Disable People icon on Taskbar
+    Write-Delayed "Disabling People icon on Taskbar..." -NewLine:$false
     $People = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
     If (Test-Path $People) {
-        Set-ItemProperty $People -Name PeopleBand -Value 0
+        Set-ItemProperty $People -Name PeopleBand -Value 0  
     }
 
-    ##Loop through users and do the same
+    # Loop through users and do the same
     foreach ($sid in $UserSIDs) {
         $People = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People"
         If (Test-Path $People) {
             Set-ItemProperty $People -Name PeopleBand -Value 0
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
         }
     }
 
-    Write-Host "Disabling Cortana"
+    Write-Delayed "Disabling Cortana..." -NewLine:$false
     $Cortana1 = "HKCU:\SOFTWARE\Microsoft\Personalization\Settings"
     $Cortana2 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization"
     $Cortana3 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
@@ -756,8 +819,11 @@ if (Test-Win11) {
             New-Item $Cortana3
         }
         Set-ItemProperty $Cortana3 HarvestContacts -Value 0
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()  
     }
-
 
     #Removes 3D Objects from the 'My Computer' submenu in explorer
     Write-Delayed "Removing 3D Objects from explorer 'My Computer' submenu..." -NewLine:$false
@@ -774,7 +840,8 @@ if (Test-Win11) {
     [Console]::ResetColor()
     [Console]::WriteLine()    
    
-    # Remove the Microsoft Feeds
+    # Remove Microsoft Feeds
+    Write-Delayed "Removing Microsoft Feeds..." -NewLine:$false
     $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds"
     $Name = "EnableFeeds"
     $value = "0"
@@ -826,6 +893,10 @@ if (Test-Win11) {
     [Console]::ResetColor()
     [Console]::WriteLine()    
 
+############################################################################################################
+#                                            RMM Deployment                                                #
+#                                                                                                          #
+############################################################################################################
 # ConnectWise Automate Agent Installation
 $file = 'c:\temp\Warehouse-Agent_Install.MSI'
 $agentName = "LTService"
@@ -907,7 +978,16 @@ if ($null -ne $service) {
 }
 }
 
-# Remove Dell SupportAssist
+############################################################################################################
+#                                        Remove Manufacturer Bloat                                         #
+#                                                                                                          #
+############################################################################################################
+# Get the system manufacturer
+$manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
+
+# Check if the system is manufactured by Dell
+if ($manufacturer -eq "Dell Inc.") {
+    Write-Host "Dell system detected, Removing bloatware..."
 try {
     Remove-App-MSI-QN "Dell SupportAssist"
 } catch {
@@ -916,8 +996,6 @@ try {
     [Console]::ResetColor()
     [Console]::WriteLine()
 } 
-
-
 # Remove Dell Digital Delivery
 try {
     Remove-App-MSI-QN "Dell Digital Delivery Services"
@@ -927,7 +1005,6 @@ try {
     [Console]::ResetColor()
     [Console]::WriteLine()
 } 
-
 # Remove Dell Optimizer Core
 try {
 Remove-App-EXE-SILENT "Dell Optimizer Core"
@@ -937,7 +1014,6 @@ Remove-App-EXE-SILENT "Dell Optimizer Core"
     [Console]::ResetColor()
     [Console]::WriteLine()
 } 
-
 # Remove Dell SupportAssist OS Recovery Plugin for Dell Update
 try{
 Remove-App-MSI_EXE-S "Dell SupportAssist OS Recovery Plugin for Dell Update"
@@ -947,7 +1023,6 @@ Remove-App-MSI_EXE-S "Dell SupportAssist OS Recovery Plugin for Dell Update"
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
-
 # Remove Dell SupportAssist Remediation
 try{
 Remove-App-MSI_EXE-S "Dell SupportAssist Remediation"  
@@ -957,7 +1032,6 @@ Remove-App-MSI_EXE-S "Dell SupportAssist Remediation"
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
-
 # Remove Dell Display Manager 2.1
 try{
 Remove-App-EXE-S-QUOTES "Dell Display Manager 2.1"                                 
@@ -967,7 +1041,6 @@ Remove-App-EXE-S-QUOTES "Dell Display Manager 2.1"
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
-
 # Remove Dell Peripheral Manager
 try {
 Remove-App-EXE-S-QUOTES "Dell Peripheral Manager"
@@ -977,7 +1050,6 @@ Remove-App-EXE-S-QUOTES "Dell Peripheral Manager"
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
-
 # Remove Dell Core Services
 try{
 Remove-App-MSI-I-QN "Dell Core Services" 
@@ -987,7 +1059,6 @@ Remove-App-MSI-I-QN "Dell Core Services"
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
-
 # Remove Dell Trusted Device Agent
 try {
 Remove-App-MSI-I-QN "Dell Trusted Device Agent"                                    
@@ -997,7 +1068,6 @@ Remove-App-MSI-I-QN "Dell Trusted Device Agent"
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
-
 # Remove Dell Optimizer
 try {
 Remove-App-MSI-I-QN "Dell Optimizer"                                               
@@ -1007,7 +1077,6 @@ Remove-App-MSI-I-QN "Dell Optimizer"
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
-
 # Remove Dell Command | Update for Windows Universal
 try {
     Remove-App-MSI-QN "Dell Command | Update for Windows Universal"
@@ -1017,7 +1086,6 @@ try {
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
-
 # Remove Dell Pair
 try {
     Remove-App-EXE-S-QUOTES "Dell Pair"
@@ -1027,4 +1095,488 @@ try {
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
+} 
 
+
+# Remove HP Specific Bloatware
+if ($manufacturer -like "*HP*") {
+    Write-Host "HP sysem detected, Removing bloatware..."
+$UninstallPrograms = @(
+    "HP Client Security Manager"
+    "HP Notifications"
+    "HP Security Update Service"
+    "HP System Default Settings"
+    "HP Wolf Security"
+    "HP Wolf Security Application Support for Sure Sense"
+    "HP Wolf Security Application Support for Windows"
+    "AD2F1837.HPPCHardwareDiagnosticsWindows"
+    "AD2F1837.HPPowerManager"
+    "AD2F1837.HPPrivacySettings"
+    "AD2F1837.HPQuickDrop"
+    "AD2F1837.HPSupportAssistant"
+    "AD2F1837.HPSystemInformation"
+    "AD2F1837.myHP"
+    "RealtekSemiconductorCorp.HPAudioControl",
+    "HP Sure Recover",
+    "HP Sure Run Module"
+    "RealtekSemiconductorCorp.HPAudioControl_2.39.280.0_x64__dt26b99r8h8gj"
+    "HP Wolf Security - Console"
+    "HP Wolf Security Application Support for Chrome 122.0.6261.139"
+    "Windows Driver Package - HP Inc. sselam_4_4_2_453 AntiVirus  (11/01/2022 4.4.2.453)"
+
+)
+    $WhitelistedApps = @(
+)
+
+# Add custom whitelist apps
+    # If custom whitelist specified, remove from array
+    if ($customwhitelist) {
+        $customWhitelistApps = $customwhitelist -split ","
+    foreach ($customwhitelistapp in $customwhitelistapps) {
+        $WhitelistedApps += $customwhitelistapp
+    }        
+    }
+
+$HPidentifier = "AD2F1837"
+
+$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or ($_.Name -like "^$HPidentifier"))-and ($_.Name -notlike $WhitelistedApps)}
+
+$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or ($_.DisplayName -like "*$HPidentifier"))-and ($_.DisplayName -notlike $WhitelistedApps)}
+
+$InstalledPrograms = $allstring | Where-Object {$UninstallPrograms -contains $_.Name}
+
+# Remove provisioned packages first
+ForEach ($ProvPackage in $ProvisionedPackages) {
+
+    Write-Host -Object "Attempting to remove provisioned package: [$($ProvPackage.DisplayName)]..."
+
+    Try {
+        $Null = Remove-AppxProvisionedPackage -PackageName $ProvPackage.PackageName -Online -ErrorAction Stop
+        Write-Host -Object "Successfully removed provisioned package: [$($ProvPackage.DisplayName)]"
+    }
+    Catch {Write-Warning -Message "Failed to remove provisioned package: [$($ProvPackage.DisplayName)]"}
+}
+
+# Remove appx packages
+ForEach ($AppxPackage in $InstalledPackages) {
+                                            
+    Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
+
+    Try {
+        $Null = Remove-AppxPackage -Package $AppxPackage.PackageFullName -AllUsers -ErrorAction Stop
+        Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
+    }
+    Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
+}
+
+# Remove installed programs
+$InstalledPrograms | ForEach-Object {
+
+    Write-Host -Object "Attempting to uninstall: [$($_.Name)]..."
+    $uninstallcommand = $_.String
+
+    Try {
+        if ($uninstallcommand -match "^msiexec*") {
+            #Remove msiexec as we need to split for the uninstall
+            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+            #Uninstall with string2 params
+            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            }
+            else {
+            #Exe installer, run straight path
+            $string2 = $uninstallcommand
+            start-process $string2
+            }
+        Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+    }
+    Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
+}
+# Belt and braces, remove via CIM too
+foreach ($program in $UninstallPrograms) {
+Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | Invoke-CimMethod -MethodName UnInstall
+}
+#Remove HP Documentation if it exists
+if (test-path -Path "C:\Program Files\HP\Documentation\Doc_uninstall.cmd") {
+$A = Start-Process -FilePath "C:\Program Files\HP\Documentation\Doc_uninstall.cmd" -Wait -passthru -NoNewWindow
+}
+# Remove HP Connect Optimizer 
+if (test-path -Path 'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe') {
+invoke-webrequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/HPConnOpt.iss" -outfile "C:\temp\HPConnOpt.iss"
+
+&'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe' @('-s', '-f1C:\temp\HPConnOpt.iss')
+}
+# Remove remaining items
+if (Test-Path -Path "C:\Program Files (x86)\HP\Shared" -PathType Container) {Remove-Item -Path "C:\Program Files (x86)\HP\Shared" -Recurse -Force}
+if (Test-Path -Path "C:\Program Files (x86)\Online Services" -PathType Container) {Remove-Item -Path "C:\Program Files (x86)\Online Services" -Recurse -Force}
+if (Test-Path -Path "C:\ProgramData\HP\TCO" -PathType Container) {Remove-Item -Path "C:\ProgramData\HP\TCO" -Recurse -Force}
+if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Amazon.com.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Amazon.com.lnk" -Force}
+if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Angebote.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Angebote.lnk" -Force}
+if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -Force}
+
+Write-Host "HP bloatware removal complete!"
+}
+
+# Remove Lenovo specific bloatware
+if ($manufacturer -like "Lenovo") {
+    Write-Host "Lenovo system detected, Removing bloatware..."
+    function UninstallApp {
+
+        param (
+            [string]$appName
+        )
+        # Get a list of installed applications from Programs and Features
+        $installedApps = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+        HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+        Where-Object { $_.DisplayName -like "*$appName*" }
+        # Loop through the list of installed applications and uninstall them
+        foreach ($app in $installedApps) {
+            $uninstallString = $app.UninstallString
+            $displayName = $app.DisplayName
+            Write-Host "Uninstalling: $displayName"
+            Start-Process $uninstallString -ArgumentList "/VERYSILENT" -Wait
+            Write-Host "Uninstalled: $displayName" -ForegroundColor Green
+        }
+    }
+    ##Stop Running Processes
+    $processnames = @(
+    "SmartAppearanceSVC.exe"
+    "UDClientService.exe"
+    "ModuleCoreService.exe"
+    "ProtectedModuleHost.exe"
+    "*lenovo*"
+    "FaceBeautify.exe"
+    "McCSPServiceHost.exe"
+    "mcapexe.exe"
+    "MfeAVSvc.exe"
+    "mcshield.exe"
+    "Ammbkproc.exe"
+    "AIMeetingManager.exe"
+    "DADUpdater.exe"
+    "CommercialVantage.exe"
+    )
+    foreach ($process in $processnames) {
+        write-host "Stopping Process $process"
+        Get-Process -Name $process | Stop-Process -Force
+        write-host "Process $process Stopped"
+    }
+    $UninstallPrograms = @(
+        "E046963F.AIMeetingManager"
+        "E0469640.SmartAppearance"
+        "MirametrixInc.GlancebyMirametrix"
+        "E046963F.LenovoCompanion"
+        "E0469640.LenovoUtility"
+        "E0469640.LenovoSmartCommunication"
+        "E046963F.LenovoSettingsforEnterprise"
+        "E046963F.cameraSettings"
+        "4505Fortemedia.FMAPOControl2_2.1.37.0_x64__4pejv7q2gmsnr"
+        "ElevocTechnologyCo.Ltd.SmartMicrophoneSettings_1.1.49.0_x64__ttaqwwhyt5s6t"
+    )
+        # If custom whitelist specified, remove from array
+        if ($customwhitelist) {
+            $customWhitelistApps = $customwhitelist -split ","
+            $UninstallPrograms = $UninstallPrograms | Where-Object { $customWhitelistApps -notcontains $_ }
+        }
+    $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms))}
+    $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($_.Name -in $UninstallPrograms))}
+    $InstalledPrograms = $allstring | Where-Object {(($_.Name -in $UninstallPrograms))}
+    # Remove provisioned packages first
+    ForEach ($ProvPackage in $ProvisionedPackages) {
+        Write-Host -Object "Attempting to remove provisioned package: [$($ProvPackage.DisplayName)]..."
+        Try {
+            $Null = Remove-AppxProvisionedPackage -PackageName $ProvPackage.PackageName -Online -ErrorAction Stop
+            Write-Host -Object "Successfully removed provisioned package: [$($ProvPackage.DisplayName)]"
+        }
+        Catch {Write-Warning -Message "Failed to remove provisioned package: [$($ProvPackage.DisplayName)]"}
+    }
+    # Remove appx packages
+    ForEach ($AppxPackage in $InstalledPackages) {                               
+        Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
+        Try {
+            $Null = Remove-AppxPackage -Package $AppxPackage.PackageFullName -AllUsers -ErrorAction Stop
+            Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
+        }
+        Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
+    }
+    # Remove any bundled packages
+    ForEach ($AppxPackage in $InstalledPackages) {                                          
+        Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
+        Try {
+            $null = Get-AppxPackage -AllUsers -PackageTypeFilter Main, Bundle, Resource -Name $AppxPackage.Name | Remove-AppxPackage -AllUsers
+            Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
+        }
+        Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
+    }
+# Remove installed programs
+$InstalledPrograms | ForEach-Object {
+    Write-Host -Object "Attempting to uninstall: [$($_.Name)]..."
+    $uninstallcommand = $_.String
+    Try {
+        if ($uninstallcommand -match "^msiexec*") {
+            #Remove msiexec as we need to split for the uninstall
+            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+            #Uninstall with string2 params
+            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            }
+            else {
+            #Exe installer, run straight path
+            $string2 = $uninstallcommand
+            start-process $string2
+            }
+        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
+        #$Null = $_ | Uninstall-Package -AllVersions -Force -ErrorAction Stop
+        Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+    }
+    Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
+}
+# Remove via CIM
+foreach ($program in $UninstallPrograms) {
+    Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | Invoke-CimMethod -MethodName UnInstall
+    }
+    # Get Lenovo Vantage service uninstall string to uninstall service
+    $lvs = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object DisplayName -eq "Lenovo Vantage Service"
+    if (!([string]::IsNullOrEmpty($lvs.QuietUninstallString))) {
+        $uninstall = "cmd /c " + $lvs.QuietUninstallString
+        Write-Host $uninstall
+        Invoke-Expression $uninstall
+    }
+    # Uninstall Lenovo Smart
+    UninstallApp -appName "Lenovo Smart"
+    # Uninstall Ai Meeting Manager Service
+    UninstallApp -appName "Ai Meeting Manager"
+    # Uninstall ImController service
+    ##Check if exists
+    $path = "c:\windows\system32\ImController.InfInstaller.exe"
+    if (Test-Path $path) {
+        Write-Host "ImController.InfInstaller.exe exists"
+        $uninstall = "cmd /c " + $path + " -uninstall"
+        Write-Host $uninstall
+        Invoke-Expression $uninstall
+    }
+    # Invoke-Expression -Command 'cmd.exe /c "c:\windows\system32\ImController.InfInstaller.exe" -uninstall'
+
+    # Remove vantage associated registry keys
+    Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\E046963F.LenovoCompanion_k1h2ywk1493x8' -Recurse -ErrorAction SilentlyContinue
+    Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\ImController' -Recurse -ErrorAction SilentlyContinue
+    Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\Lenovo Vantage' -Recurse -ErrorAction SilentlyContinue
+    #Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\Commercial Vantage' -Recurse -ErrorAction SilentlyContinue
+     # Uninstall AI Meeting Manager Service
+     $path = 'C:\Program Files\Lenovo\Ai Meeting Manager Service\unins000.exe'
+     $params = "/SILENT"
+     if (test-path -Path $path) {
+     Start-Process -FilePath $path -ArgumentList $params -Wait
+     }
+    # Uninstall Lenovo Vantage
+    $pathname = (Get-ChildItem -Path "C:\Program Files (x86)\Lenovo\VantageService").name
+    $path = "C:\Program Files (x86)\Lenovo\VantageService\$pathname\Uninstall.exe"
+    $params = '/SILENT'
+    if (test-path -Path $path) {
+        Start-Process -FilePath $path -ArgumentList $params -Wait
+    }
+    ##Uninstall Smart Appearance
+    $path = 'C:\Program Files\Lenovo\Lenovo Smart Appearance Components\unins000.exe'
+    $params = '/SILENT'
+    if (test-path -Path $path) {
+        try {
+            Start-Process -FilePath $path -ArgumentList $params -Wait
+        }
+        catch {
+            Write-Warning "Failed to start the process"
+        }
+    }
+$lenovowelcome = "c:\program files (x86)\lenovo\lenovowelcome\x86"
+if (Test-Path $lenovowelcome) {
+    # Remove Lenovo Now
+    Set-Location "c:\program files (x86)\lenovo\lenovowelcome\x86"
+    # Update $PSScriptRoot with the new working directory
+    $PSScriptRoot = (Get-Item -Path ".\").FullName
+    invoke-expression -command .\uninstall.ps1
+    Write-Host "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+}
+$lenovonow = "c:\program files (x86)\lenovo\LenovoNow\x86"
+if (Test-Path $lenovonow) {
+    # Remove Lenovo Now
+    Set-Location "c:\program files (x86)\lenovo\LenovoNow\x86"
+    # Update $PSScriptRoot with the new working directory
+    $PSScriptRoot = (Get-Item -Path ".\").FullName
+    invoke-expression -command .\uninstall.ps1
+    Write-Host "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+}
+}
+
+
+############################################################################################################
+#                                        Remove Pre-installed Office                                       #
+#                                                                                                          #
+############################################################################################################
+# Remove Microsoft 365 - en-us
+try {
+    Remove-M365 "Microsoft 365 - en-us"                                                  
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+# Remove Microsoft 365 - fr-fr
+try {
+    Remove-M365 "Microsoft 365 - fr-fr"                                                        
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+# Remove-M365 Microsoft 365 - es-es
+try {
+    Remove-M365 "Microsoft 365 - es-es"                                                    
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }                                
+# Remove-M365 "Microsoft 365 - pt-br
+try {
+    Remove-M365 "Microsoft 365 - es-es"                                                    
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+
+############################################################################################################
+#                                       Remove Pre-installed OneNote                                       #
+#                                                                                                          #
+############################################################################################################
+# Remove-M365 Microsoft OneNote - en-us
+try {
+    Remove-M365 "Microsoft OneNote - en-us"                                                      
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }                                             
+# Remove-M365 Microsoft OneNote - fr-fr
+try {
+    Remove-M365 "Microsoft OneNote - fr-fr"                                                     
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }                                         
+# Remove-M365 Microsoft OneNote - es-es
+try {
+    Remove-M365 "Microsoft OneNote - es-es"                                                   
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }                                        
+# Remove-M365 Microsoft OneNote - pt-br
+try {
+    Remove-M365 "Microsoft OneNote - pt-br"                                                    
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }                                          
+############################################################################################################
+#                                       Configure BitLocker Encryption                                     #
+#                                                                                                          #
+############################################################################################################
+# Check Bitlocker Compatibility
+$WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
+$TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
+$BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
+
+if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
+    # Check if Bitlocker is already configured on C:
+    $BitLockerStatus = Get-BitLockerVolume -MountPoint $env:SystemDrive
+    # Ensure the output directory exists
+    $outputDirectory = "C:\temp"
+    if (-not (Test-Path -Path $outputDirectory)) {
+        New-Item -Path $outputDirectory -ItemType Directory | Out-Null
+    }
+    if ($BitLockerStatus.ProtectionStatus -eq 'On') {
+        # Bitlocker is already configured
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Bitlocker is already configured on $env:SystemDrive" -NewLine:$true
+        $userResponse = Read-Host "Do you want to skip configuring Bitlocker? (yes/no)"
+        if ($userResponse -like 'n') {
+            # Disable BitLocker
+            manage-bde -off $env:SystemDrive | Out-Null
+
+            # Monitor decryption progress
+            do {
+                $status = manage-bde -status $env:SystemDrive
+                $percentageEncrypted = ($status | Select-String -Pattern "Percentage Encrypted:.*").ToString().Split(":")[1].Trim()
+                Write-Host "`rCurrent decryption progress: $percentageEncrypted" -NoNewline
+                Start-Sleep -Seconds 1
+            } until ($percentageEncrypted -eq "0.0%")
+            Write-Host "`nDecryption of $env:SystemDrive is complete."
+            # Reconfigure BitLocker
+            Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
+            Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
+            Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
+            Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait | Out-Null
+            # Verify volume key protector exists
+            $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
+            if ($BitLockerVolume.KeyProtector) {
+                Write-Host "Bitlocker disk encryption configured successfully."
+            } else {
+                Write-Host "Bitlocker disk encryption is not configured."
+            }
+        }
+    } else {
+        # Bitlocker is not configured
+        Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
+        # Create the recovery key
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
+        # Add TPM key
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
+        Start-Sleep -Seconds 15 # Wait for the protectors to take effect
+        # Enable Encryption
+        Start-Process 'manage-bde.exe' -ArgumentList "-on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait | Out-Null
+        # Backup the Recovery to AD
+        $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
+        manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID | Out-Null
+        # Write Recovery Key to a file
+        manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
+        # Verify volume key protector exists
+        $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
+        if ($BitLockerVolume.KeyProtector) {
+            Write-Delayed "Bitlocker disk encryption configured successfully." -NewLine:$true
+            Write-Host "Recovery ID: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
+            Write-Host "Recovery Password: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
+        } else {
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Bitlocker disk encryption is not configured." -NewLine:$true
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+        }
+    }
+} else {
+    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    Start-Sleep -Seconds 1
+}
+
+# Launch Procmon
+$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+$wshell = New-Object -ComObject wscript.shell
+Start-Sleep -Seconds 3
+$wshell.SendKeys("^a")
+Start-Sleep -Seconds 2
+
+
+
+
+
+Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
+
+Start-Sleep -Seconds 2
