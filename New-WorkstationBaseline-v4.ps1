@@ -324,170 +324,135 @@ try {
     Write-Host "An error occurred: $_" -ForegroundColor Red
 }
 
-Function Disable-OfflineFileSync {
-    param (
-        [string]$RegistryPath
-    )
-
-    try {
-        # Check if the registry path is null or empty
-        if (-not $RegistryPath) {
-            throw "RegistryPath is null or empty."
-        }
-
-        Write-Host "Disabling Offline File Sync..." -NoNewline
-
-        # Check if the registry path exists, if not, create it
-        if (-not (Test-Path -Path $RegistryPath)) {
-            New-Item -Path $RegistryPath -Force -ErrorAction Stop > $null
-        }
-
-        # Set the registry value
-        Set-ItemProperty -Path $RegistryPath -Name "Start" -Value 4 -ErrorAction Stop > $null
-
-        Write-Host " done." -ForegroundColor Green
-        Write-Log "Offline file sync disabled."
-        return $true
-    } catch {
-        Write-Host "An error occurred: $_" -ForegroundColor Red
-        Write-Log "Error occurred while disabling offline file sync: $_"
-        return $false
-    }
-}
-
-# Main script
+# Disable Offline File Sync
 $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
-if (Disable-OfflineFileSync -RegistryPath $registryPath) {
-    Write-Host "Offline File Sync disabled successfully." -ForegroundColor Green
-} else {
-    Write-Host "Failed to disable Offline File Sync." -ForegroundColor Red
-}
 
+# Check if the registry path exists, if not, create it
+if (-not (Test-Path -Path $registryPath)) {
+    New-Item -Path $registryPath -Force *> $null
+}
+Write-Delayed "Disabling Offline File Sync..." -NewLine:$false
+Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+Start-Sleep -Seconds 2
+Write-Log "Offline file sync disabled."
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Start-Sleep -Seconds 2
 
 
 # Set power profile to 'Balanced'
-Write-Host "Setting 'Balanced' Power Profile..." -NoNewline
+Write-Delayed "Setting 'Balanced' Power Profile..." -NewLine:$false
+Start-Sleep -Seconds 2
+powercfg /S SCHEME_BALANCED *> $null
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Write-Log "Power profile set to 'Balanced'."
+Start-Sleep -Seconds 5
 
-try {
-    # Set the power profile
-    powercfg /S SCHEME_BALANCED 
-
-    Write-Host " done." -ForegroundColor Green
-    Write-Log "Power profile set to 'Balanced'."
-} catch {
-    Write-Host "An error occurred: $_" -ForegroundColor Red
-}
 
 # Disable sleep and hibernation modes
-Write-Host "Disabling Sleep & Hibernation..." -NoNewline
+Start-Sleep -Seconds 1
+Write-Delayed "Disabling Sleep & Hibernation..." -NewLine:$false
+powercfg /change standby-timeout-ac 0 *> $null
+powercfg /change hibernate-timeout-ac 0 *> $null
+powercfg /h off *> $null
+Start-Sleep -Seconds 2
+Write-Log "Disabled sleep and hibernation mode."
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Start-Sleep -Seconds 2
 
-try {
-    # Disable standby timeout
-    powercfg /change standby-timeout-ac 0 
 
-    # Disable hibernate timeout
-    powercfg /change hibernate-timeout-ac 0 
-
-    # Turn off hibernation
-    powercfg /h off 
-
-    Write-Host " done." -ForegroundColor Green
-    Write-Log "Disabled sleep and hibernation mode."
-} catch {
-    Write-Host "An error occurred: $_" -ForegroundColor Red
-}
-
-# Function to disable Fast Startup
-Function Disable-FastStartup {
-    $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
-    $errorOccurred = $false
-
-    try {
-        Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 -ErrorAction Stop
-        Write-Host " done." -ForegroundColor Green
-        Write-Log "Fast startup disabled."
-    } catch {
-        $errorOccurred = $true
-        Write-Host "An error occurred: $_" -ForegroundColor Red
-        Write-Log "Error occurred while disabling fast startup: $_"
-    }
-
-    return -not $errorOccurred
-}
-
-# Main script
-Write-Host "Disabling Fast Startup..." -NoNewline
-
-# Check if Fast Startup was successfully disabled
-if (Disable-FastStartup) {
-    Write-Host "Fast Startup disabled successfully." -ForegroundColor Green
-} else {
-    Write-Host "Failed to disable Fast Startup." -ForegroundColor Red
-}
+# Disable fast startup
+Start-Sleep -Seconds 2
+Write-Delayed "Disabling Fast Startup..." -NewLine:$false
+$regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
+Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
+Write-Log "Fast startup disabled."
+#& $config.FastStartup
+Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Start-Sleep -Seconds 5
 
 
 # Set power button action to 'Shutdown'
-Write-Host "Configuring 'Shutdown' power button action..." -NoNewline
+Start-Sleep -Seconds 2
+Write-Delayed "Configuring 'Shutdown' power button action..." -NewLine:$false
+powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
+powercfg /SETACTIVE SCHEME_CURRENT
+& $config.PwrButton
+Start-Sleep -Seconds 2
+Write-Log "Power button action set to 'Shutdown'."
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Start-Sleep -Seconds 5
 
-try {
-    # Set the power button action
-    powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3 *> $null
-    powercfg /SETACTIVE SCHEME_CURRENT *> $null
-    & $config.PwrButton
-
-    Write-Host " done." -ForegroundColor Green
-    Write-Log "Power button action set to 'Shutdown'."
-} catch {
-    Write-Host "An error occurred: $_" -ForegroundColor Red
-}
 
 # Set 'lid close action' to do nothing on laptops
+Start-Sleep -Seconds 1
 if ($deviceType -eq "Laptop") {
-    Write-Host "Setting 'Do Nothing' lid close action..." -NoNewline
-
-    try {
-        # Set the lid close action
-        powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0 *> $null
-        powercfg /SETACTIVE SCHEME_CURRENT *> $null
-        & $config.LidAction
-
-        Write-Host " done." -ForegroundColor Green
-        Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
-    } catch {
-        Write-Host "An error occurred: $_" -ForegroundColor Red
-    }
+    Write-Delayed "Setting 'Do Nothing' lid close action..." -NewLine:$false
+    powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
+    powercfg /SETACTIVE SCHEME_CURRENT
+    Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
+    & $config.LidAction
+    Start-Sleep -Seconds 2
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+    Start-Sleep -Seconds 5
 }
+
 
 # Set the time zone to 'Eastern Standard Time'
-Write-Host "Setting EST as default timezone..." -NoNewline
+Write-Delayed "Setting EST as default timezone..." -NewLine:$false
+Start-Sleep -Seconds 2
+Start-Service W32Time
+Set-TimeZone -Id "Eastern Standard Time" 
+Write-Log "Time zone set to Eastern Standard Time."
+Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Start-Sleep -Seconds 3
+Write-Delayed "Syncing system clock..." -NewLine:$false
+w32tm /resync -ErrorAction SilentlyContinue | out-null
+Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine()    
+Write-Log "Synced system clock"
+Start-Sleep -Seconds 5
 
-try {
-    Start-Service W32Time
-    Set-TimeZone -Id "Eastern Standard Time" 
-    Write-Host " done." -ForegroundColor Green
-    Write-Log "Time zone set to Eastern Standard Time."
-
-    Write-Host "Syncing system clock..." -NoNewline
-    w32tm /resync -ErrorAction SilentlyContinue | Out-Null
-    Write-Host " done." -ForegroundColor Green
-    Write-Log "Synced system clock"
-} catch {
-    Write-Host "An error occurred: $_" -ForegroundColor Red
-}
 
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
 
-# Enable system restore
-Write-Host "Enabling System Restore..." -NoNewline
 
-try {
-    Enable-ComputerRestore -Drive "C:\" -Confirm:$false
-    Write-Host " done." -ForegroundColor Green
-    Write-Log "System Restore Enabled."
-} catch {
-    Write-Host "An error occurred: $_" -ForegroundColor Red
-}
+# Enable system restore
+Write-Delayed "Enabling System Restore..." -NewLine:$false
+Enable-ComputerRestore -Drive "C:\" -Confirm:$false
+Write-Log "System Restore Enabled."
+Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine()    
+Start-Sleep -Seconds 5
 
 # Offline Files Function to check if the OS is Windows 10
 function Test-Win10 {
