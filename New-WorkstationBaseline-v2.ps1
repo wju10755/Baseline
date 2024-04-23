@@ -1231,7 +1231,6 @@ function Move-ProcessWindowToTopRight([string]$processName) {
 }
 
 # Installing Windows Updates
-#& $config.UpdateNotice
 $IWU = "Checking for Windows Updates..."
 foreach ($Char in $IWU.ToCharArray()) {
     [Console]::Write("$Char")

@@ -989,7 +989,7 @@ if ($null -ne $service) {
 }
 
 ############################################################################################################
-#                                        Remove Manufacturer Bloat                                         #
+#                                        Remove Dell Bloatware                                             #
 #                                                                                                          #
 ############################################################################################################
 # Get the system manufacturer
@@ -1106,8 +1106,41 @@ try {
     [Console]::WriteLine()
 }
 } 
+# List of applications to uninstall
+$applicationList = "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services"
 
+# Get the list of installed software
+$installedSoftware = Get-InstalledSoftware $applicationList |
+    Where-Object { $_.DisplayName -ne "Dell Trusted Device Agent" } |
+    Select-Object -ExpandProperty DisplayName
 
+if ($installedSoftware) {
+    foreach ($software in $installedSoftware) {
+        try {
+            $params = @{
+                Name        = $software
+                ErrorAction = "Stop"
+            }
+
+            if ($software -eq "Dell Optimizer Core") {
+                # uninstallation isn't unattended without -silent switch
+                $params["addArgument"] = "-silent"
+            }
+
+            # Uninstall the software
+            Write-Host "Uninstalling $software..."
+            Uninstall-ApplicationViaUninstallString @params
+            Write-Host "$software uninstalled successfully." -ForegroundColor "Green"
+        } catch {
+            Write-Warning "Failed to uninstall $software. Error: $($_.Exception.Message)"
+        }
+    }
+} 
+
+############################################################################################################
+#                                          Remove HP Bloatware                                             #
+#                                                                                                          #
+############################################################################################################
 # Remove HP Specific Bloatware
 if ($manufacturer -like "*HP*") {
     Write-Host "HP sysem detected, Removing bloatware..."
@@ -1226,6 +1259,10 @@ if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Ce
 Write-Host "HP bloatware removal complete!"
 }
 
+############################################################################################################
+#                                          Remove Lenovo Bloatware                                         #
+#                                                                                                          #
+############################################################################################################
 # Remove Lenovo specific bloatware
 if ($manufacturer -like "Lenovo") {
     Write-Host "Lenovo system detected, Removing bloatware..."
@@ -1247,7 +1284,7 @@ if ($manufacturer -like "Lenovo") {
             Write-Host "Uninstalled: $displayName" -ForegroundColor Green
         }
     }
-    ##Stop Running Processes
+    # Stop Running Processes
     $processnames = @(
     "SmartAppearanceSVC.exe"
     "UDClientService.exe"
@@ -1585,3 +1622,495 @@ Start-Sleep -Seconds 2
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 Start-Sleep -Seconds 2
 
+# Terminate any existing OfficeClickToRun processes
+Write-Delayed "Checking for active OfficeClickToRun processes..." -NewLine:$false
+while ($true) {
+    # Get the process
+    $process = Get-Process -Name "OfficeClickToRun" -ErrorAction SilentlyContinue
+    # Check if the process is running
+    if ($process) {
+        # Terminate the process
+        $process | Stop-Process -Force
+    } else {
+        # If the process is not found, exit the loop
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$true
+    [Console]::ResetColor()
+        break
+    }
+    # Wait for a short period before checking again
+    Start-Sleep -Seconds 1
+}
+
+# Install Office 365
+$O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
+
+if ($O365) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    Write-Delayed "Existing Microsoft Office installation found."
+    [Console]::ResetColor()
+    goto NE_Install    
+} else {
+    $OfficePath = "c:\temp\OfficeSetup.exe"
+    if (-not (Test-Path $OfficePath)) {
+        $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
+        Write-Delayed "Downloading Microsoft Office 365..." -NewLine:$false
+        Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done."
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+    # Validate successful download by checking the file size
+    $FileSize = (Get-Item $OfficePath).Length
+    $ExpectedSize = 7651616 # in bytes
+    if ($FileSize -eq $ExpectedSize) {
+        #& $config.officeNotice
+        Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
+            taskkill /f /im OfficeClickToRun.exe *> $null
+            taskkill /f /im OfficeC2RClient.exe *> $null
+            Start-Sleep -Seconds 3
+            Start-Process -FilePath $OfficePath -Wait
+        if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
+            Write-Log "Office 365 Installation Completed Successfully."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+            Start-Sleep -Seconds 10
+            Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
+            } else {
+            Write-Log "Office 365 installation failed."
+            Write-Delayed "Microsoft Office 365 installation failed."
+            }   
+    }
+    else {
+        # Report download error
+        Write-Log "Office download failed!"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Download failed or file size does not match."
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+        Start-Sleep -Seconds 10
+        Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
+    }
+}
+
+# Install Google Chrome
+$Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Google Chrome*" }
+if ($Chrome) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    $FoundChrome = "Existing Google Chrome installation found."
+    foreach ($Char in $FoundChrome.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
+} else {
+    $ChromePath = "c:\temp\ChromeSetup.exe"
+    if (-not (Test-Path $ChromePath)) {
+        $ProgressPreference = 'Continue'
+        $ChromeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
+        $CWDL = "Downloading Google Chrome..."
+    foreach ($Char in $CWDL.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 30
+    }   
+        Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.`n")
+        [Console]::ResetColor() 
+    }
+    # Validate successful download by checking the file size
+    $FileSize = (Get-Item $ChromePath).Length
+    $ExpectedSize = 1373744 # in bytes 
+    if ($FileSize -eq $ExpectedSize) {
+       Write-Delayed "Installing Google Chrome..." -NewLine:$false
+        Start-Process -FilePath $ChromePath -ArgumentList "/silent /install" -Wait
+        Write-Log "Google Chrome installed successfully."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done."
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+        Start-Sleep -Seconds 10
+        Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
+    }
+    else {
+        # Report download error
+        Write-Log "Google Chrome download failed!"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Download failed or file size does not match."
+        [Console]::ResetColor()
+        [Console]::WriteLine() 
+        Start-Sleep -Seconds 10
+        Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
+    }
+}
+
+# Acrobat Installation
+$AcroFilePath = "c:\temp\AcroRead.exe"
+$Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                            HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Adobe Acrobat (64-bit)*" }
+Start-Sleep -Seconds 1
+if ($Acrobat) {
+    Write-Host "Existing Acrobat Reader installation found." -ForegroundColor "Cyan"
+} else {
+    if (-not (Test-Path $AcroFilePath)) {
+        # If not found, download it
+        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRead.exe"
+        $ProgressPreference = 'SilentlyContinue'
+        $response = Invoke-WebRequest -Uri $URL -Method Head
+        $fileSize = $response.Headers["Content-Length"]
+        $ProgressPreference = 'Continue'
+        Write-Delayed "Downloading Adobe Acrobat Reader ($fileSize bytes)..." -NewLine:$false
+        Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done."
+        [Console]::ResetColor()
+        [Console]::WriteLine() 
+    }
+    # Validate successful download by checking the file size
+    $FileSize = (Get-Item $AcroFilePath).Length
+    $ExpectedSize = 1452648 # in bytes
+    if ($FileSize -eq $ExpectedSize) {
+        Write-Delayed "Installing Adobe Acrobat Reader..." -NewLine:$false
+        Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -PassThru | Out-Null
+        Start-Sleep -Seconds 150
+        # Create a FileSystemWatcher to monitor the specified file
+        $watcher = New-Object System.IO.FileSystemWatcher
+        $watcher.Path = "C:\Program Files (x86)\Common Files\adobe\Reader\Temp\*"
+        $watcher.Filter = "installer.bin"
+        $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName
+        $watcher.EnableRaisingEvents = $true
+        # When installer.bin is deleted, kill the acroread.exe process
+        Register-ObjectEvent $watcher "Deleted" -Action {
+            Start-Sleep -Seconds 15
+            #& taskkill /f /im acroread.exe
+            #Write-Host "acroread.exe process killed" -ForegroundColor "Green"
+        } | Out-Null
+        function Check-MsiexecSession {
+            $msiexecProcesses = Get-Process msiexec -ErrorAction SilentlyContinue
+            $hasSessionOne = $msiexecProcesses | Where-Object { $_.SessionId -eq 1 }
+        
+            return $hasSessionOne
+        }
+        # Loop to continually check the msiexec process
+        do {
+        Start-Sleep -Seconds 10  # Wait for 10 seconds before checking again
+        $msiexecSessionOne = Check-MsiexecSession
+        } while ($msiexecSessionOne)
+        # Once there are no msiexec processes with Session ID 1, kill acroread.exe
+        Start-Sleep 15
+        taskkill /f /im acroread.exe *> $null
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done."
+        [Console]::ResetColor()
+        [Console]::WriteLine() 
+        Write-Log "Adobe Acrobat installation complete." -ForegroundColor Green
+        } else {
+        # Report download error
+        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
+        Start-Sleep -Seconds 5
+        Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
+    }
+}
+
+# Install NetExtender
+$SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
+if ($SWNE) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    Write-Delayed "Existing Sonicwall NetExtender installation found."
+    [Console]::ResetColor()   
+} else {
+    $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
+    if (-not (Test-Path $NEFilePath)) {
+        $NEURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
+        Invoke-WebRequest -OutFile $NEFilePath -Uri $NEURL -UseBasicParsing
+    }
+    # Validate successful download by checking the file size
+    $FileSize = (Get-Item $NEFilePath).Length
+    $ExpectedSize = 4788816 # in bytes 
+    if ($FileSize -eq $ExpectedSize) {
+        Write-Delayed "Installing Sonicwall NetExtender..." -NewLine:$false
+        start-process -filepath $NEFilePath /S -Wait
+        if (Test-Path $config.NEGui) {
+            Write-Log "Sonicwall NetExtender installation completed successfully."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done."
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+            Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
+        }
+    } else {
+        # Report download error
+        Write-Log "Sonicwall NetExtender download failed!"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Download failed! File does not exist or size does not match."
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+        Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
+    }
+}
+
+# Remove Microsoft OneDrive
+try {
+    $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+    if ($OneDriveProduct) {
+        Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
+        $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
+        # Recheck if OneDrive is uninstalled
+        $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+        if (-not $OneDriveProduct) {
+            Write-Log "OneDrive has been successfully removed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done."
+            [Console]::ResetColor()
+            [Console]::WriteLine()    
+        } else {
+            Write-Log "Failed to remove OneDrive."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Failed to remove OneDrive."
+            [Console]::ResetColor()
+            [Console]::WriteLine()    
+        }
+    } else {
+            Write-Delayed "OneDrive installation not found."
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+    }
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "An error occurred: $_"
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+
+# Remove Microsoft Teams Machine-Wide Installer
+try {
+    $TeamsMWI = Get-Package -Name 'Teams Machine*'
+    if ($TeamsMWI) {
+        Write-Delayed "Removing Microsoft Teams Machine-Wide Installer..." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+        Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
+        $MWICheck = Get-Package -Name 'Teams Machine*'
+        if (-not $MWICheck) {
+            Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done."
+            [Console]::ResetColor()
+            [Console]::WriteLine()   
+        } else {
+            Write-Log "Failed to uninstall Teams Machine Wide Installer."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Failed to uninstall Teams Machine Wide Installer."
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        }
+    } else {
+        Write-Delayed "Teams machine wide installation not found."
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+    }
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "An error occurred: $_"
+}
+
+# Function to check if the OS is Windows 11
+function Is-Windows11 {
+    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
+    $osVersion = $osInfo.Version
+    $osProduct = $osInfo.Caption
+    # Check for Windows 11
+    return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
+}
+# Check if the OS is Windows 11
+if (Is-Windows11) {
+    try {
+        $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
+        $Win11DebloatFile = "c:\temp\MITS-Debloat.zip"
+        Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
+        Start-Sleep -seconds 2
+        Expand-Archive $Win11DebloatFile -DestinationPath 'c:\temp\MITS-Debloat'
+        Start-Sleep -Seconds 2
+        Start-Process powershell -ArgumentList "-noexit","-Command Invoke-Expression -Command '& ''C:\temp\MITS-Debloat\MITS-Debloat.ps1'' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent'"
+        Start-Sleep -Seconds 2
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait('%{TAB}') 
+        Write-Log "Windows 11 Debloat completed successfully."
+    }
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    }
+}
+else {
+    #Write-Log "This script is intended to run only on Windows 11."
+}
+
+
+# Function to check if the OS is Windows 10
+function Is-Windows10 {
+    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
+    $osVersion = $osInfo.Version
+    $osProduct = $osInfo.Caption
+    # Check for Windows 10
+    return $osVersion -lt "10.0.22000" -and $osProduct -like "*Windows 10*"
+}
+# Trigger MITS Debloat for Windows 10
+if (Is-Windows10) {
+    try {
+        $MITSDebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
+        $MITSDebloatFile = "c:\temp\MITS-Debloat.zip"
+        Invoke-WebRequest -Uri $MITSDebloatURL -OutFile $MITSDebloatFile -UseBasicParsing -ErrorAction Stop 
+        Start-Sleep -seconds 2
+        Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
+        Start-Sleep -Seconds 2
+        Start-Process powershell -ArgumentList "-noexit","-Command Invoke-Expression -Command '& ''C:\temp\MITS-Debloat\MITS-Debloat.ps1'' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent'"
+        Write-Log "Windows 10 Debloat completed successfully."
+    }
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    }
+}
+else {
+    #Write-Host "This script is intended to run only on Windows 10."
+}
+
+# Enable and start Windows Update Service
+Write-Delayed "Enabling Windows Update Service..." -NewLine:$false
+Set-Service -Name wuauserv -StartupType Manual
+Start-Sleep -seconds 3
+Start-Service -Name wuauserv
+Start-Sleep -Seconds 5
+$service = Get-Service -Name wuauserv
+if ($service.Status -eq 'Running') {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    Write-Delayed " done."
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed " failed."
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
+}
+
+# Installing Windows Updates
+$IWU = "Checking for Windows Updates..."
+foreach ($Char in $IWU.ToCharArray()) {
+    [Console]::Write("$Char")
+    Start-Sleep -Milliseconds 30
+}
+ 
+$ProgressPreference = 'SilentlyContinue'
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Update_Windows-v2.ps1" -OutFile "c:\temp\update_windows.ps1"
+$ProgressPreference = 'Continue'
+if (Test-Path "c:\temp\update_windows.ps1") {
+    $updatePath = "C:\temp\Update_Windows.ps1"
+    $null = Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath *> $null
+    Start-Sleep -seconds 3
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
+    Move-ProcessWindowToTopRight -processName "Windows PowerShell" | Out-Null
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    Write-Log "All available Windows updates are installed."  
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "Windows Update execution failed!"
+        [Console]::ResetColor()
+        [Console]::WriteLine()  
+}
+
+function Connect-VPN {
+    if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
+        Write-Delayed "NetExtender detected successfully, starting connection..." -NewLine:$false
+        Start-Process C:\temp\ssl-vpn.bat
+        Start-Sleep -Seconds 6
+        $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
+        if ($connectionProfile) {
+            Write-Delayed "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN." -NewLine:$true
+        } else {
+            Write-Delayed "The 'Sonicwall NetExtender' adapter is not connected to the SSLVPN." -NewLine:$true
+        }
+    } else {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "SonicWall NetExtender not found"
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+}
+
+#[Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
+Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$false
+$ProgressPreference = 'SilentlyContinue'
+try {
+    Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "Failed to download SSL VPN installer: $_"
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    exit
+}
+$ProgressPreference = 'Continue'
+
+$choice = Read-Host "Do you want to connect to SSL VPN? (Y/N)"
+switch ($choice) {
+    "Y" { Connect-VPN }
+    "N" { Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true }
+    default { Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true }
+}
+[Console]::WriteLine()
+$choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
+switch ($choice) {
+    "S" {
+        $username = Read-Host "Enter the username for the domain join operation"
+        $password = Read-Host "Enter the password for the domain join operation" -AsSecureString
+        $cred = New-Object System.Management.Automation.PSCredential($username, $password)
+        $domain = Read-Host "Enter the domain name for the domain join operation"
+        try {
+            Add-Computer -DomainName $domain -Credential $cred 
+            Write-Delayed "Domain join operation completed successfully." -NewLine:$true
+        } catch {
+            Write-Delayed "Failed to join the domain." -NewLine:$true
+        }
+    }
+    "A" {
+        Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
+        Start-Process "ms-settings:workplace"
+        Start-Sleep -Seconds 3
+        $output = dsregcmd /status | Out-String
+        $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
+        $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
+        Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
+    }
+    default { Write-Delayed "Invalid choice. Please enter A or S." -NewLine:$true }
+}
+
+# Aquire Wake Lock (Prevents idle session & screen lock)
+New-Item -ItemType File -Path "c:\temp\WakeLock.flag" -Force *> $null
+
+# Final log entry
+Write-Log "Baseline configuration completed successfully."
+Write-Delayed "Baseline configuration completed successfully." -NewLine:$true
+Stop-Transcript  
+Start-Sleep -seconds 1
+Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1" -UseBasicParsing
+$scriptPath = "c:\temp\BaselineComplete.ps1"
+Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
+Write-Host " "
+Write-Host " "
+Read-Host -Prompt "Press Enter to exit"
