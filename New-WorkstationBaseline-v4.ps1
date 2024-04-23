@@ -604,3 +604,19 @@ if ($null -ne $service) {
             [Console]::ResetColor()
 }
 }
+
+# Remove Dell SupportAssist
+Write-Delayed "Removing Dell Support Assist..." -NewLine:$false
+try {
+    Remove-App-MSI-QN "Dell SupportAssist"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+} finally {
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+
