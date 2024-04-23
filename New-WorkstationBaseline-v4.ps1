@@ -16,7 +16,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.4.7";
+Write-Host -ForegroundColor Cyan "                                                   version 10.4.8";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -272,14 +272,16 @@ Start-Sleep -Seconds 1
 
 # Stage Procmon
 Write-Delayed "Staging Process Monitor..." -NewLine:$false
+$ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
+$ProcmonFile = "c:\temp\Procmon.exe"
 
 # Download Procmon from LabTech server
-Invoke-WebRequest -Uri $config.ProcmonURL -OutFile $config.ProcmonFile *> $null
+Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
 
 if (Test-Path $config.ProcmonFile)
 {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
+    [Console]::Write(" done.") 
     [Console]::ResetColor()
     [Console]::WriteLine() 
     Start-Sleep -Seconds 2
