@@ -16,7 +16,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.4.5";
+Write-Host -ForegroundColor Cyan "                                                   version 10.4.6";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -90,13 +90,15 @@ Function Remove-App-MSI_EXE-S([String]$appName)
 {
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
-        Write-host "Uninstalling "$appCheck.DisplayName
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString[1] +  " /S"
         cmd /c $uninst
-
     }
     else{
-        Write-Host "$appName is not installed on this computer"
+        Write-Delayed $appName -NewLine:$false
+        Write-Delayed " is not installed on this computer"
     }
 }
 
@@ -654,3 +656,15 @@ Remove-App-EXE-SILENT "Dell Optimizer Core"
     [Console]::WriteLine()
 } 
 
+# Remove Dell SupportAssist OS Recovery Plugin for Dell Update
+try{
+Remove-App-MSI_EXE-S "Dell SupportAssist OS Recovery Plugin for Dell Update"
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+} finally {
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+} 
