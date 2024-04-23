@@ -16,7 +16,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.4.8";
+Write-Host -ForegroundColor Cyan "                                                   version 10.4.9";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -48,11 +48,8 @@ Function Remove-App-MSI-QN([String]$appName)
         $uninst = $appCheck.UninstallString + " /qn /norestart"
         cmd /c $uninst
     }
-    else{
-        Write-Delayed $appName -NewLine:$false 
-        Write-Delayed " is not installed on this computer"
-    }
 }
+
 Function Remove-App-EXE-SILENT([String]$appName)
 {
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
@@ -62,10 +59,6 @@ Function Remove-App-EXE-SILENT([String]$appName)
         Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString + " -silent"
         cmd /c $uninst
-    }
-    else{
-        Write-Delayed $appName -NewLine:$false
-        Write-Delayed " is not installed on this computer"
     }
 }
 
@@ -80,10 +73,6 @@ Function Remove-App-MSI_EXE-Quiet([String]$appName)
         cmd /c $uninst
 
     }
-    else{
-        Write-Delayed $appName -NewLine:$false
-        Write-Delayed " is not installed on this computer"
-    }
 }
 
 Function Remove-App-MSI_EXE-S([String]$appName)
@@ -96,10 +85,6 @@ Function Remove-App-MSI_EXE-S([String]$appName)
         $uninst = $appCheck.UninstallString[1] +  " /S"
         cmd /c $uninst
     }
-    else{
-        Write-Delayed $appName -NewLine:$false
-        Write-Delayed " is not installed on this computer"
-    }
 }
 
 Function Remove-App-MSI-I-QN([String]$appName)
@@ -109,9 +94,6 @@ Function Remove-App-MSI-I-QN([String]$appName)
         Write-host "Uninstalling "$appCheck.DisplayName
         $uninst = $appCheck.UninstallString.Replace("/I","/X") + " /qn /norestart"
         cmd /c $uninst
-    }
-    else{
-        Write-Host "$appName is not installed on this computer"
     }
 }
 
@@ -128,9 +110,6 @@ Function Remove-App([String]$appName){
             Remove-AppxProvisionedPackage -online -packagename $proPackageFullName -AllUsers
         }
     }
-    else{
-        Write-Host "$appName is not installed on this computer"
-    }
 }
 
 Function Remove-M365([String]$appName)
@@ -141,9 +120,6 @@ Function Remove-M365([String]$appName)
         $uninstall = $uninstall.UninstallString + " DisplayLevel=False"
         cmd /c $uninstall
     }
-    else{
-        Write-Host "$appName is not installed on this computer"
-    }
 }
 
 Function Check-UninstallString([String]$appName)
@@ -151,9 +127,6 @@ Function Check-UninstallString([String]$appName)
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
         Write-host $appCheck.DisplayName $appCheck.UninstallString
-    }
-    else{
-        Write-Host "$appName is not installed on this computer"
     }
 }
 
@@ -164,9 +137,6 @@ Function Remove-App-EXE-S-QUOTES([String]$appName)
         Write-host "Uninstalling "$appCheck.DisplayName
         $uninst ="`""+$appCheck.UninstallString+"`"" + " /S"
         cmd /c $uninst
-    }
-    else{
-        Write-Host "$appName is not installed on this computer"
     }
 }
 
@@ -181,8 +151,6 @@ function Write-Delayed {
         [Console]::WriteLine()
     }
 }
-
-
 
 
 # Start baseline transcript log
@@ -278,7 +246,7 @@ $ProcmonFile = "c:\temp\Procmon.exe"
 # Download Procmon from LabTech server
 Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
 
-if (Test-Path $config.ProcmonFile)
+if (Test-Path $ProcmonFile)
 {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.") 
