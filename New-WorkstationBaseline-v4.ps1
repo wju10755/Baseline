@@ -324,19 +324,23 @@ try {
     Write-Host "An error occurred: $_" -ForegroundColor Red
 }
 
-# Function to disable Offline File Sync
 Function Disable-OfflineFileSync {
     param (
         [string]$RegistryPath
     )
 
     try {
+        # Check if the registry path is null or empty
+        if (-not $RegistryPath) {
+            throw "RegistryPath is null or empty."
+        }
+
+        Write-Host "Disabling Offline File Sync..." -NoNewline
+
         # Check if the registry path exists, if not, create it
         if (-not (Test-Path -Path $RegistryPath)) {
             New-Item -Path $RegistryPath -Force -ErrorAction Stop > $null
         }
-
-        Write-Host "Disabling Offline File Sync..." -NoNewline
 
         # Set the registry value
         Set-ItemProperty -Path $RegistryPath -Name "Start" -Value 4 -ErrorAction Stop > $null
@@ -358,6 +362,7 @@ if (Disable-OfflineFileSync -RegistryPath $registryPath) {
 } else {
     Write-Host "Failed to disable Offline File Sync." -ForegroundColor Red
 }
+
 
 
 # Set power profile to 'Balanced'
