@@ -49,7 +49,8 @@ Function Remove-App-MSI-QN([String]$appName)
         cmd /c $uninst
     }
     else{
-        Write-Host "$appName is not installed on this computer"
+        Write-Delayed $appName -NewLine:$false 
+        Write-Delayed " is not installed on this computer"
     }
 }
 Function Remove-App-EXE-SILENT([String]$appName)
