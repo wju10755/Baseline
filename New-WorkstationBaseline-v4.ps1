@@ -585,7 +585,7 @@ if ($null -ne $service) {
             [Console]::ResetColor()
 }
 }
-
+#>
 # Remove Dell SupportAssist
 try {
     Remove-App-MSI-QN "Dell SupportAssist"
@@ -612,7 +612,7 @@ try {
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
-#>
+
 # Remove Dell Optimizer Core
 try {
 Remove-App-EXE-SILENT "Dell Optimizer Core"
