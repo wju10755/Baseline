@@ -44,7 +44,7 @@ Function Remove-App-MSI-QN([String]$appName)
     if($null -ne $appCheck){
         Write-Delayed "Removing " -NewLine:$false
         Write-Host $appCheck.DisplayName -NoNewline
-        Write-Delayed "..."
+        Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString + " /qn /norestart"
         cmd /c $uninst
     }
@@ -56,7 +56,9 @@ Function Remove-App-EXE-SILENT([String]$appName)
 {
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
-        Write-host "Uninstalling "$appCheck.DisplayName
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..."
         $uninst = $appCheck.UninstallString + " -silent"
         cmd /c $uninst
     }
@@ -281,7 +283,7 @@ if (Test-Path $config.ProcmonFile)
     [Console]::WriteLine() 
     Start-Sleep -Seconds 2
 }
-
+<#
 # Check if the user 'mitsadmin' exists
 $user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
 
@@ -608,7 +610,6 @@ if ($null -ne $service) {
 }
 
 # Remove Dell SupportAssist
-Write-Delayed "Removing Dell Support Assist..." -NewLine:$false
 try {
     Remove-App-MSI-QN "Dell SupportAssist"
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -622,8 +623,7 @@ try {
 }
 
 
-# Remove Dell SupportAssist
-#Write-Delayed "Removing Dell Support Assist..." -NewLine:$false
+# Remove Dell Digital Delivery
 try {
     Remove-App-MSI-QN "Dell Digital Delivery Services"
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -635,3 +635,17 @@ try {
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
+#>
+# Remove Dell Optimizer Core
+try {
+Remove-App-EXE-SILENT "Dell Optimizer Core"
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+} finally {
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+} 
+
