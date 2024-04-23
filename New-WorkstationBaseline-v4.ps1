@@ -589,7 +589,7 @@ if ($null -ne $service) {
             [Console]::ResetColor()
 }
 }
-#>
+
 # Remove Dell SupportAssist
 try {
     Remove-App-MSI-QN "Dell SupportAssist"
@@ -684,6 +684,16 @@ Remove-App-MSI-I-QN "Dell Trusted Device Agent"
 # Remove Dell Optimizer
 try {
 Remove-App-MSI-I-QN "Dell Optimizer"                                               
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+#>
+# Remove Dell Command | Update for Windows Universal
+try {
+    Remove-App-MSI-QN "Dell Command | Update for Windows Universal"
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
