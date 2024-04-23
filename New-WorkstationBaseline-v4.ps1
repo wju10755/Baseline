@@ -63,7 +63,8 @@ Function Remove-App-EXE-SILENT([String]$appName)
         cmd /c $uninst
     }
     else{
-        Write-Host "$appName is not installed on this computer"
+        Write-Delayed $appName -NewLine:$false
+        Write-Delayed " is not installed on this computer"
     }
 }
 
@@ -71,13 +72,16 @@ Function Remove-App-MSI_EXE-Quiet([String]$appName)
 {
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
-        Write-host "Uninstalling "$appCheck.DisplayName
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString[1] +  " /qn /restart"
         cmd /c $uninst
 
     }
     else{
-        Write-Host "$appName is not installed on this computer"
+        Write-Delayed $appName -NewLine:$false
+        Write-Delayed " is not installed on this computer"
     }
 }
 
