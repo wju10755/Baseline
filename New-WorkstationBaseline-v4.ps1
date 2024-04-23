@@ -349,7 +349,7 @@ Write-Host "Setting 'Balanced' Power Profile..." -NoNewline
 
 try {
     # Set the power profile
-    powercfg /S SCHEME_BALANCED *> $null
+    powercfg /S SCHEME_BALANCED 
 
     Write-Host " done." -ForegroundColor Green
     Write-Log "Power profile set to 'Balanced'."
@@ -362,13 +362,13 @@ Write-Host "Disabling Sleep & Hibernation..." -NoNewline
 
 try {
     # Disable standby timeout
-    powercfg /change standby-timeout-ac 0 *> $null
+    powercfg /change standby-timeout-ac 0 
 
     # Disable hibernate timeout
-    powercfg /change hibernate-timeout-ac 0 *> $null
+    powercfg /change hibernate-timeout-ac 0 
 
     # Turn off hibernation
-    powercfg /h off *> $null
+    powercfg /h off 
 
     Write-Host " done." -ForegroundColor Green
     Write-Log "Disabled sleep and hibernation mode."
