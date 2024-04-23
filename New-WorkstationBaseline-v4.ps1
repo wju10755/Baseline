@@ -16,7 +16,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.5.0";
+Write-Host -ForegroundColor Cyan "                                                   version 10.5.1";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -586,74 +586,55 @@ if ($null -ne $service) {
 }
 }
 #>
-# Check if Dell SupportAssist is installed
-$appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq "Dell SupportAssist" }
-
-if ($null -ne $appCheck) {
-    # Remove Dell SupportAssist
-    try {
-        Remove-App-MSI-QN "Dell SupportAssist"
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-    } catch {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write(" An error occurred: $_")
-    } finally {
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-    }
+# Remove Dell SupportAssist
+try {
+    Remove-App-MSI-QN "Dell SupportAssist"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+} finally {
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 }
 
-# Check if Dell Digital Delivery Services is installed
-$appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq "Dell Digital Delivery Services" }
 
-if ($null -ne $appCheck) {
-    # Remove Dell Digital Delivery Services
-    try {
-        Remove-App-MSI-QN "Dell Digital Delivery Services"
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-    } catch {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write(" An error occurred: $_")
-    } finally {
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-    }
+# Remove Dell Digital Delivery
+try {
+    Remove-App-MSI-QN "Dell Digital Delivery Services"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+} finally {
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 }
 
-# Check if Dell Optimizer Core is installed
-$appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq "Dell Optimizer Core" }
+# Remove Dell Optimizer Core
+try {
+Remove-App-EXE-SILENT "Dell Optimizer Core"
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+} finally {
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+} 
 
-if ($null -ne $appCheck) {
-    # Remove Dell Optimizer Core
-    try {
-        Remove-App-EXE-SILENT "Dell Optimizer Core"
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-    } catch {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write(" An error occurred: $_")
-    } finally {
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-    }
-}
-
-# Check if Dell SupportAssist OS Recovery Plugin for Dell Update is installed
-$appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq "Dell SupportAssist OS Recovery Plugin for Dell Update" }
-
-if ($null -ne $appCheck) {
-    # Remove Dell SupportAssist OS Recovery Plugin for Dell Update
-    try {
-        Remove-App-MSI_EXE-S "Dell SupportAssist OS Recovery Plugin for Dell Update"
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-    } catch {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        [Console]::Write(" An error occurred: $_")
-    } finally {
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-    }
+# Remove Dell SupportAssist OS Recovery Plugin for Dell Update
+try{
+Remove-App-MSI_EXE-S "Dell SupportAssist OS Recovery Plugin for Dell Update"
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+} finally {
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 } 
