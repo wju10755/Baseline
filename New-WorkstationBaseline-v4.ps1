@@ -16,7 +16,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.5.2";
+Write-Host -ForegroundColor Cyan "                                                   version 10.5.3";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -63,6 +63,10 @@ Function Remove-App-EXE-SILENT([String]$appName)
         Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString + " -silent"
         cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
 }
 
@@ -75,7 +79,10 @@ Function Remove-App-MSI_EXE-Quiet([String]$appName)
         Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString[1] +  " /qn /restart"
         cmd /c $uninst
-
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
 }
 
@@ -88,6 +95,10 @@ Function Remove-App-MSI_EXE-S([String]$appName)
         Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString[1] +  " /S"
         cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
 }
 
@@ -95,9 +106,15 @@ Function Remove-App-MSI-I-QN([String]$appName)
 {
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
-        Write-host "Uninstalling "$appCheck.DisplayName
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString.Replace("/I","/X") + " /qn /norestart"
         cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
 }
 
@@ -105,13 +122,20 @@ Function Remove-App([String]$appName){
     $app = Get-AppxPackage -AllUsers $appName
     if($null -ne $app){
         $packageFullName = $app.PackageFullName
-        Write-Host "Uninstalling $appName"
+        Write-Delayed "Uninstalling " -NewLine:$false
+        Write-Delayed $appName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
         Remove-AppxPackage -package $packageFullName -AllUsers
         $provApp = Get-AppxProvisionedPackage -Online 
         $proPackageFullName = (Get-AppxProvisionedPackage -Online | Where-Object {$_.Displayname -eq $appName}).DisplayName
         if($null -ne $proPackageFillName){
-            Write-Host "Uninstalling provisioned $appName"
+            Write-Delayed "Uninstalling provisioned "
+            Write-Delayed $appName
             Remove-AppxProvisionedPackage -online -packagename $proPackageFullName -AllUsers
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()    
         }
     }
 }
@@ -120,9 +144,15 @@ Function Remove-M365([String]$appName)
 {
     $uninstall = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like $appName} | Select-Object UninstallString)
     if($null -ne $uninstall){
-        Write-Host "Uninstalling $appName"
+        Write-Delayed "Uninstalling " -NewLine:$false
+        Write-Delayed $appName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
         $uninstall = $uninstall.UninstallString + " DisplayLevel=False"
         cmd /c $uninstall
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
 }
 
@@ -130,7 +160,7 @@ Function Check-UninstallString([String]$appName)
 {
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
-        Write-host $appCheck.DisplayName $appCheck.UninstallString
+        Write-Delayed $appCheck.DisplayName $appCheck.UninstallString
     }
 }
 
@@ -138,9 +168,15 @@ Function Remove-App-EXE-S-QUOTES([String]$appName)
 {
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
-        Write-host "Uninstalling "$appCheck.DisplayName
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
         $uninst ="`""+$appCheck.UninstallString+"`"" + " /S"
         cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
 }
 
