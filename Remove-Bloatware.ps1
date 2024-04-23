@@ -59,10 +59,11 @@ If (Test-Path $DebloatFolder) {
     Write-Output "$DebloatFolder exists. Skipping."
 }
 Else {
-    Write-Output "The folder '$DebloatFolder' doesn't exist. This folder will be used for storing logs created after the script runs. Creating now."
+    Write-Output "The folder '$DebloatFolder' doesn't exist. This folder is used for storing logs. Creating now..."
     Start-Sleep 1
+    Write-Output " "
     New-Item -Path "$DebloatFolder" -ItemType Directory
-    Write-Output "The folder $DebloatFolder was successfully created."
+    Write-Output "The folder $DebloatFolder was successfully created.`n"
 }
 
 Start-Transcript -Path "C:\temp\Debloat\Debloat.log"
@@ -188,16 +189,12 @@ if ($customwhitelist) {
         if (Get-AppxPackage -Name $Bloat -ErrorAction SilentlyContinue) {
             Get-AppxPackage -allusers -Name $Bloat | Remove-AppxPackage -AllUsers
             Write-Host "Removed $Bloat."
-        } else {
-            Write-Host "$Bloat not found."
         }
         
         if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat -ErrorAction SilentlyContinue) {
             Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
             Write-Host "Removed provisioned package for $Bloat."
-        } else {
-            Write-Host "Provisioned package for $Bloat not found."
-        }
+        } 
     }
 ############################################################################################################
 #                                        Remove Registry Keys                                              #
@@ -827,9 +824,7 @@ Stop-Process -Name "GameBarPresenceWriter.exe" -Force
 Remove-Item "$env:WinDir\System32\GameBarPresenceWriter.exe" -Force -Confirm:$false
 
 }
-else {
-    write-host "GamePresenceWriter.exe does not exist"
-}
+
 
 New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\GameDVR" -Name "AllowgameDVR" -PropertyType DWORD -Value 0 -Force
 New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "SettingsPageVisibility" -PropertyType String -Value "hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode;gaming-xboxnetworking" -Force
@@ -1121,7 +1116,7 @@ if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Amazon
 if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Angebote.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Angebote.lnk" -Force}
 if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -Force}
 
-Write-Host "Removed HP bloat"
+Write-Host "Removed HP bloatware"
 }
 
 
@@ -1512,9 +1507,7 @@ foreach ($program in $UninstallPrograms) {
         Write-Host $uninstall
         Invoke-Expression $uninstall
     }
-    else {
-        Write-Host "ImController.InfInstaller.exe does not exist"
-    }
+    
     ##Invoke-Expression -Command 'cmd.exe /c "c:\windows\system32\ImController.InfInstaller.exe" -uninstall'
 
     # Remove vantage associated registry keys
@@ -1697,92 +1690,6 @@ foreach ($user in $userprofiles) {
 }
 
 if ($intunecomplete -gt 1 -and $nonAdminLoggedOn -eq $false) {
-
-
-##Apps to remove - NOTE: Chrome has an unusual uninstall so sort on it's own
-$blacklistapps = @(
-
-)
-
- $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
- foreach($obj in $InstalledSoftware){
-     $name = $obj.DisplayName
-     if ($null -eq $name) {
-         $name = $obj.DisplayName_Localized
-     }
-      if (($blacklistapps -contains $name) -and ($null -ne $obj.UninstallString)) {
-         $uninstallcommand = $obj.UninstallString
-         write-host "Uninstalling $name"
-         if ($uninstallcommand -like "*msiexec*") {
-         $splitcommand = $uninstallcommand.Split("{")
-         $msicode = $splitcommand[1]
-         $uninstallapp = "msiexec.exe /X {$msicode /qn"
-         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-         }
-         else {
-         $splitcommand = $uninstallcommand.Split("{")
-        
-         $uninstallapp = "$uninstallcommand /S"
-         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-         }
-      }
-
-      }
-
-
-      $InstalledSoftware32 = Get-ChildItem "HKLM:\Software\WOW6432NODE\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
-      foreach($obj32 in $InstalledSoftware32){
-         $name32 = $obj32.DisplayName
-         if ($null -eq $name32) {
-             $name32 = $obj.DisplayName_Localized
-         }
-         if (($blacklistapps -contains $name32) -and ($null -ne $obj32.UninstallString)) {
-         $uninstallcommand32 = $obj.UninstallString
-         write-host "Uninstalling $name32"
-                 if ($uninstallcommand32 -like "*msiexec*") {
-         $splitcommand = $uninstallcommand32.Split("{")
-         $msicode = $splitcommand[1]
-         $uninstallapp = "msiexec.exe /X {$msicode /qn"
-         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-         }
-         else {
-         $splitcommand = $uninstallcommand32.Split("{")
-        
-         $uninstallapp = "$uninstallcommand /S"
-         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-         }
-     }
-}
-
-##Remove Chrome
-$chrome32path = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome"
-
-if ($null -ne $chrome32path) {
-
-$versions = (Get-ItemProperty -path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome').version
-ForEach ($version in $versions) {
-write-host "Found Chrome version $version"
-$directory = ${env:ProgramFiles(x86)}
-write-host "Removing Chrome"
-Start-Process "$directory\Google\Chrome\Application\$version\Installer\setup.exe" -argumentlist  "--uninstall --multi-install --chrome --system-level --force-uninstall"
-}
-
-}
-
-$chromepath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome"
-
-if ($null -ne $chromepath) {
-
-$versions = (Get-ItemProperty -path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome').version
-ForEach ($version in $versions) {
-write-host "Found Chrome version $version"
-$directory = ${env:ProgramFiles}
-write-host "Removing Chrome"
-Start-Process "$directory\Google\Chrome\Application\$version\Installer\setup.exe" -argumentlist  "--uninstall --multi-install --chrome --system-level --force-uninstall"
-}
-
-
-}
 
 ##Remove home versions of Office
 $OSInfo = Get-WmiObject -Class Win32_OperatingSystem
