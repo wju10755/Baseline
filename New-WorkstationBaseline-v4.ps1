@@ -42,7 +42,9 @@ Function Remove-App-MSI-QN([String]$appName)
 {
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
-        Write-host "Uninstalling "$appCheck.DisplayName
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Host $appCheck.DisplayName -NoNewline
+        Write-Delayed "..."
         $uninst = $appCheck.UninstallString + " /qn /norestart"
         cmd /c $uninst
     }
@@ -620,3 +622,16 @@ try {
 }
 
 
+# Remove Dell SupportAssist
+#Write-Delayed "Removing Dell Support Assist..." -NewLine:$false
+try {
+    Remove-App-MSI-QN "Dell Digital Delivery Services"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+} finally {
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
