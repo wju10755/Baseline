@@ -21,7 +21,7 @@ Write-Host -ForegroundColor "Red" -NoNewline $Padding;
 Write-Host "  "
 
 ############################################################################################################
-#                                               Functions                                                  #
+#                                                 Functions                                                #
 #                                                                                                          #
 ############################################################################################################
 # Create temp directory and baseline log
@@ -369,9 +369,12 @@ if ($user) {
     if ($user.PasswordNeverExpires) {
         Write-Host " done." -ForegroundColor Green
     } else {
-        Write-Host "Setting mitsadmin password to 'Never Expire'..." -NoNewline
+        Write-Delayed "Setting mitsadmin password to 'Never Expire'..." -NewLine:$false
         $user | Set-LocalUser -PasswordNeverExpires $true
-        Write-Host " done." -ForegroundColor Green
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.") 
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
     }
 } else {
     Write-Host "Creating local mitsadmin & setting password to 'Never Expire'..." -NoNewline
@@ -674,12 +677,11 @@ if (Test-Win11) {
             New-Item $Period | Out-Null
         }
         Set-ItemProperty $Period PeriodInNanoSeconds -Value 0 
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-        [Console]::ResetColor()
-        [Console]::WriteLine()    
     }
-
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
     # Prevent bloatware applications from returning and removes Start Menu suggestions               
     #Write-Host "Adding Registry key to prevent bloatware apps from returning"
     #$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
@@ -724,13 +726,13 @@ if (Test-Win11) {
     foreach ($sid in $UserSIDs) {
         $Holo = "Registry::HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Holographic"    
         If (Test-Path $Holo) {
-            Set-ItemProperty $Holo  FirstRunSucceeded -Value 0
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
-            [Console]::ResetColor()
-            [Console]::WriteLine()     
+            Set-ItemProperty $Holo  FirstRunSucceeded -Value 0    
         }
     }
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
 
     # Disable Wi-fi Sense
     Write-Delayed "Disabling Wi-Fi Sense" -NewLine:$false
