@@ -16,7 +16,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.4.1";
+Write-Host -ForegroundColor Cyan "                                                   version 10.4.0";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -532,15 +532,19 @@ $installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/
 $agentIdKeyPath = "HKLM:\SOFTWARE\LabTech\Service"
 $agentIdValueName = "ID"
 
-# Function to download and install ConnectWise Automate Agent
-Function Install-AutomateAgent {
+# Check for existing LabTech agent
+if (Get-Service $agentName -ErrorAction SilentlyContinue) {
+    Write-Host "ConnectWise Automate agent is installed." -ForegroundColor Green
+} elseif (Test-Path $agentPath) {
+    Write-Host "ConnectWise Automate agent files are present, but the service is not installed." -ForegroundColor Red
+} else {
     Write-Host "Downloading ConnectWise Automate Agent..." -NoNewline
     try {
-        Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction Stop
+        Invoke-WebRequest -Uri $installerUri -OutFile $file
         Write-Host " done." -ForegroundColor Green
-
         Write-Host "Installing ConnectWise Automate Agent..." -NoNewline
-        $process = Start-Process msiexec.exe -ArgumentList "/I $file /quiet" -PassThru -Wait -ErrorAction Stop
+        $process = Start-Process msiexec.exe -ArgumentList "/I $file /quiet" -PassThru
+        $process.WaitForExit()
         if ($process.ExitCode -eq 0) {
             Write-Host " done." -ForegroundColor Green
         } else {
@@ -548,31 +552,20 @@ Function Install-AutomateAgent {
             exit
         }
     } catch {
-        Write-Host "ConnectWise Automate agent download or installation failed!" -ForegroundColor Red
+        Write-Host "ConnectWise Automate agent download failed!" -ForegroundColor Red
         exit
     }
 }
 
-# Check if ConnectWise Automate agent is installed
-if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Host "ConnectWise Automate agent is installed." -ForegroundColor Green
-} elseif (Test-Path $agentPath) {
-    Write-Host "ConnectWise Automate agent files are present, but the service is not installed." -ForegroundColor Red
-} else {
-    # If agent is not installed, download and install it
-    Install-AutomateAgent
-}
-
-# Check for Automate Agent ID
 $agentServiceName = "LTService" # The name of the service installed by the ConnectWise Automate agent
 
-# Check if the service is installed
+# Check for the service
 $service = Get-Service -Name $agentServiceName -ErrorAction SilentlyContinue
-if ($service) {
-    # If service is installed, check for agent ID
+if ($null -ne $service) {
     if (Test-Path $agentIdKeyPath) {
+        # Get the agent ID
         $agentId = Get-ItemProperty -Path $agentIdKeyPath -Name $agentIdValueName -ErrorAction SilentlyContinue
-        if ($agentId) {
+        if ($null -ne $agentId) {
             Write-Host "Automate Agent ID: $($agentId.$agentIdValueName)" -ForegroundColor Cyan
         } else {
             Write-Host "ConnectWise Automate agent ID not found." -ForegroundColor Red
