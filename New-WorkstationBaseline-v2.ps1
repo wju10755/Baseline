@@ -227,7 +227,6 @@ if ($osVersion -gt "10.0.22000*") {
 }
 
 
-$LogPath = "C:\temp\baseline.log"
 # Check if the user 'mitsadmin' exists
 $user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
 
