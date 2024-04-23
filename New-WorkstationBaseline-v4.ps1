@@ -16,7 +16,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.5.1";
+Write-Host -ForegroundColor Cyan "                                                   version 10.5.2";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -47,6 +47,10 @@ Function Remove-App-MSI-QN([String]$appName)
         Write-Delayed "..." -NewLine:$false
         $uninst = $appCheck.UninstallString + " /qn /norestart"
         cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
 }
 
@@ -589,39 +593,30 @@ if ($null -ne $service) {
 # Remove Dell SupportAssist
 try {
     Remove-App-MSI-QN "Dell SupportAssist"
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
-} finally {
     [Console]::ResetColor()
     [Console]::WriteLine()
-}
+} 
 
 
 # Remove Dell Digital Delivery
 try {
     Remove-App-MSI-QN "Dell Digital Delivery Services"
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
-} finally {
     [Console]::ResetColor()
     [Console]::WriteLine()
-}
+} 
 
 # Remove Dell Optimizer Core
 try {
 Remove-App-EXE-SILENT "Dell Optimizer Core"
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
-} finally {
     [Console]::ResetColor()
     [Console]::WriteLine()
 } 
@@ -629,12 +624,69 @@ Remove-App-EXE-SILENT "Dell Optimizer Core"
 # Remove Dell SupportAssist OS Recovery Plugin for Dell Update
 try{
 Remove-App-MSI_EXE-S "Dell SupportAssist OS Recovery Plugin for Dell Update"
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
-} finally {
     [Console]::ResetColor()
     [Console]::WriteLine()
-} 
+}
+
+# Remove Dell SupportAssist Remediation
+try{
+Remove-App-MSI_EXE-S "Dell SupportAssist Remediation"  
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+# Remove Dell Display Manager 2.1
+try{
+Remove-App-EXE-S-QUOTES "Dell Display Manager 2.1"                                 
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+# Remove Dell Peripheral Manager
+try {
+Remove-App-EXE-S-QUOTES "Dell Peripheral Manager"
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+# Remove Dell Core Services
+try{
+Remove-App-MSI-I-QN "Dell Core Services" 
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+# Remove Dell Trusted Device Agent
+try {
+Remove-App-MSI-I-QN "Dell Trusted Device Agent"                                    
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+# Remove Dell Optimizer
+try {
+Remove-App-MSI-I-QN "Dell Optimizer"                                               
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
