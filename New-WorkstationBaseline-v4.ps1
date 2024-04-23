@@ -376,17 +376,34 @@ try {
     Write-Host "An error occurred: $_" -ForegroundColor Red
 }
 
-# Disable fast startup
+# Function to disable Fast Startup
+Function Disable-FastStartup {
+    $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
+    $errorOccurred = $false
+
+    try {
+        Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 -ErrorAction Stop
+        Write-Host " done." -ForegroundColor Green
+        Write-Log "Fast startup disabled."
+    } catch {
+        $errorOccurred = $true
+        Write-Host "An error occurred: $_" -ForegroundColor Red
+        Write-Log "Error occurred while disabling fast startup: $_"
+    }
+
+    return -not $errorOccurred
+}
+
+# Main script
 Write-Host "Disabling Fast Startup..." -NoNewline
 
-try {
-    $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
-    Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
-    Write-Host " done." -ForegroundColor Green
-    Write-Log "Fast startup disabled."
-} catch {
-    Write-Host "An error occurred: $_" -ForegroundColor Red
+# Check if Fast Startup was successfully disabled
+if (Disable-FastStartup) {
+    Write-Host "Fast Startup disabled successfully." -ForegroundColor Green
+} else {
+    Write-Host "Failed to disable Fast Startup." -ForegroundColor Red
 }
+
 
 # Set power button action to 'Shutdown'
 Write-Host "Configuring 'Shutdown' power button action..." -NoNewline
