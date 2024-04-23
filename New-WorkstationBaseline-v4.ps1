@@ -324,25 +324,41 @@ try {
     Write-Host "An error occurred: $_" -ForegroundColor Red
 }
 
-# Disable Offline File Sync
-$registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
+# Function to disable Offline File Sync
+Function Disable-OfflineFileSync {
+    param (
+        [string]$RegistryPath
+    )
 
-try {
-    # Check if the registry path exists, if not, create it
-    if (-not (Test-Path -Path $registryPath)) {
-        New-Item -Path $registryPath -Force *> $null
+    try {
+        # Check if the registry path exists, if not, create it
+        if (-not (Test-Path -Path $RegistryPath)) {
+            New-Item -Path $RegistryPath -Force -ErrorAction Stop > $null
+        }
+
+        Write-Host "Disabling Offline File Sync..." -NoNewline
+
+        # Set the registry value
+        Set-ItemProperty -Path $RegistryPath -Name "Start" -Value 4 -ErrorAction Stop > $null
+
+        Write-Host " done." -ForegroundColor Green
+        Write-Log "Offline file sync disabled."
+        return $true
+    } catch {
+        Write-Host "An error occurred: $_" -ForegroundColor Red
+        Write-Log "Error occurred while disabling offline file sync: $_"
+        return $false
     }
-
-    Write-Host "Disabling Offline File Sync..." -NoNewline
-
-    # Set the registry value
-    Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
-
-    Write-Host " done." -ForegroundColor Green
-    Write-Log "Offline file sync disabled."
-} catch {
-    Write-Host "An error occurred: $_" -ForegroundColor Red
 }
+
+# Main script
+$registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
+if (Disable-OfflineFileSync -RegistryPath $registryPath) {
+    Write-Host "Offline File Sync disabled successfully." -ForegroundColor Green
+} else {
+    Write-Host "Failed to disable Offline File Sync." -ForegroundColor Red
+}
+
 
 # Set power profile to 'Balanced'
 Write-Host "Setting 'Balanced' Power Profile..." -NoNewline
