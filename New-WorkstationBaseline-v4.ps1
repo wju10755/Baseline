@@ -16,7 +16,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.5.3";
+Write-Host -ForegroundColor Cyan "                                                   version 10.5.4";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -144,7 +144,7 @@ Function Remove-M365([String]$appName)
 {
     $uninstall = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like $appName} | Select-Object UninstallString)
     if($null -ne $uninstall){
-        Write-Delayed "Uninstalling " -NewLine:$false
+        Write-Delayed "Removing " -NewLine:$false
         Write-Delayed $appName -NewLine:$false
         Write-Delayed "..." -NewLine:$false
         $uninstall = $uninstall.UninstallString + " DisplayLevel=False"
@@ -730,6 +730,16 @@ Remove-App-MSI-I-QN "Dell Optimizer"
 # Remove Dell Command | Update for Windows Universal
 try {
     Remove-App-MSI-QN "Dell Command | Update for Windows Universal"
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+# Remove Dell Pair
+try {
+    Remove-App-EXE-S-QUOTES "Dell Pair"
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
