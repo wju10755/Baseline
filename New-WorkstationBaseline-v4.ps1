@@ -242,6 +242,7 @@ Add-Type @"
     }
 "@
 
+
 ############################################################################################################
 #                                             Start Baseline                                               #
 #                                                                                                          #
@@ -421,7 +422,6 @@ Write-Log "Offline file sync disabled."
 [Console]::WriteLine() 
 Start-Sleep -Seconds 2
 
-
 # Set power profile to 'Balanced'
 Write-Delayed "Setting 'Balanced' Power Profile..." -NewLine:$false
 Start-Sleep -Seconds 2
@@ -432,7 +432,6 @@ powercfg /S SCHEME_BALANCED *> $null
 [Console]::WriteLine() 
 Write-Log "Power profile set to 'Balanced'."
 Start-Sleep -Seconds 5
-
 
 # Disable sleep and hibernation modes
 Start-Sleep -Seconds 1
@@ -448,7 +447,6 @@ Write-Log "Disabled sleep and hibernation mode."
 [Console]::WriteLine() 
 Start-Sleep -Seconds 2
 
-
 # Disable fast startup
 Start-Sleep -Seconds 2
 Write-Delayed "Disabling Fast Startup..." -NewLine:$false
@@ -463,7 +461,6 @@ Start-Sleep -Seconds 2
 [Console]::WriteLine() 
 Start-Sleep -Seconds 5
 
-
 # Set power button action to 'Shutdown'
 Start-Sleep -Seconds 2
 Write-Delayed "Configuring 'Shutdown' power button action..." -NewLine:$false
@@ -477,7 +474,6 @@ Write-Log "Power button action set to 'Shutdown'."
 [Console]::ResetColor()
 [Console]::WriteLine() 
 Start-Sleep -Seconds 5
-
 
 # Set 'lid close action' to do nothing on laptops
 Start-Sleep -Seconds 1
@@ -494,7 +490,6 @@ if ($deviceType -eq "Laptop") {
     [Console]::WriteLine() 
     Start-Sleep -Seconds 5
 }
-
 
 # Set the time zone to 'Eastern Standard Time'
 Write-Delayed "Setting EST as default timezone..." -NewLine:$false
@@ -522,7 +517,6 @@ Start-Sleep -Seconds 5
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
 
-
 # Enable system restore
 Write-Delayed "Enabling System Restore..." -NewLine:$false
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
@@ -546,27 +540,31 @@ function Test-Win10 {
 
 # Disable Offline Files on Windows 10
 if (Test-Win10) {
-    Write-Host "Disabling Windows 10 Offline Files..." -NoNewline
-
     try {
         # Set the path of the Offline Files registry key
         $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
-
-        # Check if the registry path exists, if not, create it
-        if (-not (Test-Path -Path $registryPath)) {
-            New-Item -Path $registryPath -Force
-        }
-
-        # Set the value to disable Offline Files
-        Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
-
-        Write-Host " done." -ForegroundColor Green
-        Write-Log "Offline files disabled."
-    } catch {
-        Write-Host "An error occurred: $_" -ForegroundColor Red
+    # Check if the registry path exists, if not, create it
+    if (-not (Test-Path -Path $registryPath)) {
+        New-Item -Path $registryPath -Force
     }
-} else {
-    #Write-Host "This script is intended to run only on Windows 10." -ForegroundColor Yellow
+    # Set the value to disable Offline Files
+    Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
+    # Output the result
+    Write-Delayed "Disabling Windows 10 Offline Files..." -NewLine:$false
+    Write-Log "Offline files disabled."
+    Start-Sleep -Seconds 1
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
+    }
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    }
+}
+else {
+    #[Console]::Write("This script is intended to run only on Windows 10.")
 }
 
 function Test-Win11 {
@@ -580,32 +578,38 @@ function Test-Win11 {
 
 # Disable Offline Files on Windows 11
 if (Test-Win11) {
-    Write-Host "Disabling Windows 11 Offline Files..." -NoNewline
-
     try {
-        # Set the path of the Offline Files registry key
-        $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
+    # Set the path of the Offline Files registry key
+    $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
 
-        # Check if the registry path exists, if not, create it
-        if (-not (Test-Path -Path $registryPath)) {
-            New-Item -Path $registryPath -Force
-        }
-
-        # Set the value to disable Offline Files
-        Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
-
-        Write-Host " done." -ForegroundColor Green
-        Write-Log "Offline files disabled."
-        Write-Log "Windows 11 Offline Files has been disabled"
-    } catch {
-        Write-Host "An error occurred: $_" -ForegroundColor Red
+    # Check if the registry path exists, if not, create it
+    if (-not (Test-Path -Path $registryPath)) {
+        New-Item -Path $registryPath -Force
     }
-} else {
-    #Write-Host "This script is intended to run only on Windows 11." -ForegroundColor Yellow
+
+    # Set the value to disable Offline Files
+    Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
+
+    # Output the result
+    Write-Delayed "Disabling Windows 11 Offline Files..." -NewLine:$false
+    Write-Log "Offline files disabled."
+    Start-Sleep -Seconds 1
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    Write-Log "Windows 11 Offline Files has been disabled"
+    #Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
+    }
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    }
 }
 
+
+
 # Disable Windows Feedback Experience
-    Write-Delayed "Disabling Windows Feedback Experience program" -newline:$false
+    Write-Delayed "Disabling Windows Feedback Experience program..." -newline:$false
     $Advertising = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo"
     If (!(Test-Path $Advertising)) {
         New-Item $Advertising | Out-Null
@@ -619,7 +623,7 @@ if (Test-Win11) {
     }
             
     # Stop Cortana from being used as part of your Windows Search Function
-    Write-Delayed "Stopping Cortana from being used as part of Windows Search"
+    Write-Delayed "Preventing Cortana from being used in Windows Search..." -NewLine:$false
     $Search = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
     If (!(Test-Path $Search)) {
         New-Item $Search | Out-Null
@@ -656,7 +660,7 @@ if (Test-Win11) {
 
             
     #Stop Windows Feedback Experience from sending anonymous data
-    Write-Delayed "Stopping the Windows Feedback Experience program" -newline:$false
+    Write-Delayed "Stopping the Windows Feedback Experience program..." -newline:$false
     $Period = "HKCU:\Software\Microsoft\Siuf\Rules"
     If (!(Test-Path $Period)) { 
         New-Item $Period
@@ -710,7 +714,7 @@ if (Test-Win11) {
     #}
     
     # Prep mixed Reality Portal for removal    
-    Write-Host "Setting Mixed Reality Portal value to 0 so that you can uninstall it in Settings"
+    Write-Delayed "Setting Mixed Reality Portal value to 0 so it can be uninstalled..." -NewLine:$false
     $Holo = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Holographic"    
     If (Test-Path $Holo) {
         Set-ItemProperty $Holo  FirstRunSucceeded -Value 0 
@@ -720,7 +724,11 @@ if (Test-Win11) {
     foreach ($sid in $UserSIDs) {
         $Holo = "Registry::HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Holographic"    
         If (Test-Path $Holo) {
-            Set-ItemProperty $Holo  FirstRunSucceeded -Value 0 
+            Set-ItemProperty $Holo  FirstRunSucceeded -Value 0
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()     
         }
     }
 
@@ -757,12 +765,12 @@ if (Test-Win11) {
         If (!(Test-Path $Live)) {      
             New-Item $Live | Out-Null
         }
-        Set-ItemProperty $Live  NoTileApplicationNotification -Value 1 
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-        [Console]::ResetColor()
-        [Console]::WriteLine()    
+        Set-ItemProperty $Live  NoTileApplicationNotification -Value 1    
     }
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
 
 # Disable People icon on Taskbar
     Write-Delayed "Disabling People icon on Taskbar..." -NewLine:$false
@@ -776,12 +784,12 @@ if (Test-Win11) {
         $People = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People"
         If (Test-Path $People) {
             Set-ItemProperty $People -Name PeopleBand -Value 0
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
-            [Console]::ResetColor()
-            [Console]::WriteLine()  
         }
     }
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
 
     Write-Delayed "Disabling Cortana..." -NewLine:$false
     $Cortana1 = "HKCU:\SOFTWARE\Microsoft\Personalization\Settings"
@@ -818,12 +826,12 @@ if (Test-Win11) {
         If (!(Test-Path $Cortana3)) {
             New-Item $Cortana3
         }
-        Set-ItemProperty $Cortana3 HarvestContacts -Value 0
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-        [Console]::ResetColor()
-        [Console]::WriteLine()  
+        Set-ItemProperty $Cortana3 HarvestContacts -Value 0 
     }
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
 
     #Removes 3D Objects from the 'My Computer' submenu in explorer
     Write-Delayed "Removing 3D Objects from explorer 'My Computer' submenu..." -NewLine:$false
@@ -1572,11 +1580,6 @@ $wshell = New-Object -ComObject wscript.shell
 Start-Sleep -Seconds 3
 $wshell.SendKeys("^a")
 Start-Sleep -Seconds 2
-
-
-
-
-
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
-
 Start-Sleep -Seconds 2
+
