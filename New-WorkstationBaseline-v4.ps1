@@ -5,7 +5,7 @@ $LogFile = "c:\temp\baseline.log"
 
 # Clear console window
 Clear-Host
-
+ 
 # Set console formatting
 function Print-Middle($Message, $Color = "White") {
     Write-Host (" " * [System.Math]::Floor(([System.Console]::BufferWidth / 2) - ($Message.Length / 2))) -NoNewline;
