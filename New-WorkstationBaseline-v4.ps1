@@ -2166,8 +2166,12 @@ function Connect-VPN {
         [Console]::WriteLine()
     }
 }
-
-#[Console]::Write("`b`bStarting Domain/Azure AD Join Function...`n")
+############################################################################################################
+#                                            LocalAD/AzureAD Join                                          #
+#                                                                                                          #
+############################################################################################################
+#
+Write-Host " "
 Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$false
 $ProgressPreference = 'SilentlyContinue'
 try {
