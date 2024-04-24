@@ -256,7 +256,7 @@ function Write-Delayed {
     param([string]$Text, [switch]$NewLine = $true)
     foreach ($Char in $Text.ToCharArray()) {
         [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
+        Start-Sleep -Milliseconds 25
     }
     if ($NewLine) {
         [Console]::WriteLine()
@@ -352,7 +352,7 @@ Start-Sleep -Seconds 1
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-<#
+
 # Stage Procmon
 Write-Delayed "Staging Process Monitor..." -NewLine:$false
 $ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
@@ -550,7 +550,7 @@ Start-Sleep -Seconds 2
 [Console]::ResetColor()
 [Console]::WriteLine()    
 Start-Sleep -Seconds 5
-#>
+
 # Offline Files Function to check if the OS is Windows 10
 function Test-Win10 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
@@ -2200,7 +2200,7 @@ switch ($choice) {
         }
     }
     "A" {
-        Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
+        Write-Delayed "`nStarting Azure AD Join operation using Work or School account..." -NewLine:$true
         Start-Process "ms-settings:workplace"
         Start-Sleep -Seconds 3
         $output = dsregcmd /status | Out-String
