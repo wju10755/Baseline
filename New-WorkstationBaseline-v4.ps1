@@ -249,29 +249,8 @@ Add-Type @"
 "@
 
 # Function to write text with delay
-#function Write-Delayed {
-#    param([string]$Text, [switch]$NewLine = $true)
-#    foreach ($Char in $Text.ToCharArray()) {
-#        [Console]::Write("$Char")
-#        Start-Sleep -Milliseconds 30
-#    }
-#    if ($NewLine) {
-#        [Console]::WriteLine()
-#    }
-#}
-
-# Function to write text with delay
 function Write-Delayed {
     param([string]$Text, [switch]$NewLine = $true)
-
-    # Blink cursor 3 times before outputting text
-    for ($i = 0; $i -lt 3; $i++) {
-        [Console]::CursorVisible = $false
-        Start-Sleep -Milliseconds 500
-        [Console]::CursorVisible = $true
-        Start-Sleep -Milliseconds 500
-    }
-
     foreach ($Char in $Text.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 30
