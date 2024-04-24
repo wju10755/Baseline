@@ -1706,17 +1706,15 @@ while ($true) {
     if ($process) {
         # Terminate the process
         $process | Stop-Process -Force
-    } else {
-        # If the process is not found, exit the loop
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$true
-        [Console]::ResetColor()
-        [Console]::WriteLine
-        break
     }
-    # Wait for a short period before checking again
     Start-Sleep -Seconds 1
+    break 
+    # Wait for a short period before checking again
 }
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+Write-Delayed " done." -NewLine:$true
+[Console]::ResetColor()
+[Console]::WriteLine
 
 # Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
