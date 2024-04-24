@@ -1720,7 +1720,7 @@ while ($true) {
 
 # Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+                             HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
 
 if ($O365) {
@@ -1747,7 +1747,7 @@ if ($O365) {
         Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
             taskkill /f /im OfficeClickToRun.exe *> $null
             taskkill /f /im OfficeC2RClient.exe *> $null
-            Start-Sleep -Seconds 3
+            Start-Sleep -Seconds 10
             Start-Process -FilePath $OfficePath -Wait
         if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
             Write-Log "Office 365 Installation Completed Successfully."
@@ -1756,6 +1756,8 @@ if ($O365) {
             [Console]::ResetColor()
             [Console]::WriteLine()  
             Start-Sleep -Seconds 10
+            taskkill /f /im OfficeClickToRun.exe *> $null
+            taskkill /f /im OfficeC2RClient.exe *> $null
             Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
             } else {
             Write-Log "Office 365 installation failed."
