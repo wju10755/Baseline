@@ -2111,12 +2111,12 @@ Start-Sleep -Seconds 5
 $service = Get-Service -Name wuauserv
 if ($service.Status -eq 'Running') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    Write-Delayed " done."
+    Write-Delayed " done." -NewLine:$false
     [Console]::ResetColor()
     [Console]::WriteLine() 
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed " failed."
+    Write-Delayed " failed." -NewLine:$false
     [Console]::ResetColor()
     [Console]::WriteLine()    
 }
@@ -2140,7 +2140,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     Write-Log "All available Windows updates are installed."  
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed "Windows Update execution failed!"
+    Write-Delayed "Windows Update execution failed!" -NewLine:$false
         [Console]::ResetColor()
         [Console]::WriteLine()  
 }
