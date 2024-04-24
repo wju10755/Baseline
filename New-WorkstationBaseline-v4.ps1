@@ -1719,58 +1719,6 @@ while ($true) {
 }
 
 # Install Office 365
-$OfficeApp = "Microsoft 365 Apps for enterprise - en-us"
-$OfficeRegPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
-$O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                          $OfficeRegPath | Where-Object { $_.DisplayName -like "*$OfficeApp*" }
-
-if ($O365) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    Write-Delayed "Existing Microsoft Office installation found." -NewLine:$false
-    [Console]::ResetColor()
-    [Console]::WriteLine   
-} else {
-    $OfficePath = "c:\temp\OfficeSetup.exe"
-    if (-not (Test-Path $OfficePath)) {
-        $OfficeURL = "https://example.com/OfficeSetup.exe"
-        Write-Delayed "Downloading Microsoft Office 365..." -NewLine:$false
-        Invoke-WebRequest -Uri $OfficeURL -OutFile $OfficePath -UseBasicParsing
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-    }
-
-    $FileSize = (Get-Item $OfficePath).Length
-    $ExpectedSize = 7651616 # in bytes
-    if ($FileSize -eq $ExpectedSize) {
-        Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
-        Start-Process -FilePath $OfficePath -ArgumentList '/configure configuration.xml' -Wait
-        if (Get-ItemProperty $OfficeRegPath | Where-Object { $_.DisplayName -like "*$OfficeApp*" }) {
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
-            [Console]::ResetColor()
-            [Console]::WriteLine()  
-            Remove-Item -Path $OfficePath -Force
-        } else {
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "Microsoft Office 365 installation failed." -NewLine:$false
-            [Console]::ResetColor()
-            [Console]::WriteLine()  
-        }
-    } else {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "Download failed or file size does not match."
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-        Remove-Item -Path $OfficePath -Force
-    }
-}
-
-
-
-<#
-# Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                              HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
@@ -1831,7 +1779,7 @@ if ($O365) {
         Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
     }
 }
-#>
+
 # Install Google Chrome
 $Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
