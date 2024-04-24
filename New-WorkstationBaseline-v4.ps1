@@ -1170,33 +1170,6 @@ if ($installedSoftware) {
     }
 } 
 #>
-# Check if any application with "Dell" in the name is installed
-$dellApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Dell*" }
-
-if ($dellApps) {
-    # Check if the system is manufactured by Dell
-    if ($manufacturer -eq "Dell Inc.") {
-        # Set the URL and file path variables
-        $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
-        $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
-        $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall-v2.ps1"
-        $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
-        Set-Location -Path "c:\temp"
-        Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
-        Start-Sleep -seconds 2
-        Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
-        if (Test-Path -Path $SpinnerFile) {
-            & $SpinnerFile
-            Write-Log "Dell Bloatware Removed."
-        }
-    } else {
-        Write-Warning "`nSkipping Dell debloat module due to device not meeting manufacturer requirements.`n"
-        Write-Log "Skipping Dell debloat module due to device not meeting manufacturer requirements."
-        Start-Sleep -Seconds 1
-    }
-} else {
-    Write-Delayed "Skipping Dell bloatware cleanup as no Dell applications are installed." -NewLine:$true
-}
 
 
 # Check if any application with "Dell" in the name is installed
@@ -1226,7 +1199,7 @@ if ($dellApps) {
 } else {
     Write-Delayed "Skipping Dell bloatware cleanup as no Dell applications are installed." -NewLine:$true
 }
-
+}
 
 ############################################################################################################
 #                                          Remove HP Bloatware                                             #
