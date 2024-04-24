@@ -273,7 +273,7 @@ Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 # Start Baseline
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("`n")
-Write-Delayed "Starting workstation baseline..." -NewLine:$true
+Write-Delayed "Starting workstation baseline..." -NewLine:$false
 [Console]::Write(" ")
 [Console]::ResetColor() 
 [Console]::WriteLine()
