@@ -574,19 +574,18 @@ if (Test-Win10) {
     Write-Delayed "Disabling Windows 10 Offline Files..." -NewLine:$false
     Write-Log "Offline files disabled."
     Start-Sleep -Seconds 1
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine()
+
     # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
     }
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
 }
-else {
-    #[Console]::Write("This script is intended to run only on Windows 10.")
-}
+
 
 function Test-Win11 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
