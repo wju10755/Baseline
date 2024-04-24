@@ -269,11 +269,11 @@ Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 # Start Baseline
 [Console]::ForegroundColor = [System.ConsoleColor]::Yellow
 [Console]::Write("`n")
-Write-Delayed "Starting workstation baseline..."
+Write-Delayed "Starting workstation baseline..." -NewLine:$false
 [Console]::Write(" ")
 [Console]::ResetColor() 
 [Console]::WriteLine()
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
 # Start baseline log file
 Write-Log "Automated workstation baseline has started"
@@ -382,10 +382,12 @@ $user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
 if ($user) {
     # Check if the password is set to 'Never Expire'
     if ($user.PasswordNeverExpires) {
+        Start-Sleep -Milliseconds 700
         Write-Host " done." -ForegroundColor Green
     } else {
         Write-Delayed "Setting mitsadmin password to 'Never Expire'..." -NewLine:$false
         $user | Set-LocalUser -PasswordNeverExpires $true
+        Start-Sleep -Milliseconds 700
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.") 
         [Console]::ResetColor()
@@ -397,6 +399,7 @@ if ($user) {
     New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
     $user | Set-LocalUser -PasswordNeverExpires $true
     Add-LocalGroupMember -Group "Administrators" -Member "mitsadmin"
+    Start-Sleep -Milliseconds 700
     Write-Host " done." -ForegroundColor Green
 }
 
