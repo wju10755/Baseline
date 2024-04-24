@@ -1,5 +1,7 @@
 Set-Executionpolicy RemoteSigned -Force *> $null
 $ErrorActionPreference = 'SilentlyContinue'
+$TempFolder = "C:\temp"
+$LogFile = "c:\temp\baseline.log"
 
 # Clear console window
 Clear-Host
@@ -25,20 +27,22 @@ Write-Host "  "
 ############################################################################################################
 # Create temp directory and baseline log
 function Initialize-Environment {
-    if (-not (Test-Path $config.TempFolder)) {
-        New-Item -Path $config.TempFolder -ItemType Directory | Out-Null
+    if (-not (Test-Path $TempFolder)) {
+        New-Item -Path $TempFolder -ItemType Directory | Out-Null
     }
-    if (-not (Test-Path $config.LogFile)) {
-        New-Item -Path $config.LogFile -ItemType File | Out-Null
+    if (-not (Test-Path LogFile)) {
+        New-Item -Path LogFile -ItemType File | Out-Null
     }
 }
 
+# Set working directory
+Set-Location
 # Baseline Operations Log
 function Write-Log {
     param (
         [string]$Message
     )
-    Add-Content -Path $config.LogFile -Value "$(Get-Date) - $Message"
+    Add-Content -Path $LogFile -Value "$(Get-Date) - $Message"
 }
 
 Function Remove-App-MSI-QN([String]$appName)
@@ -474,7 +478,6 @@ Write-Delayed "Disabling Fast Startup..." -NewLine:$false
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
 Write-Log "Fast startup disabled."
-#& $config.FastStartup
 Start-Sleep -Seconds 2
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
@@ -487,7 +490,6 @@ Start-Sleep -Seconds 2
 Write-Delayed "Configuring 'Shutdown' power button action..." -NewLine:$false
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
-& $config.PwrButton
 Start-Sleep -Seconds 2
 Write-Log "Power button action set to 'Shutdown'."
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -503,7 +505,6 @@ if ($deviceType -eq "Laptop") {
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
     Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
-    & $config.LidAction
     Start-Sleep -Seconds 2
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
@@ -1741,7 +1742,6 @@ if ($O365) {
     $FileSize = (Get-Item $OfficePath).Length
     $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        #& $config.officeNotice
         Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
             taskkill /f /im OfficeClickToRun.exe *> $null
             taskkill /f /im OfficeC2RClient.exe *> $null
@@ -1908,12 +1908,13 @@ if ($SWNE) {
         Invoke-WebRequest -OutFile $NEFilePath -Uri $NEURL -UseBasicParsing
     }
     # Validate successful download by checking the file size
+    $NEGUI = "C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NEGui.exe"
     $FileSize = (Get-Item $NEFilePath).Length
     $ExpectedSize = 4788816 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
         Write-Delayed "Installing Sonicwall NetExtender..." -NewLine:$false
         start-process -filepath $NEFilePath /S -Wait
-        if (Test-Path $config.NEGui) {
+        if (Test-Path $NEGui) {
             Write-Log "Sonicwall NetExtender installation completed successfully."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
             Write-Delayed " done." -NewLine:$false
