@@ -16,7 +16,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.6.1";
+Write-Host -ForegroundColor Cyan "                                                   version 10.6.2";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -1193,10 +1193,10 @@ Set-Location -Path "c:\temp"
 Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
 Start-Sleep -seconds 2
 Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
-if (Test-Path -Path $SpinnerFile) {
-    & $SpinnerFile
-    Write-Log "Dell Bloatware Removed."
-
+        if (Test-Path -Path $SpinnerFile) {
+            & $SpinnerFile
+            Write-Log "Dell Bloatware Removed."
+        }
 
 ############################################################################################################
 #                                          Remove HP Bloatware                                             #
