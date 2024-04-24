@@ -347,7 +347,7 @@ Start-Sleep -Seconds 1
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-
+<#
 # Stage Procmon
 Write-Delayed "Staging Process Monitor..." -NewLine:$false
 $ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
@@ -548,7 +548,7 @@ Start-Sleep -Seconds 2
 [Console]::ResetColor()
 [Console]::WriteLine()    
 Start-Sleep -Seconds 5
-
+#>
 # Offline Files Function to check if the OS is Windows 10
 function Test-Win10 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
@@ -1689,13 +1689,13 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 }
 
 # Launch Procmon
-$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
-$wshell = New-Object -ComObject wscript.shell
-Start-Sleep -Seconds 3
-$wshell.SendKeys("^a")
-Start-Sleep -Seconds 2
-Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
-Start-Sleep -Seconds 2
+#$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+#$wshell = New-Object -ComObject wscript.shell
+#Start-Sleep -Seconds 3
+#$wshell.SendKeys("^a")
+#Start-Sleep -Seconds 2
+#Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
+#Start-Sleep -Seconds 2
 
 # Terminate any existing OfficeClickToRun processes
 Write-Delayed "Checking for active OfficeClickToRun processes..." -NewLine:$false
