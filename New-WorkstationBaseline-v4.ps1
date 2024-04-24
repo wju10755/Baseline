@@ -133,9 +133,9 @@ Function Remove-App-MSI-I-QN([String]$appName)
 }
 
 Function Remove-App([String]$appName){
+    $WarningActionPreference = 'SilentlyContinue'
     $app = Get-AppxPackage -AllUsers $appName
     if($null -ne $app){
-        $WarningPreference = 'SilentlyContinue'
         $packageFullName = $app.PackageFullName
         Write-Delayed "Uninstalling " -NewLine:$false
         Write-Delayed $appName -NewLine:$false
@@ -158,6 +158,7 @@ Function Remove-App([String]$appName){
 
 Function Remove-M365([String]$appName)
 {
+    $WarningActionPreference = 'SilentlyContinue'
     $uninstall = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like $appName} | Select-Object UninstallString)
     if($null -ne $uninstall){
         Write-Delayed "Removing " -NewLine:$false
@@ -170,14 +171,17 @@ Function Remove-M365([String]$appName)
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
+    $WarningActionPreference = 'Continue'
 }
 
 Function Check-UninstallString([String]$appName)
 {
+    $WarningActionPreference = 'SilentlyContinue'
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
         Write-Delayed $appCheck.DisplayName $appCheck.UninstallString
     }
+    $WarningActionPreference = 'Continue'
 }
 
 Function Remove-App-EXE-S-QUOTES([String]$appName)
@@ -1013,7 +1017,7 @@ $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
 if ($manufacturer -eq "Dell Inc.") {
     Write-Host "Dell system detected, Removing bloatware..."
 try {
-    Remove-App-MSI-QN "Dell SupportAssist"
+    Remove-App-MSI-QN "Dell SupportAssist" -ErrorAction SilentlyContinue
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1022,7 +1026,7 @@ try {
 } 
 # Remove Dell Digital Delivery
 try {
-    Remove-App-MSI-QN "Dell Digital Delivery Services"
+    Remove-App-MSI-QN "Dell Digital Delivery Services" -ErrorAction SilentlyContinue
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1031,7 +1035,7 @@ try {
 } 
 # Remove Dell Optimizer Core
 try {
-Remove-App-EXE-SILENT "Dell Optimizer Core"
+Remove-App-EXE-SILENT "Dell Optimizer Core" -ErrorAction SilentlyContinue
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1040,7 +1044,7 @@ Remove-App-EXE-SILENT "Dell Optimizer Core"
 } 
 # Remove Dell SupportAssist OS Recovery Plugin for Dell Update
 try{
-Remove-App-MSI_EXE-S "Dell SupportAssist OS Recovery Plugin for Dell Update"
+Remove-App-MSI_EXE-S "Dell SupportAssist OS Recovery Plugin for Dell Update" -ErrorAction SilentlyContinue
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1049,7 +1053,7 @@ Remove-App-MSI_EXE-S "Dell SupportAssist OS Recovery Plugin for Dell Update"
 }
 # Remove Dell SupportAssist Remediation
 try{
-Remove-App-MSI_EXE-S "Dell SupportAssist Remediation"  
+Remove-App-MSI_EXE-S "Dell SupportAssist Remediation"  -ErrorAction SilentlyContinue
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1058,7 +1062,7 @@ Remove-App-MSI_EXE-S "Dell SupportAssist Remediation"
 }
 # Remove Dell Display Manager 2.1
 try{
-Remove-App-EXE-S-QUOTES "Dell Display Manager 2.1"                                 
+Remove-App-EXE-S-QUOTES "Dell Display Manager 2.1" -ErrorAction SilentlyContinue                                 
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1067,7 +1071,7 @@ Remove-App-EXE-S-QUOTES "Dell Display Manager 2.1"
 }
 # Remove Dell Peripheral Manager
 try {
-Remove-App-EXE-S-QUOTES "Dell Peripheral Manager"
+Remove-App-EXE-S-QUOTES "Dell Peripheral Manager" -ErrorAction SilentlyContinue
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1076,7 +1080,7 @@ Remove-App-EXE-S-QUOTES "Dell Peripheral Manager"
 }
 # Remove Dell Core Services
 try{
-Remove-App-MSI-I-QN "Dell Core Services" 
+Remove-App-MSI-I-QN "Dell Core Services" -ErrorAction SilentlyContinue
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1085,7 +1089,7 @@ Remove-App-MSI-I-QN "Dell Core Services"
 }
 # Remove Dell Trusted Device Agent
 try {
-Remove-App-MSI-I-QN "Dell Trusted Device Agent"                                    
+Remove-App-MSI-I-QN "Dell Trusted Device Agent"  -ErrorAction SilentlyContinue                                  
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1094,7 +1098,7 @@ Remove-App-MSI-I-QN "Dell Trusted Device Agent"
 }
 # Remove Dell Optimizer
 try {
-Remove-App-MSI-I-QN "Dell Optimizer"                                               
+Remove-App-MSI-I-QN "Dell Optimizer" -ErrorAction SilentlyContinue                                            
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1103,7 +1107,7 @@ Remove-App-MSI-I-QN "Dell Optimizer"
 }
 # Remove Dell Command | Update for Windows Universal
 try {
-    Remove-App-MSI-QN "Dell Command | Update for Windows Universal"
+    Remove-App-MSI-QN "Dell Command | Update for Windows Universal" -ErrorAction SilentlyContinue
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
@@ -1112,7 +1116,7 @@ try {
 }
 # Remove Dell Pair
 try {
-    Remove-App-EXE-S-QUOTES "Dell Pair"
+    Remove-App-EXE-S-QUOTES "Dell Pair" -ErrorAction SilentlyContinue
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     [Console]::Write(" An error occurred: $_")
