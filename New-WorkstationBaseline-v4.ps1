@@ -1830,7 +1830,10 @@ $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\Current
 Where-Object { $_.DisplayName -like "*Adobe Acrobat (64-bit)*" }
 Start-Sleep -Seconds 1
 if ($Acrobat) {
-    Write-Host "Existing Acrobat Reader installation found." -ForegroundColor "Cyan"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    Write-Delayed "Existing Acrobat Reader installation found." -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
 } else {
     if (-not (Test-Path $AcroFilePath)) {
         # If not found, download it
@@ -1842,7 +1845,7 @@ if ($Acrobat) {
         Write-Delayed "Downloading Adobe Acrobat Reader ($fileSize bytes)..." -NewLine:$false
         Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done."
+        Write-Delayed " done." -NewLine:$false
         [Console]::ResetColor()
         [Console]::WriteLine() 
     }
@@ -1880,7 +1883,7 @@ if ($Acrobat) {
         Start-Sleep 15
         taskkill /f /im acroread.exe *> $null
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done."
+        Write-Delayed " done." -NewLine:$false
         [Console]::ResetColor()
         [Console]::WriteLine() 
         Write-Log "Adobe Acrobat installation complete." -ForegroundColor Green
@@ -1898,7 +1901,7 @@ $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVer
 Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
 if ($SWNE) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    Write-Delayed "Existing Sonicwall NetExtender installation found."
+    Write-Delayed "Existing Sonicwall NetExtender installation found." -NewLine:$false
     [Console]::ResetColor()
     [Console]::WriteLine()   
 } else {
@@ -1933,6 +1936,7 @@ if ($SWNE) {
     }
 }
 
+<#
 # Remove Microsoft OneDrive
 try {
     $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
@@ -1943,14 +1947,11 @@ try {
         $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
         if (-not $OneDriveProduct) {
             Write-Log "OneDrive has been successfully removed."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            Write-Delayed " done."
-            [Console]::ResetColor()
-            [Console]::WriteLine()    
+
         } else {
             Write-Log "Failed to remove OneDrive."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "Failed to remove OneDrive." -NewLine:$false
+            Write-Delayed " failed." -NewLine:$false
             [Console]::ResetColor()
             [Console]::WriteLine()    
         }
@@ -1966,13 +1967,50 @@ try {
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
+#>
+Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
+# Remove Microsoft OneDrive
+try {
+    $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+    if ($OneDriveProduct) { 
+        $OneDriveProduct | ForEach-Object { 
+            try {
+                $_.Uninstall() *> $null
+            } catch {
+                Write-Host "An error occurred during uninstallation: $_"
+            }
+        }
+        # Recheck if OneDrive is uninstalled
+        $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+        if (-not $OneDriveProduct) {
+            Write-Log "OneDrive has been successfully removed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        } else {
+            Write-Log "Failed to remove OneDrive."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed " failed." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        }
+    } else {
+        #Write-Host "Microsoft OneDrive (Personal) is not installed."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+} catch {
+    Write-Error "An error occurred: $_"
+}
 
-
+Write-Delayed "Removing Microsoft Teams Machine-Wide Installer..." -NewLine:$false
 # Remove Microsoft Teams Machine-Wide Installer
 try {
-    $TeamsMWI = Get-Package -Name 'Teams Machine*'
+    $TeamsMWI = Get-Package -Name 'Teams Machine*' -ErrorAction SilentlyContinue
     if ($TeamsMWI) {
-        Write-Delayed "Removing Microsoft Teams Machine-Wide Installer..." -NewLine:$false
         [Console]::ResetColor()
         [Console]::WriteLine()
         Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
