@@ -1889,7 +1889,8 @@ Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
 if ($SWNE) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
     Write-Delayed "Existing Sonicwall NetExtender installation found."
-    [Console]::ResetColor()   
+    [Console]::ResetColor()
+    [Console]::WriteLine()   
 } else {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
@@ -1905,19 +1906,19 @@ if ($SWNE) {
         if (Test-Path $config.NEGui) {
             Write-Log "Sonicwall NetExtender installation completed successfully."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            Write-Delayed " done."
+            Write-Delayed " done." -NewLine:$false
             [Console]::ResetColor()
             [Console]::WriteLine()
-            Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
+            Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue | Out-Null
         }
     } else {
         # Report download error
         Write-Log "Sonicwall NetExtender download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "Download failed! File does not exist or size does not match."
+        Write-Delayed "Download failed! File does not exist or size does not match." -NewLine:$false
         [Console]::ResetColor()
         [Console]::WriteLine()    
-        Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
 
@@ -1938,18 +1939,19 @@ try {
         } else {
             Write-Log "Failed to remove OneDrive."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "Failed to remove OneDrive."
+            Write-Delayed "Failed to remove OneDrive." -NewLine:$false
             [Console]::ResetColor()
             [Console]::WriteLine()    
         }
     } else {
-            Write-Delayed "OneDrive installation not found."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done." -NewLine:$false
             [Console]::ResetColor()
             [Console]::WriteLine()
     }
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed "An error occurred: $_"
+    Write-Delayed "An error occurred: $_" -NewLine:$false
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
@@ -1967,24 +1969,27 @@ try {
         if (-not $MWICheck) {
             Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            Write-Delayed " done."
+            Write-Delayed " done." -NewLine:$false
             [Console]::ResetColor()
             [Console]::WriteLine()   
         } else {
             Write-Log "Failed to uninstall Teams Machine Wide Installer."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "Failed to uninstall Teams Machine Wide Installer."
+            Write-Delayed "Failed to uninstall Teams Machine Wide Installer." -NewLine:$false
             [Console]::ResetColor()
             [Console]::WriteLine()
         }
     } else {
-        Write-Delayed "Teams machine wide installation not found."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
         [Console]::ResetColor()
         [Console]::WriteLine()    
     }
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed "An error occurred: $_"
+    Write-Delayed "An error occurred: $_" -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
 }
 
 # Function to check if the OS is Windows 11
@@ -2037,14 +2042,14 @@ if (Is-Windows10) {
         Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
         Start-Sleep -Seconds 2
         Start-Process powershell -ArgumentList "-noexit","-Command Invoke-Expression -Command '& ''C:\temp\MITS-Debloat\MITS-Debloat.ps1'' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent'"
+        Start-Sleep -Seconds 2
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait('%{TAB}') 
         Write-Log "Windows 10 Debloat completed successfully."
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
     }
-}
-else {
-    #Write-Host "This script is intended to run only on Windows 10."
 }
 
 # Enable and start Windows Update Service
