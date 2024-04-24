@@ -15,7 +15,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.7.0";
+Write-Host -ForegroundColor Cyan "                                                   version 10.7.1";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -1716,6 +1716,9 @@ Write-Delayed " done." -NewLine:$false
 [Console]::ResetColor()
 [Console]::WriteLine
 
+
+
+<#
 # Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
@@ -1725,7 +1728,7 @@ if ($O365) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
     Write-Delayed "Existing Microsoft Office installation found." -NewLine:$false
     [Console]::ResetColor()
-    [Console]::WriteLine
+    [Console]::WriteLine()
 } else {
     $FilePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $FilePath)) {
@@ -1736,7 +1739,7 @@ if ($O365) {
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         Write-Delayed " done." -NewLine:$false
         [Console]::ResetColor()
-        [Console]::WriteLine
+        [Console]::WriteLine()
             }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $FilePath).Length
@@ -1749,7 +1752,7 @@ if ($O365) {
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         Write-Delayed " done." -NewLine:$false
         [Console]::ResetColor()
-        [Console]::WriteLine
+        [Console]::WriteLine()
     }
     else {
         # Report download error
@@ -1759,7 +1762,7 @@ if ($O365) {
         #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
-
+#>
 # Acrobat Installation
 $AcroFilePath = "c:\temp\AcroRead.exe"
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
