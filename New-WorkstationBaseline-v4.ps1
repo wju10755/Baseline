@@ -1118,6 +1118,15 @@ try {
     [Console]::ResetColor()
     [Console]::WriteLine()
 }
+# Remove Dell Command | Update for Windows Universal
+try {
+    Remove-App-MSI-QN "Dell Command | Update for Windows 10" -ErrorAction SilentlyContinue
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" An error occurred: $_")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
 # Remove Dell Pair
 try {
     Remove-App-EXE-S-QUOTES "Dell Pair" -ErrorAction SilentlyContinue
