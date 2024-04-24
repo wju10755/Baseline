@@ -2121,12 +2121,7 @@ if ($service.Status -eq 'Running') {
 }
 
 # Installing Windows Updates
-$IWU = "Checking for Windows Updates..."
-foreach ($Char in $IWU.ToCharArray()) {
-    [Console]::Write("$Char")
-    Start-Sleep -Milliseconds 30
-}
- 
+Write-Delayed "Checking for Windows Updates..." -NewLine:$false
 $ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Update_Windows-v2.ps1" -OutFile "c:\temp\update_windows.ps1"
 $ProgressPreference = 'Continue'
