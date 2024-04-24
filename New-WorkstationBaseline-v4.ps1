@@ -352,7 +352,7 @@ Start-Sleep -Seconds 1
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-
+<#
 # Stage Procmon
 Write-Delayed "Staging Process Monitor..." -NewLine:$false
 $ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
@@ -1184,7 +1184,7 @@ if ($dellApps) {
 } else {
     Write-Delayed "Skipping Dell bloatware cleanup as no Dell applications are installed." -NewLine:$true
 }
-#>
+
 
 # Check if any application with "Dell" in the name is installed
 $dellApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Dell*" }
@@ -1608,7 +1608,8 @@ try {
         [Console]::Write(" An error occurred: $_")
         [Console]::ResetColor()
         [Console]::WriteLine()
-    }                                          
+    } 
+#>                                             
 ############################################################################################################
 #                                       Configure BitLocker Encryption                                     #
 #                                                                                                          #
@@ -1675,8 +1676,10 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
         if ($BitLockerVolume.KeyProtector) {
             Write-Delayed "Bitlocker disk encryption configured successfully." -NewLine:$true
-            Write-Host "Recovery ID: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
-            Write-Host "Recovery Password: $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
+            Write-Delayed "Recovery ID:" -NewLine:$false
+            Write-Host -ForegroundColor Cyan " $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
+            Write-Delayed "Recovery Password:" -NewLine:$false
+            Write-Host -ForegroundColor Cyan " $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
         } else {
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
             Write-Delayed "Bitlocker disk encryption is not configured." -NewLine:$true
