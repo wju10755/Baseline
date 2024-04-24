@@ -44,6 +44,7 @@ function Write-Log {
 
 Function Remove-App-MSI-QN([String]$appName)
 {
+    $WarningPreference = 'SilentlyContinue'
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
         Write-Delayed "Removing " -NewLine:$false
@@ -56,10 +57,12 @@ Function Remove-App-MSI-QN([String]$appName)
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
+    $WarningPreference = 'Continue'
 }
 
 Function Remove-App-EXE-SILENT([String]$appName)
 {
+    $WarningPreference = 'SilentlyContinue'
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
         Write-Delayed "Removing " -NewLine:$false
@@ -72,10 +75,12 @@ Function Remove-App-EXE-SILENT([String]$appName)
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
+    $WarningPreference = 'Continue'
 }
 
 Function Remove-App-MSI_EXE-Quiet([String]$appName)
 {
+    $WarningPreference = 'SilentlyContinue'
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
         Write-Delayed "Removing " -NewLine:$false
@@ -88,10 +93,12 @@ Function Remove-App-MSI_EXE-Quiet([String]$appName)
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
+    $WarningPreference = 'Continue'
 }
 
 Function Remove-App-MSI_EXE-S([String]$appName)
 {
+    $WarningPreference = 'SilentlyContinue'
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
         Write-Delayed "Removing " -NewLine:$false
@@ -104,10 +111,12 @@ Function Remove-App-MSI_EXE-S([String]$appName)
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
+    $WarningPreference = 'Continue'
 }
 
 Function Remove-App-MSI-I-QN([String]$appName)
 {
+    $WarningPreference = 'SilentlyContinue'
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
         Write-Delayed "Removing " -NewLine:$false
@@ -120,11 +129,13 @@ Function Remove-App-MSI-I-QN([String]$appName)
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
+    $WarningPreference = 'Continue'
 }
 
 Function Remove-App([String]$appName){
     $app = Get-AppxPackage -AllUsers $appName
     if($null -ne $app){
+        $WarningPreference = 'SilentlyContinue'
         $packageFullName = $app.PackageFullName
         Write-Delayed "Uninstalling " -NewLine:$false
         Write-Delayed $appName -NewLine:$false
@@ -142,6 +153,7 @@ Function Remove-App([String]$appName){
             [Console]::WriteLine()    
         }
     }
+    $WarningPreference = 'Continue'
 }
 
 Function Remove-M365([String]$appName)
@@ -170,6 +182,7 @@ Function Check-UninstallString([String]$appName)
 
 Function Remove-App-EXE-S-QUOTES([String]$appName)
 {
+    $WarningPreference = 'SilentlyContinue'
     $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
     if($null -ne $appCheck){
         Write-Delayed "Removing " -NewLine:$false
@@ -182,6 +195,7 @@ Function Remove-App-EXE-S-QUOTES([String]$appName)
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
+    $WarningPreference = 'Continue'
 }
 
 # Function to write text with delay
