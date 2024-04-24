@@ -1020,6 +1020,7 @@ $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
     Write-Host "Dell system detected, Removing bloatware..."
+<#    
 try {
     Remove-App-MSI-QN "Dell SupportAssist" -ErrorAction SilentlyContinue
 } catch {
@@ -1137,6 +1138,7 @@ try {
     [Console]::WriteLine()
 }
 } 
+
 # List of applications to uninstall
 $applicationList = "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services"
 
@@ -1167,7 +1169,7 @@ if ($installedSoftware) {
         }
     }
 } 
-
+#>
 # Check if any application with "Dell" in the name is installed
 $dellApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Dell*" }
 

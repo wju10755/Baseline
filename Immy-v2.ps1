@@ -47,6 +47,7 @@ if(!$OfficeInstallations) {
 # Loop through each Office installation and initiate uninstall process
 foreach($OfficeInstallation in $OfficeInstallations) {
     $UninstallParams = $OfficeInstallation.UninstallString.Replace("$($OfficeInstallation.DisplayIcon)", "").Replace("""""","")
+    $UninstallParams += " /quiet" # Add silent uninstallation parameter
     Write-Host "Running ""$($OfficeInstallation.DisplayIcon)"" $UninstallParams"
 
     # Start uninstall process
