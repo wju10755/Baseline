@@ -1720,113 +1720,40 @@ while ($true) {
 
 # Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                             HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
 
 if ($O365) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    Write-Delayed "Existing Microsoft Office installation found." -NewLine:$false
-    [Console]::ResetColor()
-    [Console]::WriteLine   
+    Write-Host "Existing Microsoft Office installation found." -ForegroundColor "Yellow"
 } else {
-    $OfficePath = "c:\temp\OfficeSetup.exe"
-    if (-not (Test-Path $OfficePath)) {
-        $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        Write-Delayed "Downloading Microsoft Office 365..." -NewLine:$false
-        Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
-        [Console]::ResetColor()
-        [Console]::WriteLine()
+    $FilePath = "c:\temp\OfficeSetup.exe"
+    if (-not (Test-Path $FilePath)) {
+        # If not found, download it from the given URL
+        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
+        Write-Host "Downloading Microsoft Office..." -NoNewline
+        Invoke-WebRequest -OutFile c:\temp\OfficeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe" -UseBasicParsing
+        Write-Host " done." -ForegroundColor "Green"
     }
     # Validate successful download by checking the file size
-    $FileSize = (Get-Item $OfficePath).Length
+    $FileSize = (Get-Item $FilePath).Length
     $ExpectedSize = 7651616 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        #& $config.officeNotice
-        Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
-            taskkill /f /im OfficeClickToRun.exe *> $null
-            taskkill /f /im OfficeC2RClient.exe *> $null
-            Start-Sleep -Seconds 10
-            Start-Process -FilePath $OfficePath -Wait
-        if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
-            Write-Log "Office 365 Installation Completed Successfully."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
-            [Console]::ResetColor()
-            [Console]::WriteLine()  
-            Start-Sleep -Seconds 10
-            taskkill /f /im OfficeClickToRun.exe *> $null
-            taskkill /f /im OfficeC2RClient.exe *> $null
-            Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
-            } else {
-            Write-Log "Office 365 installation failed."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "Microsoft Office 365 installation failed." -NewLine:$false
-            [Console]::ResetColor()
-            [Console]::WriteLine()  
-
-            }   
+        # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
+        & $officeNotice
+        Write-Host "Installing Microsoft Office..." -NoNewline
+        Start-Process -FilePath "C:\temp\Officesetup.exe" -Wait
+        Write-Host " done." -ForegroundColor "Green"
+        Write-Log "Office 365 Installation Completed Successfully."
+        & $clearPath
     }
     else {
         # Report download error
+        & $officeFailure
+        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Office download failed!"
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "Download failed or file size does not match."
-        [Console]::ResetColor()
-        [Console]::WriteLine()
         Start-Sleep -Seconds 10
-        Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
-    }
-}
-
-# Install Google Chrome
-$Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Google Chrome*" }
-if ($Chrome) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    $FoundChrome = "Existing Google Chrome installation found."
-    foreach ($Char in $FoundChrome.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }
-    [Console]::ResetColor()
-    [Console]::WriteLine()  
-} else {
-    $ChromePath = "c:\temp\ChromeSetup.exe"
-    if (-not (Test-Path $ChromePath)) {
-        $ProgressPreference = 'Continue'
-        $ChromeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
-        Write-Delayed "Downloading Google Chrome..." -NewLine:$false
-        Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.")
-        [Console]::ResetColor() 
-    }
-    # Validate successful download by checking the file size
-    $FileSize = (Get-Item $ChromePath).Length
-    $ExpectedSize = 1373744 # in bytes 
-    if ($FileSize -eq $ExpectedSize) {
-       Write-Delayed "Installing Google Chrome..." -NewLine:$false
-        Start-Process -FilePath $ChromePath -ArgumentList "/silent /install" -Wait
-        Write-Log "Google Chrome installed successfully."
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done."
-        [Console]::ResetColor()
-        [Console]::WriteLine()    
-        Start-Sleep -Seconds 10
-        Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
-    }
-    else {
-        # Report download error
-        Write-Log "Google Chrome download failed!"
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "Download failed or file size does not match."
-        [Console]::ResetColor()
-        [Console]::WriteLine() 
-        Start-Sleep -Seconds 10
-        Remove-Item -Path $ChromePath -force -ErrorAction SilentlyContinue
+        & $clearPath
+        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
     }
 }
 
