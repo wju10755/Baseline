@@ -1888,7 +1888,6 @@ if ($O365) {
             Write-Delayed "`nMicrosoft Office 365 installation failed." -NewLine:$false
             [Console]::ResetColor()
             [Console]::WriteLine()  
-
             }   
     }
     else {
