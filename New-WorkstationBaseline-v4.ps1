@@ -1871,7 +1871,7 @@ if ($O365) {
             taskkill /f /im OfficeC2RClient.exe *> $null
             Start-Sleep -Seconds 10
             Start-Process -FilePath $OfficePath -Wait
-            Start-Sleep -Seconds 30
+            Start-Sleep -Seconds 15
         if (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"}) {
             Write-Log "Office 365 Installation Completed Successfully."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
@@ -1902,6 +1902,7 @@ if ($O365) {
         Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
     }
 }
+
 # Acrobat Installation
 $AcroFilePath = "c:\temp\AcroRead.exe"
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
