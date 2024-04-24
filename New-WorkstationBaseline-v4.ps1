@@ -1,6 +1,5 @@
 Set-Executionpolicy RemoteSigned -Force *> $null
 $ErrorActionPreference = 'SilentlyContinue'
-$WarningActionPreference = 'SilentlyContinue'
 
 # Clear console window
 Clear-Host
@@ -16,7 +15,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.6.4";
+Write-Host -ForegroundColor Cyan "                                                   version 10.6.5";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -732,7 +731,7 @@ if (Test-Win11) {
     #}
     
     # Prep mixed Reality Portal for removal    
-    Write-Delayed "Setting Mixed Reality Portal value to 0 so it can be uninstalled..." -NewLine:$false
+    Write-Delayed "Disabling Mixed Reality Portal..." -NewLine:$false
     $Holo = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Holographic"    
     If (Test-Path $Holo) {
         Set-ItemProperty $Holo  FirstRunSucceeded -Value 0 
@@ -933,7 +932,7 @@ $agentIdValueName = "ID"
 
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Delayed "ConnectWise Automate agent is installed." -NewLine:$true
+    Write-Delayed "ConnectWise Automate agent detected." -NewLine:$true
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     Write-Delayed "ConnectWise Automate agent files are present, but the service is not installed." -NewLine:$false
@@ -1525,7 +1524,6 @@ if (Test-Path $lenovonow) {
 }
 }
 
-
 ############################################################################################################
 #                                        Remove Pre-installed Office                                       #
 #                                                                                                          #
@@ -1710,7 +1708,8 @@ while ($true) {
         # If the process is not found, exit the loop
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         Write-Delayed " done." -NewLine:$true
-    [Console]::ResetColor()
+        [Console]::ResetColor()
+        [Console]::WriteLine
         break
     }
     # Wait for a short period before checking again
@@ -1724,9 +1723,9 @@ Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*
 
 if ($O365) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    Write-Delayed "Existing Microsoft Office installation found."
+    Write-Delayed "Existing Microsoft Office installation found." -NewLine:$false
     [Console]::ResetColor()
-    goto NE_Install    
+    [Console]::WriteLine   
 } else {
     $OfficePath = "c:\temp\OfficeSetup.exe"
     if (-not (Test-Path $OfficePath)) {
@@ -1734,7 +1733,7 @@ if ($O365) {
         Write-Delayed "Downloading Microsoft Office 365..." -NewLine:$false
         Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done."
+        Write-Delayed " done." -NewLine:$false
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
@@ -1758,7 +1757,11 @@ if ($O365) {
             Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
             } else {
             Write-Log "Office 365 installation failed."
-            Write-Delayed "Microsoft Office 365 installation failed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Microsoft Office 365 installation failed." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+
             }   
     }
     else {
@@ -1791,14 +1794,10 @@ if ($Chrome) {
     if (-not (Test-Path $ChromePath)) {
         $ProgressPreference = 'Continue'
         $ChromeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
-        $CWDL = "Downloading Google Chrome..."
-    foreach ($Char in $CWDL.ToCharArray()) {
-        [Console]::Write("$Char")
-        Start-Sleep -Milliseconds 30
-    }   
+        Write-Delayed "Downloading Google Chrome..." -NewLine:$false
         Invoke-WebRequest -OutFile $ChromePath -Uri $ChromeURL -UseBasicParsing
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        [Console]::Write(" done.`n")
+        [Console]::Write(" done.")
         [Console]::ResetColor() 
     }
     # Validate successful download by checking the file size
