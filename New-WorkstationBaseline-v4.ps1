@@ -1013,13 +1013,13 @@ if ($null -ne $service) {
 #                                        Remove Dell Bloatware                                             #
 #                                                                                                          #
 ############################################################################################################
-
+#
 # Get the system manufacturer
 $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
 
 # Check if the system is manufactured by Dell
 if ($manufacturer -eq "Dell Inc.") {
-    Write-Host "Dell system detected, Removing bloatware..."
+    #Write-Host "Dell system detected, Removing bloatware..."
 <#    
 try {
     Remove-App-MSI-QN "Dell SupportAssist" -ErrorAction SilentlyContinue

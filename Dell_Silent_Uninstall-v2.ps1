@@ -103,6 +103,39 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
+# Start Dell Software Uninstall
+$applicationList = "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services"
+
+# Get the list of installed software
+$installedSoftware = Get-InstalledSoftware $applicationList |
+    Where-Object { $_.DisplayName -ne "Dell Trusted Device Agent" } |
+    Select-Object -ExpandProperty DisplayName
+
+if ($installedSoftware) {
+    foreach ($software in $installedSoftware) {
+        try {
+            $params = @{
+                Name        = $software
+                ErrorAction = "Stop"
+            }
+
+            if ($software -eq "Dell Optimizer Core") {
+                # uninstallation isn't unattended without -silent switch
+                $params["addArgument"] = "-silent"
+            }
+
+            # Uninstall the software
+            Write-Host "Uninstalling $software..."
+            Uninstall-ApplicationViaUninstallString @params
+            Write-Host "$software uninstalled successfully." -ForegroundColor "Green"
+        } catch {
+            Write-Warning "Failed to uninstall $software. Error: $($_.Exception.Message)"
+        }
+    }
+} else {
+    Write-Host "No bloatware detected." -ForegroundColor "Red"
+}
+
 
 # Remove Dell Display Manager
 $registryPaths = @(
@@ -288,38 +321,6 @@ if ($null -ne $uninstallString) {
 }
 
 
-# List of applications to uninstall
-$applicationList = "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services"
-
-# Get the list of installed software
-$installedSoftware = Get-InstalledSoftware $applicationList |
-    Where-Object { $_.DisplayName -ne "Dell Trusted Device Agent" } |
-    Select-Object -ExpandProperty DisplayName
-
-if ($installedSoftware) {
-    foreach ($software in $installedSoftware) {
-        try {
-            $params = @{
-                Name        = $software
-                ErrorAction = "Stop"
-            }
-
-            if ($software -eq "Dell Optimizer Core") {
-                # uninstallation isn't unattended without -silent switch
-                $params["addArgument"] = "-silent"
-            }
-
-            # Uninstall the software
-            Write-Host "Uninstalling $software..."
-            Uninstall-ApplicationViaUninstallString @params
-            Write-Host "$software uninstalled successfully." -ForegroundColor "Green"
-        } catch {
-            Write-Warning "Failed to uninstall $software. Error: $($_.Exception.Message)"
-        }
-    }
-} else {
-    Write-Host "No bloatware detected." -ForegroundColor "Red"
-}
 
 
 # Define the list of package names to exclude
