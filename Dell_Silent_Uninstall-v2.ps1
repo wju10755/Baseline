@@ -367,6 +367,6 @@ foreach ($app in $dellApps) {
 Get-CimInstance -Classname Win32_Product | Where-Object Name -Match ‘Dell SupportAssist’ | Invoke-CimMethod -MethodName UnInstall
 
 # Stop Procmon
-Stop-Procmon
-
+#Stop-Procmon
+taskkill /f /im procmon* | Out-Null
 Stop-Transcript

@@ -1707,115 +1707,11 @@ Write-Delayed " done." -NewLine:$false
 [Console]::ResetColor()
 [Console]::WriteLine
 
-<#
-# Install Office 365
-$O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                             HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
-
-if ($O365) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    Write-Delayed "Existing Microsoft Office installation found." -NewLine:$false
-    [Console]::ResetColor()
-    [Console]::WriteLine()   
-} else {
-    $OfficePath = "c:\temp\OfficeSetup.exe"
-    if (-not (Test-Path $OfficePath)) {
-        $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        Write-Delayed "Downloading Microsoft Office 365..." -NewLine:$false
-        Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-    }
-    # Validate successful download by checking the file size
-    $FileSize = (Get-Item $OfficePath).Length
-    $ExpectedSize = 7651616 # in bytes
-    if ($FileSize -eq $ExpectedSize) {
-        Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
-            taskkill /f /im OfficeClickToRun.exe *> $null
-            taskkill /f /im OfficeC2RClient.exe *> $null
-            Start-Sleep -Seconds 10
-            Start-Process -FilePath $OfficePath -Wait
-            Start-Sleep -Seconds 30
-        if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"})) {
-            Write-Log "Office 365 Installation Completed Successfully."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            [Console]::Write(" done.")
-            [Console]::ResetColor()
-            [Console]::WriteLine()  
-            Start-Sleep -Seconds 10
-            taskkill /f /im OfficeClickToRun.exe *> $null
-            taskkill /f /im OfficeC2RClient.exe *> $null
-            Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
-            } else {
-            Write-Log "Office 365 installation failed."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "Microsoft Office 365 installation failed." -NewLine:$false
-            [Console]::ResetColor()
-            [Console]::WriteLine()  
-
-            }   
-    }
-    else {
-        # Report download error
-        Write-Log "Office download failed!"
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "Download failed or file size does not match."
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-        Start-Sleep -Seconds 10
-        Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
-    }
-}
-
-<#
-# Install Office 365
-$O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
-
-if ($O365) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    Write-Delayed "Existing Microsoft Office installation found." -NewLine:$false
-    [Console]::ResetColor()
-    [Console]::WriteLine()
-} else {
-    $FilePath = "c:\temp\OfficeSetup.exe"
-    if (-not (Test-Path $FilePath)) {
-        # If not found, download it from the given URL
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
-        Write-Delayed "Downloading Microsoft Office..." -NewLine:$false
-        Invoke-WebRequest -OutFile c:\temp\OfficeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe" -UseBasicParsing
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-            }
-    # Validate successful download by checking the file size
-    $FileSize = (Get-Item $FilePath).Length
-    $ExpectedSize = 7651616 # in bytes
-    if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
-        Write-Delayed "Installing Microsoft Office..." -NewLine:$false
-        Start-Process -FilePath "C:\temp\Officesetup.exe" -Wait
-        Write-Log "Office 365 Installation Completed Successfully."
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-    }
-    else {
-        # Report download error
-        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
-        Write-Log "Office download failed!"
-        Start-Sleep -Seconds 10
-        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
-    }
-}
-#>
-
+############################################################################################################
+#                                          Office 365 Installation                                         #
+#                                                                                                          #
+############################################################################################################
+#
 # Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                              HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
@@ -1877,6 +1773,11 @@ if ($O365) {
     }
 }
 
+############################################################################################################
+#                                        Adobe Acrobat Installation                                        #
+#                                                                                                          #
+############################################################################################################
+#
 # Acrobat Installation
 $AcroFilePath = "c:\temp\AcroRead.exe"
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
@@ -1949,6 +1850,11 @@ if ($Acrobat) {
     }
 }
 
+############################################################################################################
+#                                   SonicWall NetExtender Installation                                     #
+#                                                                                                          #
+############################################################################################################
+#
 # Install NetExtender
 $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
@@ -1990,38 +1896,7 @@ if ($SWNE) {
     }
 }
 
-<#
-# Remove Microsoft OneDrive
-try {
-    $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
-    if ($OneDriveProduct) {
-        Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
-        $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
-        # Recheck if OneDrive is uninstalled
-        $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
-        if (-not $OneDriveProduct) {
-            Write-Log "OneDrive has been successfully removed."
 
-        } else {
-            Write-Log "Failed to remove OneDrive."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed " failed." -NewLine:$false
-            [Console]::ResetColor()
-            [Console]::WriteLine()    
-        }
-    } else {
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            Write-Delayed " done." -NewLine:$false
-            [Console]::ResetColor()
-            [Console]::WriteLine()
-    }
-} catch {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed "An error occurred: $_" -NewLine:$false
-    [Console]::ResetColor()
-    [Console]::WriteLine()
-}
-#>
 Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
 # Remove Microsoft OneDrive
 try {
