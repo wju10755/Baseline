@@ -343,6 +343,7 @@ while ($true) {
 Start-Sleep -Seconds 2
 Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
 Write-Delayed "Installing required powershell modules..." -NewLine:$false
+if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) { Install-Module -Name PSWindowsUpdate -Force }
 # Check and Install NuGet Provider if not found
 if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
     Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
