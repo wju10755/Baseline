@@ -2117,7 +2117,7 @@ function Connect-VPN {
         [Console]::WriteLine()
     }
 }
-#>
+
 ############################################################################################################
 #                                            LocalAD/AzureAD Join                                          #
 #                                                                                                          #
@@ -2185,4 +2185,4 @@ Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
 Write-Host " "
 Write-Host " "
 #>
-Read-Host -Prompt "Press Enter to exit"
+pause
