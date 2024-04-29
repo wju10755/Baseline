@@ -775,7 +775,7 @@ if (Test-Win11) {
     [Console]::WriteLine() 
 
     # Disable Wi-fi Sense
-    Write-Delayed "Disabling Wi-Fi Sense" -NewLine:$false
+    Write-Delayed "Disabling Wi-Fi Sense..." -NewLine:$false
     $WifiSense1 = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting"
     $WifiSense2 = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots"
     $WifiSense3 = "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config"
