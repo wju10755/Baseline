@@ -2186,3 +2186,4 @@ Write-Host " "
 Write-Host " "
 #>
 pause
+cls
