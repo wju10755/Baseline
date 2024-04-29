@@ -2176,7 +2176,7 @@ Write-Log "Baseline configuration completed successfully."
 Write-Delayed "Baseline configuration completed successfully." -NewLine:$true
 Stop-Transcript  
 Start-Sleep -seconds 1
-Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1" -UseBasicParsing
+Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1"
 $scriptPath = "c:\temp\BaselineComplete.ps1"
 Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
 Write-Host " "
