@@ -17,7 +17,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.7.9";
+Write-Host -ForegroundColor Cyan "                                                   version 10.8.2";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -340,14 +340,28 @@ while ($true) {
 }
 }
 
+
 Start-Sleep -Seconds 2
 Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
 Write-Delayed "Installing required powershell modules..." -NewLine:$false
 if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) { Install-Module -Name PSWindowsUpdate -Force }
-# Check and Install NuGet Provider if not found
-if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet -Force | Out-Null
-    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
+# Check if NuGet provider is installed
+$NugetBootStrapURL = "https://advancestuff.hostedrmm.com/labtech/Transfer/installers/nuget-bootstrap.zip"
+$TempDir = "c:\temp"
+$NugetFileName = "nuget-bootstrap.zip"
+$NugetPath = "C:\Program Files\PackageManagement\ProviderAssemblies\"
+$FullFilePath = Join-Path -Path $TempDir -ChildPath $NugetFileName
+
+Invoke-WebRequest -uri $NugetBootStrapURL -OutFile $TempDir
+
+if(Test-Path $FullFilePath){
+    try {
+        Expand-Archive -Path $FullFilePath -DestinationPath $NugetPath -ErrorAction Stop
+        Import-PackageProvider -Name NuGet
+    }
+    catch {
+        Write-Host "Failed to expand archive: $_"
+    }
 }
 Start-Sleep -Seconds 1
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
