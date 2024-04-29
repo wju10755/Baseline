@@ -36,8 +36,18 @@ $AzureADJoined
 $DomainJoined = ((dsregcmd /status | select-string -Pattern "DomainJoined").Line).Trim()
 $DomainJoined
 Write-Output " "
-$antivirusProduct = Get-WmiObject -Namespace "root\SecurityCenter2" -Class AntiVirusProduct
+$antivirusProducts = Get-WmiObject -Namespace "root\SecurityCenter2" -Class AntiVirusProduct
+
+# If more than one antivirus product is returned, filter out "Windows Defender"
+if ($antivirusProducts.Count -gt 1) {
+    $antivirusProduct = $antivirusProducts | Where-Object { $_.displayName -ne "Windows Defender" } | Select-Object -First 1
+} else {
+    $antivirusProduct = $antivirusProducts | Select-Object -First 1
+}
+
 Write-Host "Detected Antivirus: " -NoNewline
 # Output the name of the active antivirus product
 $antivirusProduct.displayName
 Write-Output " "
+
+
