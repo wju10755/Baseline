@@ -1629,6 +1629,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         # Bitlocker is already configured
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         Write-Delayed "Bitlocker is already configured on $env:SystemDrive" -NewLine:$true
+        [Console]::ResetColor()
         $userResponse = Read-Host "Do you want to skip configuring Bitlocker? (yes/no)"
         if ($userResponse -like 'n') {
             # Disable BitLocker
