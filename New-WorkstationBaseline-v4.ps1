@@ -17,7 +17,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.8.6";
+Write-Host -ForegroundColor Cyan "                                                   version 10.8.7";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
  
@@ -391,7 +391,7 @@ if (Test-Path $ProcmonFile)
     [Console]::WriteLine() 
     Start-Sleep -Seconds 2
 }
-
+<#
 ############################################################################################################
 #                                        Profile Customization                                             #
 #                                                                                                          #
@@ -1732,6 +1732,79 @@ Write-Delayed " done." -NewLine:$false
 [Console]::ResetColor()
 [Console]::WriteLine
 
+Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
+# Remove Microsoft OneDrive
+try {
+    $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+    if ($OneDriveProduct) { 
+        $OneDriveProduct | ForEach-Object { 
+            try {
+                $_.Uninstall() *> $null
+            } catch {
+                Write-Host "An error occurred during uninstallation: $_"
+            }
+        }
+        # Recheck if OneDrive is uninstalled
+        $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+        if (-not $OneDriveProduct) {
+            Write-Log "OneDrive has been successfully removed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        } else {
+            Write-Log "Failed to remove OneDrive."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed " failed." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        }
+    } else {
+        #Write-Host "Microsoft OneDrive (Personal) is not installed."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+} catch {
+    Write-Error "An error occurred: $_"
+}
+
+Write-Delayed "Removing Microsoft Teams Machine-Wide Installer..." -NewLine:$false
+# Remove Microsoft Teams Machine-Wide Installer
+try {
+    $TeamsMWI = Get-Package -Name 'Teams Machine*' -ErrorAction SilentlyContinue
+    if ($TeamsMWI) {
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+        Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
+        $MWICheck = Get-Package -Name 'Teams Machine*'
+        if (-not $MWICheck) {
+            Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()   
+        } else {
+            Write-Log "Failed to uninstall Teams Machine Wide Installer."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Failed to uninstall Teams Machine Wide Installer." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        }
+    } else {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+    }
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "An error occurred: $_" -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+}
+
 ############################################################################################################
 #                                          Office 365 Installation                                         #
 #                                                                                                          #
@@ -1922,78 +1995,6 @@ if ($SWNE) {
 }
 
 
-Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
-# Remove Microsoft OneDrive
-try {
-    $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
-    if ($OneDriveProduct) { 
-        $OneDriveProduct | ForEach-Object { 
-            try {
-                $_.Uninstall() *> $null
-            } catch {
-                Write-Host "An error occurred during uninstallation: $_"
-            }
-        }
-        # Recheck if OneDrive is uninstalled
-        $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
-        if (-not $OneDriveProduct) {
-            Write-Log "OneDrive has been successfully removed."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            Write-Delayed " done." -NewLine:$false
-            [Console]::ResetColor()
-            [Console]::WriteLine()
-        } else {
-            Write-Log "Failed to remove OneDrive."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed " failed." -NewLine:$false
-            [Console]::ResetColor()
-            [Console]::WriteLine()
-        }
-    } else {
-        #Write-Host "Microsoft OneDrive (Personal) is not installed."
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-    }
-} catch {
-    Write-Error "An error occurred: $_"
-}
-
-Write-Delayed "Removing Microsoft Teams Machine-Wide Installer..." -NewLine:$false
-# Remove Microsoft Teams Machine-Wide Installer
-try {
-    $TeamsMWI = Get-Package -Name 'Teams Machine*' -ErrorAction SilentlyContinue
-    if ($TeamsMWI) {
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-        Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
-        $MWICheck = Get-Package -Name 'Teams Machine*'
-        if (-not $MWICheck) {
-            Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            Write-Delayed " done." -NewLine:$false
-            [Console]::ResetColor()
-            [Console]::WriteLine()   
-        } else {
-            Write-Log "Failed to uninstall Teams Machine Wide Installer."
-            [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "Failed to uninstall Teams Machine Wide Installer." -NewLine:$false
-            [Console]::ResetColor()
-            [Console]::WriteLine()
-        }
-    } else {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
-        [Console]::ResetColor()
-        [Console]::WriteLine()    
-    }
-} catch {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed "An error occurred: $_" -NewLine:$false
-    [Console]::ResetColor()
-    [Console]::WriteLine() 
-}
 
 # Function to check if the OS is Windows 11
 function Is-Windows11 {
@@ -2116,6 +2117,7 @@ function Connect-VPN {
         [Console]::WriteLine()
     }
 }
+#>
 ############################################################################################################
 #                                            LocalAD/AzureAD Join                                          #
 #                                                                                                          #
