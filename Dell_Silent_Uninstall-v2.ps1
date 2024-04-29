@@ -187,17 +187,25 @@ if ($isInstalled) {
     Write-Host "Dell Display Manager is not installed."
 }
 #>
-Write-Host "Removing Dell Display Manager..." -NoNewline
-$DellDisplayMgrURL = "https://advancestuff.hostedrmm.com/labtech/Transfer/installers/Uninstall-DDM.zip"
-$DellDisplayMgrFile = "c:\temp\Uninstall-DDM.zip"
-$DellDisplayMgrDest = "c:\temp\Uninstall-DDM"
-$DellDisplayMgrScript = "c:\temp\Uninstall-DDM\Uninstall-DellDisplayManager.ps1"
-Invoke-WebRequest  -Uri $DellDisplayMgrURL -OutFile $DellDisplayMgrFile
-if(Test-Path $DellDisplayMgrFile) {
-    Expand-Archive -Path $DellDisplayMgrFile -DestinationPath $DellDisplayMgrDest
-    &$DellDisplayMgrScript
-    Write-Host " done."
-
+# Remove Dell Peripheral Manager
+$DPMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-dpm.zip"
+$DPMzip = "C:\temp\Uninstall-dpm.zip"
+$DPMdir = "C:\temp\Uninstall-DPM"
+Write-Host "Starting Dell bloatware removal`n" -NoNewline
+$DPMpackageName = 'Dell Peripheral Manager'
+$DPMpackage = Get-Package -Name $DPMpackageName -ErrorAction SilentlyContinue
+if ($DPMpackage) {
+    # Download Dell Peripheral Manager
+    $ProgressPreference = 'SilentlyContinue'
+    #Write-Host "Downloading Dell Peripheral Manager Script..."
+    Invoke-WebRequest -Uri $DPMurl -OutFile $DPMzip *> $null
+    Write-Host "Extracting Dell Peripheral Manager package..."
+    Expand-Archive -Path $DPMzip -DestinationPath $DPMdir -Force
+    Write-Host "Removing Dell Peripheral Manager..."
+    & "$DPMdir\Uninstall-DellPeripheralManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+    Write-Log "Removed Dell Peripheral Manager."
+} else {
+    Write-Host "Dell Peripheral Manager not found" -ForegroundColor "Red"
 }
 
 # Remove Dell Pair Application
