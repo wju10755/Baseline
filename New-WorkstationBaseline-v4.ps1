@@ -532,16 +532,16 @@ if ($deviceType -eq "Laptop") {
 
 # Set the time zone to 'Eastern Standard Time'
 Write-Delayed "Setting EST as default timezone..." -NewLine:$false
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 Start-Service W32Time
 Set-TimeZone -Id "Eastern Standard Time" 
 Write-Log "Time zone set to Eastern Standard Time."
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 2y
 Write-Delayed "Syncing system clock..." -NewLine:$false
 w32tm /resync -ErrorAction SilentlyContinue | out-null
 Start-Sleep -Seconds 2
@@ -2122,7 +2122,7 @@ function Connect-VPN {
 ############################################################################################################
 #
 Write-Host " "
-Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$false
+Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$true
 $ProgressPreference = 'SilentlyContinue'
 try {
     Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
