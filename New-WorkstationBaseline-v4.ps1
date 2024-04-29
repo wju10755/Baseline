@@ -1730,7 +1730,7 @@ while ($true) {
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 Write-Delayed " done." -NewLine:$false
 [Console]::ResetColor()
-[Console]::WriteLine
+[Console]::WriteLine()
 
 Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
 # Remove Microsoft OneDrive
@@ -2125,15 +2125,15 @@ function Connect-VPN {
 #
 Write-Host " "
 Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$true
-<#
+
 $ProgressPreference = 'SilentlyContinue'
 try {
     Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 } catch {
-#    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
     Write-Delayed "Failed to download SSL VPN installer: $_"
-#    [Console]::ResetColor()
-#    [Console]::WriteLine()
+    [Console]::ResetColor()
+    [Console]::WriteLine()
     exit
 }
 $ProgressPreference = 'Continue'
@@ -2184,6 +2184,4 @@ $scriptPath = "c:\temp\BaselineComplete.ps1"
 Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
 Write-Host " "
 Write-Host " "
-#>
-pause
-cls
+Read-Host -Prompt "Press enter to exit"
