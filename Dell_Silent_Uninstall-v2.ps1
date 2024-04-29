@@ -151,7 +151,7 @@ if ($installedSoftware) {
     Write-Host "No bloatware detected." -ForegroundColor "Red"
 }
 
-
+<#
 # Remove Dell Display Manager
 $registryPaths = @(
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
@@ -186,7 +186,17 @@ if ($isInstalled) {
 } else {
     Write-Host "Dell Display Manager is not installed."
 }
+#>
+$DellDisplayMgrURL = "https://advancestuff.hostedrmm.com/labtech/Transfer/installers/Uninstall-DDM.zip"
+$DellDisplayMgrFile = "c:\temp\Uninstall-DDM.zip"
+$DellDisplayMgrDest = "c:\temp\Uninstall-DDM"
+$DellDisplayMgrScript = "c:\temp\Uninstall-DDM\Uninstall-DellDisplayManager.ps1"
+Invoke-WebRequest  -Uri $DellDisplayMgrURL -OutFile $DellDisplayMgrFile
+if(Test-Path $DellDisplayMgrFile) {
+    Expand-Archive -Path $DellDisplayMgrFile -DestinationPath $DellDisplayMgrDest
+    &$DellDisplayMgrScript
 
+}
 
 # Remove Dell Pair Application
 $programName = "Dell Pair Application"
