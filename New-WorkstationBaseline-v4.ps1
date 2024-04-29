@@ -2115,10 +2115,10 @@ $ProgressPreference = 'SilentlyContinue'
 try {
     Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
 } catch {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+#    [Console]::ForegroundColor = [System.ConsoleColor]::Red
     Write-Delayed "Failed to download SSL VPN installer: $_"
-    [Console]::ResetColor()
-    [Console]::WriteLine()
+#    [Console]::ResetColor()
+#    [Console]::WriteLine()
     exit
 }
 $ProgressPreference = 'Continue'
