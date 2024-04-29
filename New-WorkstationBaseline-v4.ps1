@@ -20,7 +20,7 @@ Print-Middle "MITS - New Workstation Baseline Script";
 Write-Host -ForegroundColor Cyan "                                                   version 10.8.4";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
-
+ 
 ############################################################################################################
 #                                                 Functions                                                #
 #                                                                                                          #
