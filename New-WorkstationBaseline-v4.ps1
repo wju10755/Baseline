@@ -2125,6 +2125,7 @@ function Connect-VPN {
 #
 Write-Host " "
 Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$true
+<#
 $ProgressPreference = 'SilentlyContinue'
 try {
     Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
@@ -2183,4 +2184,5 @@ $scriptPath = "c:\temp\BaselineComplete.ps1"
 Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
 Write-Host " "
 Write-Host " "
+#>
 Read-Host -Prompt "Press Enter to exit"
