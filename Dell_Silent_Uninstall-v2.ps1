@@ -3,6 +3,21 @@ Set-Executionpolicy RemoteSigned -Force *> $null
 # Start script transcription
 Start-Transcript -path c:\temp\$env:ComputerName-Dell_Uninstall.log
 
+# Load System.Windows.Forms assembly
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+
+public class Keyboard {
+    [DllImport("user32.dll", CharSet=CharSet.Auto, ExactSpelling=true)]
+    public static extern IntPtr SetFocus(IntPtr hWnd);
+
+    [DllImport("user32.dll", CharSet=CharSet.Auto, SetLastError=true)]
+    public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+}
+"@
+
+
 # Check if the system manufacturer is Dell
 $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
 if ($manufacturer -notlike "*Dell*") {
@@ -155,6 +170,23 @@ if ($isInstalled) {
     try {
         Write-Host "Uninstalling Dell Display Manager..."
         $process = Start-Process -FilePath "C:\Program Files\Dell\Dell Display Manager 2\uninst.exe" -ArgumentList "/S", "/v/qn" -Wait -NoNewWindow -PassThru -ErrorAction Stop
+        Start-Sleep -Seconds 2
+        # Get the title of the current PowerShell console window
+        $windowTitle = $host.UI.RawUI.WindowTitle
+
+        # Find the window you want to send keys to
+        $window = [Keyboard]::FindWindow([null], $windowTitle)
+
+        if ($window -ne [IntPtr]::Zero) {
+            # Set focus to the window
+            [Keyboard]::SetFocus($window)
+
+            # Send the keys
+            Add-Type -AssemblyName System.Windows.Forms
+            [System.Windows.Forms.SendKeys]::SendWait("Y{ENTER}")
+        } else {
+            Write-Host "Window with title '$windowTitle' not found."
+        }
         if ($process.ExitCode -eq 0) {
             Write-Host "Successfully uninstalled Dell Display Manager." -ForegroundColor "Green"
         } else {
