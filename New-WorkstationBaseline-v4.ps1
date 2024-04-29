@@ -654,6 +654,7 @@ if (Test-Win11) {
     }
     If (Test-Path $Advertising) {
         Set-ItemProperty $Advertising Enabled -Value 0
+        Start-Sleep -Milliseconds 500
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.")
         [Console]::ResetColor()
@@ -668,6 +669,7 @@ if (Test-Win11) {
     }
     If (Test-Path $Search) {
         Set-ItemProperty $Search AllowCortana -Value 0
+        Start-Sleep -Milliseconds 500
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         [Console]::Write(" done.")
         [Console]::ResetColor()
@@ -691,6 +693,7 @@ if (Test-Win11) {
         Set-ItemProperty $WebSearch BingSearchEnabled -Value 0
     }
     Set-ItemProperty "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" BingSearchEnabled -Value 0
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -704,7 +707,7 @@ if (Test-Win11) {
         New-Item $Period
     }
     Set-ItemProperty $Period PeriodInNanoSeconds -Value 0 
-
+    Start-Sleep -Milliseconds 500
     ##Loop and do the same
     foreach ($sid in $UserSIDs) {
         $Period = "Registry::HKU\$sid\Software\Microsoft\Siuf\Rules"
@@ -713,6 +716,7 @@ if (Test-Win11) {
         }
         Set-ItemProperty $Period PeriodInNanoSeconds -Value 0 
     }
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -764,6 +768,7 @@ if (Test-Win11) {
             Set-ItemProperty $Holo  FirstRunSucceeded -Value 0    
         }
     }
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -783,6 +788,7 @@ if (Test-Win11) {
     }
     Set-ItemProperty $WifiSense2  Value -Value 0 
     Set-ItemProperty $WifiSense3  AutoConnectAllowedOEM -Value 0 
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -804,6 +810,7 @@ if (Test-Win11) {
         }
         Set-ItemProperty $Live  NoTileApplicationNotification -Value 1    
     }
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -823,6 +830,7 @@ if (Test-Win11) {
             Set-ItemProperty $People -Name PeopleBand -Value 0
         }
     }
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -865,6 +873,7 @@ if (Test-Win11) {
         }
         Set-ItemProperty $Cortana3 HarvestContacts -Value 0 
     }
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -880,6 +889,7 @@ if (Test-Win11) {
     If (Test-Path $Objects64) {
         Remove-Item $Objects64 -Recurse 
     }
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -899,6 +909,7 @@ if (Test-Win11) {
     else {
         New-ItemProperty -Path $registryPath -Name $name -Value $value -PropertyType DWORD -Force | Out-Null
     }
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -933,6 +944,7 @@ if (Test-Win11) {
     if ($null -ne $task6) {
     Get-ScheduledTask  DmClientOnScenarioDownload | Disable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null
     }
+    Start-Sleep -Milliseconds 500
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
@@ -1795,7 +1807,7 @@ if ($O365) {
 $AcroFilePath = "c:\temp\AcroRead.exe"
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                             HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Adobe Acrobat (64-bit)*" }
+Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
 Start-Sleep -Seconds 1
 if ($Acrobat) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
