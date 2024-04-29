@@ -17,7 +17,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.8.9";
+Write-Host -ForegroundColor Cyan "                                                   version 10.9.0";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
  
@@ -2123,7 +2123,6 @@ function Connect-VPN {
 #                                                                                                          #
 ############################################################################################################
 #
-Write-Host " "
 Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$true
 
 $ProgressPreference = 'SilentlyContinue'
