@@ -187,6 +187,7 @@ if ($isInstalled) {
     Write-Host "Dell Display Manager is not installed."
 }
 #>
+Write-Host "Removing Dell Display Manager..." -NoNewline
 $DellDisplayMgrURL = "https://advancestuff.hostedrmm.com/labtech/Transfer/installers/Uninstall-DDM.zip"
 $DellDisplayMgrFile = "c:\temp\Uninstall-DDM.zip"
 $DellDisplayMgrDest = "c:\temp\Uninstall-DDM"
@@ -195,6 +196,7 @@ Invoke-WebRequest  -Uri $DellDisplayMgrURL -OutFile $DellDisplayMgrFile
 if(Test-Path $DellDisplayMgrFile) {
     Expand-Archive -Path $DellDisplayMgrFile -DestinationPath $DellDisplayMgrDest
     &$DellDisplayMgrScript
+    Write-Host " done."
 
 }
 
