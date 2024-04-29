@@ -2144,7 +2144,6 @@ switch ($choice) {
     "N" { Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true }
     default { Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true }
 }
-[Console]::WriteLine()
 $choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
 switch ($choice) {
     "S" {
