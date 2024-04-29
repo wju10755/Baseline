@@ -429,10 +429,10 @@ Write-Host "Suspending Windows Update..." -NoNewline
 
 try {
     # Stop the Windows Update service
-    Stop-Service -Name wuauserv -Force -ErrorAction Stop
+    Stop-Service -Name wuauserv -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
 
     # Set the startup type of the Windows Update service to disabled
-    Set-Service -Name wuauserv -StartupType Disabled -ErrorAction Stop
+    Set-Service -Name wuauserv -StartupType Disabled -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
 
     # Get the current status of the Windows Update service
     $service = Get-Service -Name wuauserv
