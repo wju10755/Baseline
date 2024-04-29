@@ -118,6 +118,28 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
+# Remove Dell Display Manager
+$DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-DDM.zip"
+$DDMzip = "C:\temp\Uninstall-DDM.zip"
+$DDMdir = "C:\temp\Uninstall-DDM"
+Write-Host "Starting Dell bloatware removal`n" -NoNewline
+$DDMpackageName = 'Dell Display Manager'
+$DDMpackage = Get-Package -Name $DPMpackageName -ErrorAction SilentlyContinue
+if ($DDMpackage) {
+    # Download Dell Peripheral Manager
+    $ProgressPreference = 'SilentlyContinue'
+    #Write-Host "Downloading Dell Peripheral Manager Script..."
+    Invoke-WebRequest -Uri $DDMurl -OutFile $DDMzip *> $null
+    Write-Host "Extracting Dell Peripheral Manager package..."
+    Expand-Archive -Path $DDMzip -DestinationPath $DDMdir -Force
+    Write-Host "Removing Dell Peripheral Manager..."
+    & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
+    Write-Log "Removed Dell Display Manager."
+} else {
+    Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
+}
+
+
 # Start Dell Software Uninstall
 $applicationList = "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services"
 
@@ -187,26 +209,6 @@ if ($isInstalled) {
     Write-Host "Dell Display Manager is not installed."
 }
 #>
-# Remove Dell Display Manager
-$DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-DDM.zip"
-$DDMzip = "C:\temp\Uninstall-DDM.zip"
-$DDMdir = "C:\temp\Uninstall-DDM"
-Write-Host "Starting Dell bloatware removal`n" -NoNewline
-$DDMpackageName = 'Dell Display Manager'
-$DDMpackage = Get-Package -Name $DPMpackageName -ErrorAction SilentlyContinue
-if ($DDMpackage) {
-    # Download Dell Peripheral Manager
-    $ProgressPreference = 'SilentlyContinue'
-    #Write-Host "Downloading Dell Peripheral Manager Script..."
-    Invoke-WebRequest -Uri $DDMurl -OutFile $DDMzip *> $null
-    Write-Host "Extracting Dell Peripheral Manager package..."
-    Expand-Archive -Path $DDMzip -DestinationPath $DDMdir -Force
-    Write-Host "Removing Dell Peripheral Manager..."
-    & "$DDMdir\Uninstall-DellDisplayManager.ps1" -DeploymentType "Uninstall" -DeployMode "Silent" *> $null  
-    Write-Log "Removed Dell Display Manager."
-} else {
-    Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
-}
 
 # Remove Dell Pair Application
 $programName = "Dell Pair Application"
