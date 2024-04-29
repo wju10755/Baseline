@@ -2184,3 +2184,4 @@ Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
 Write-Host " "
 Write-Host " "
 Read-Host -Prompt "Press enter to exit"
+Stop-Process -Id $PID -Force
