@@ -2159,7 +2159,7 @@ switch ($choice) {
         }
     }
     "A" {
-        Write-Delayed "`nStarting Azure AD Join operation using Work or School account..." -NewLine:$true
+        Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
         Start-Process "ms-settings:workplace"
         Start-Sleep -Seconds 3
         $output = dsregcmd /status | Out-String
@@ -2176,6 +2176,7 @@ New-Item -ItemType File -Path "c:\temp\WakeLock.flag" -Force *> $null
 # Final log entry
 Write-Log "Baseline configuration completed successfully."
 Write-Delayed "Baseline configuration completed successfully." -NewLine:$true
+Write-Host " "
 Stop-Transcript  
 Start-Sleep -seconds 1
 Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1"
