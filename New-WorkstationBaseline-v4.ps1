@@ -391,7 +391,7 @@ if (Test-Path $ProcmonFile)
     [Console]::WriteLine() 
     Start-Sleep -Seconds 2
 }
-<#
+
 ############################################################################################################
 #                                        Profile Customization                                             #
 #                                                                                                          #
@@ -1184,8 +1184,6 @@ if ($installedSoftware) {
     }
 } 
 #>
-
-
 # Check if any application with "Dell" in the name is installed
 $dellApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Dell*" }
 
