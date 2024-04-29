@@ -36,3 +36,8 @@ $AzureADJoined
 $DomainJoined = ((dsregcmd /status | select-string -Pattern "DomainJoined").Line).Trim()
 $DomainJoined
 Write-Output " "
+$antivirusProduct = Get-WmiObject -Namespace "root\SecurityCenter2" -Class AntiVirusProduct
+Write-Host "Detected Antivirus: " -NoNewline
+# Output the name of the active antivirus product
+$antivirusProduct.displayName
+Write-Output " "
