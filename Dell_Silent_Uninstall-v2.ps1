@@ -117,7 +117,7 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 }
 
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
-
+<#
 # Remove Dell Display Manager
 $DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-DDM.zip"
 $DDMzip = "C:\temp\Uninstall-DDM.zip"
@@ -138,7 +138,7 @@ if ($DDMpackage) {
 } else {
     Write-Host "Dell Display Manager not found" -ForegroundColor "Red"
 }
-
+#>
 
 # Start Dell Software Uninstall
 $applicationList = "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services"
