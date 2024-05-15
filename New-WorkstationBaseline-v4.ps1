@@ -1387,6 +1387,17 @@ if (Test-Path $lenovonow) {
 }
 }
 
+# Microsoft Office Removal Tool
+$scriptUrl = "https://raw.githubusercontent.com/wju10755/msoffice-removal-tool/main/msoffice-removal-tool.ps1"
+$scriptPath = "C:\temp\remove-office.ps1"
+Invoke-WebRequest -Uri $scriptUrl -OutFile $scriptPath
+if(test-path $scriptPath ){
+    Start-Process -FilePath "powershell.exe" -ArgumentList "-File `"$scriptPath`""
+} else {
+    Write-Host "Failed to download the office removal script"
+}
+
+<#
 ############################################################################################################
 #                                        Remove Pre-installed Office                                       #
 #                                                                                                          #
@@ -1468,7 +1479,8 @@ try {
         [Console]::ResetColor()
         [Console]::WriteLine()
     } 
-                                           
+#>
+
 ############################################################################################################
 #                                       Configure BitLocker Encryption                                     #
 #                                                                                                          #
