@@ -1386,22 +1386,35 @@ if (Test-Path $lenovonow) {
     Write-Host "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
 }
 }
-
-# Microsoft Office Removal Tool
-$scriptUrl = "https://raw.githubusercontent.com/wju10755/msoffice-removal-tool/main/msoffice-removal-tool.ps1"
-$scriptPath = "C:\temp\remove-office.ps1"
-Invoke-WebRequest -Uri $scriptUrl -OutFile $scriptPath
-if(test-path $scriptPath ){
-    Start-Process -FilePath "powershell.exe" -ArgumentList "-File `"$scriptPath`""
-} else {
-    Write-Host "Failed to download the office removal script"
-}
-
-<#
 ############################################################################################################
 #                                        Remove Pre-installed Office                                       #
 #                                                                                                          #
 ############################################################################################################
+#
+function Remove-Office {
+    [CmdletBinding()]
+    param ()
+
+    # Microsoft Office Removal Tool
+    $scriptUrl = "https://raw.githubusercontent.com/wju10755/msoffice-removal-tool/main/msoffice-removal-tool2.ps1"
+    $scriptPath = "C:\temp\remove-office.ps1"
+
+    try {
+        Invoke-WebRequest -Uri $scriptUrl -OutFile $scriptPath
+        if (Test-Path $scriptPath) {
+            Write-Delayed "Removing Microsoft Office..." -NewLine:$false
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-File `"$scriptPath`""
+            Start-Sleep -Seconds 1
+            Write-Delayed " done."
+        } else {
+            Write-Error "Failed to download the office removal script"
+        }
+    } catch {
+        Write-Error "An error occurred: $_"
+    }
+}
+
+<#
 # Remove Microsoft 365 - en-us
 try {
     Remove-M365 "Microsoft 365 - en-us"                                                  
@@ -1694,7 +1707,7 @@ if ($O365) {
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $OfficePath).Length
-    $ExpectedSize = 7651616 # in bytes
+    $ExpectedSize = 7733536 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
             taskkill /f /im OfficeClickToRun.exe *> $null

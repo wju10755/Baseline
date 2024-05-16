@@ -1,5 +1,12 @@
-Clear-Host
+Set-Executionpolicy RemoteSigned -Force *> $null
 $ErrorActionPreference = 'SilentlyContinue'
+$TempFolder = "C:\temp"
+$LogFile = "c:\temp\baseline.log"
+
+# Clear console window
+Clear-Host
+ 
+# Set console formatting
 function Print-Middle($Message, $Color = "White") {
     Write-Host (" " * [System.Math]::Floor(([System.Console]::BufferWidth / 2) - ($Message.Length / 2))) -NoNewline;
     Write-Host -ForegroundColor $Color $Message;
@@ -9,355 +16,596 @@ function Print-Middle($Message, $Color = "White") {
 #################################
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
-Print-Middle "MITS - New Workstation Baseline Utility";
-Write-Host -ForegroundColor "Red" -NoNewline $Padding;
-Write-Host " "
-Set-ExecutionPolicy -Scope process RemoteSigned -Force
-$ErrorActionPreference = 'SilentlyContinue'
-$WarningActionPreference = 'SilentlyContinue'
-Start-Transcript -path c:\temp\baseline_transcript.txt
-Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
-#Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"=
-Write-Output " "
-Write-Output " "
-Write-Host "Starting workstation baseline..." -ForegroundColor "Yellow"   
-Write-Output " "
-Start-Sleep -Seconds 2
-Write-Host "Installing required powershell modules..." -NoNewline
-# Check and Install NuGet Provider if not found
-if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet  -Scope CurrentUser -Force | Out-Null
-    Import-PackageProvider -Name NuGet -Force | Out-Null
-    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted | Out-Null
-    
+Print-Middle "MITS - New Workstation Baseline Script";
+Write-Host -ForegroundColor Cyan "                                                   version 10.9.0";
+Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
+Write-Host "  "
+ 
+############################################################################################################
+#                                                 Functions                                                #
+#                                                                                                          #
+############################################################################################################
+#
+# Function to write text with delay
+function Write-Delayed {
+    param([string]$Text, [switch]$NewLine = $true)
+    foreach ($Char in $Text.ToCharArray()) {
+        [Console]::Write("$Char")
+        Start-Sleep -Milliseconds 25
+    }
+    if ($NewLine) {
+        [Console]::WriteLine()
+    }
 }
-
-# Check and install BurntToast Module if not found
-if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
-    Install-Module -Name BurntToast -Scope CurrentUser -Force -WarningAction SilentlyContinue | Out-Null
-    Import-Module BurntToast 
-}
-
-# Central Configuration
-$config = @{
-    PSNoticeUrl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/psnotice.zip"
-    NoSnoozeUrl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NoSnooze.zip"
-    TempFolder           = "C:\temp"
-    LogFile              = "C:\temp\baseline.log"
-    NoSnooze             = "c:\temp\nosnooze.ps1"
-    NoSnoozeZip          = "c:\temp\nosnooze.zip"
-    PSNoticePath         = "c:\temp\PSNotice"
-    PSNoticeFile         = "c:\temp\psnotice.zip"
-    ChromeInstaller      = "c:\temp\ChromeSetup.exe"
-    AcrobatInstaller     = "c:\temp\AcroRdrDC2300620360_en_US.exe"
-    OfficeInstaller      = "c:\temp\Office2016_ProPlus"
-    ClearPath            = "C:\temp\psnotice\Clear-ToastNotification.ps1"
-    ChromeNotification   = "C:\temp\psnotice\appnotice\Chrome\New-ToastNotification.ps1"
-    AcrobotNotification  = "C:\temp\psnotice\appnotice\acrobat\New-ToastNotification.ps1"
-    AcrobatComplete      = "c:\temp\psnotice\appnotice\acrobat\AcrobatComplete.ps1"
-    AcrobatFailure       = "C:\temp\psnotice\appnotice\acrobat\failure\New-ToastNotification.ps1"
-    OfficeComplete       = "C:\temp\psnotice\OfficeNotice\complete\New-ToastNotification.ps1"
-    OfficeFailure        = "C:\temp\psnotice\OfficeNotice\failure\New-ToastNotification.ps1"
-    StartBaseline        = "C:\temp\psnotice\BaselineStart\New-ToastNotification.ps1"
-    UpdateNotice         = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
-    UpdateComplete       = "C:\temp\psnotice\psupdate\New-ToastNotification.ps1"
-    BaselineComplete     = "C:\temp\psnotice\BaselineComplete\New-ToastNotification.ps1"
-    AutomateSuccess      = "C:\temp\psnotice\AppNotice\automate\"
-    AutomateFailure      = "C:\temp\psnotice\AppNotice\automate\failure\New-ToastNotification.ps1"
-    HardwareMFG          = "C:\temp\psnotice\Hardware-Dell\New-ToastNotification.ps1"
-    PowerProfile         = "C:\temp\psnotice\powerprofile\New-ToastNotification.ps1"
-    HiberSleep           = "C:\temp\psnotice\HiberSleep\New-ToastNotification.ps1"
-    FastStartup          = "C:\temp\psnotice\FastStartup\New-ToastNotification.ps1"
-    PwrButton            = "C:\temp\psnotice\PwrButton\New-ToastNotification.ps1"
-    LidAction            = "C:\temp\psnotice\LidClose\New-ToastNotification.ps1"
-    TimeZone             = "C:\temp\psnotice\TimeZone\New-ToastNotification.ps1"
-    SystemRestore        = "C:\temp\psnotice\SystemRestore\New-ToastNotification.ps1"
-    Checkpoint           = "C:\temp\psnotice\checkpoint\New-ToastNotification.ps1"
-    Win11                = "C:\temp\psnotice\win11\New-ToastNotification.ps1"
-    DebloatSpinner       = "C:\temp\Win11Debloat_Spinner.ps1"
-    # Add other configuration items here...
-}
-
-# Ensure essential directories and files exist
+# Create temp directory and baseline log
 function Initialize-Environment {
-    if (-not (Test-Path $config.TempFolder)) {
-        New-Item -Path $config.TempFolder -ItemType Directory | Out-Null
+    if (-not (Test-Path $TempFolder)) {
+        New-Item -Path $TempFolder -ItemType Directory | Out-Null
     }
-    if (-not (Test-Path $config.LogFile)) {
-        New-Item -Path $config.LogFile -ItemType File | Out-Null
+    if (-not (Test-Path LogFile)) {
+        New-Item -Path LogFile -ItemType File | Out-Null
     }
 }
 
-# Custom logging function
+# Set working directory
+Set-Location
+# Baseline Operations Log
 function Write-Log {
     param (
         [string]$Message
     )
-    Add-Content -Path $config.LogFile -Value "$(Get-Date) - $Message"
+    Add-Content -Path $LogFile -Value "$(Get-Date) - $Message"
 }
 
-# Check for required Powershell Modules
-if (-not (Get-PackageSource -Name 'NuGet' -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet -Scope CurrentUser -Force -Confirm:$false
-    Import-PackageProvider -Name NuGet -Force -Confirm:$false
-    Register-PackageSource -Name NuGet -ProviderName NuGet -Location https://www.nuget.org/api/v2 -Trusted -Confirm:$false
+Function Remove-App-MSI-QN([String]$appName)
+{
+    $WarningPreference = 'SilentlyContinue'
+    $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
+    if($null -ne $appCheck){
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Host $appCheck.DisplayName -NoNewline
+        Write-Delayed "..." -NewLine:$false
+        $uninst = $appCheck.UninstallString + " /qn /norestart"
+        cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+    $WarningPreference = 'Continue'
 }
 
-# Check and install BurntToast Module if not found
-if (-not (Get-Module -Name BurntToast -ErrorAction SilentlyContinue)) {
-    Install-Module -Name BurntToast -Scope CurrentUser -Force -Confirm:$false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-}
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line
-
-# Stage Toast Notifications
-[Console]::Write("Staging notifications...")
-$ProgressPreference = 'Continue'
-$url = $config.PSNoticeURL
-$filePath = $config.PSNoticeFile
-
-if (-not (Test-Path -Path $filePath -PathType Leaf)) {
-    Invoke-WebRequest -Uri $url -OutFile $filePath
-    #Write-Output "File downloaded successfully."
-} else {
-    #Write-Output "File already exists."
+Function Remove-App-EXE-SILENT([String]$appName)
+{
+    $WarningPreference = 'SilentlyContinue'
+    $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
+    if($null -ne $appCheck){
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
+        $uninst = $appCheck.UninstallString + " -silent"
+        cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+    $WarningPreference = 'Continue'
 }
 
-if (Test-Path -Path $config.PSNoticeFile -PathType Leaf) {
-    Expand-Archive -Path $config.PSNoticeFile -DestinationPath $config.PSNoticePath -Force
+Function Remove-App-MSI_EXE-Quiet([String]$appName)
+{
+    $WarningPreference = 'SilentlyContinue'
+    $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
+    if($null -ne $appCheck){
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
+        $uninst = $appCheck.UninstallString[1] +  " /qn /restart"
+        cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+    $WarningPreference = 'Continue'
 }
 
+Function Remove-App-MSI_EXE-S([String]$appName)
+{
+    $WarningPreference = 'SilentlyContinue'
+    $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
+    if($null -ne $appCheck){
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
+        $uninst = $appCheck.UninstallString[1] +  " /S"
+        cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+    $WarningPreference = 'Continue'
+}
 
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor() # Reset the color to default
-[Console]::WriteLine() # Move to the next line
+Function Remove-App-MSI-I-QN([String]$appName)
+{
+    $WarningPreference = 'SilentlyContinue'
+    $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
+    if($null -ne $appCheck){
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
+        $uninst = $appCheck.UninstallString.Replace("/I","/X") + " /qn /norestart"
+        cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+    $WarningPreference = 'Continue'
+}
 
-# Start Baseline Notification
-& $config.StartBaseline | Out-Null
+Function Remove-App([String]$appName){
+    $WarningActionPreference = 'SilentlyContinue'
+    $app = Get-AppxPackage -AllUsers $appName
+    if($null -ne $app){
+        $packageFullName = $app.PackageFullName
+        Write-Delayed "Uninstalling " -NewLine:$false
+        Write-Delayed $appName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
+        Remove-AppxPackage -package $packageFullName -AllUsers
+        $provApp = Get-AppxProvisionedPackage -Online 
+        $proPackageFullName = (Get-AppxProvisionedPackage -Online | Where-Object {$_.Displayname -eq $appName}).DisplayName
+        if($null -ne $proPackageFillName){
+            Write-Delayed "Uninstalling provisioned "
+            Write-Delayed $appName
+            Remove-AppxProvisionedPackage -online -packagename $proPackageFullName -AllUsers
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()    
+        }
+    }
+    $WarningPreference = 'Continue'
+}
+
+Function Remove-M365([String]$appName)
+{
+    $WarningActionPreference = 'SilentlyContinue'
+    $uninstall = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like $appName} | Select-Object UninstallString)
+    if($null -ne $uninstall){
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
+        $uninstall = $uninstall.UninstallString + " DisplayLevel=False"
+        cmd /c $uninstall
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+    $WarningActionPreference = 'Continue'
+}
+
+Function Check-UninstallString([String]$appName)
+{
+    $WarningActionPreference = 'SilentlyContinue'
+    $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
+    if($null -ne $appCheck){
+        Write-Delayed $appCheck.DisplayName $appCheck.UninstallString
+    }
+    $WarningActionPreference = 'Continue'
+}
+
+Function Remove-App-EXE-S-QUOTES([String]$appName)
+{
+    $WarningPreference = 'SilentlyContinue'
+    $appCheck = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq $appName } | Select-Object -Property DisplayName,UninstallString
+    if($null -ne $appCheck){
+        Write-Delayed "Removing " -NewLine:$false
+        Write-Delayed $appCheck.DisplayName -NewLine:$false
+        Write-Delayed "..." -NewLine:$false
+        $uninst ="`""+$appCheck.UninstallString+"`"" + " /S"
+        cmd /c $uninst
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+    $WarningPreference = 'Continue'
+}
+
+# Move Procmon to the left
+function Move-ProcessWindowToTopLeft([string]$processName) {
+    $process = Get-Process | Where-Object { $_.ProcessName -eq $processName } | Select-Object -First 1
+    if ($null -eq $process) {
+        Write-Host "Process not found."
+        return
+    }
+
+    $hWnd = $process.MainWindowHandle
+    if ($hWnd -eq [IntPtr]::Zero) {
+        Write-Host "Window handle not found."
+        return
+    }
+
+    $windowRect = New-Object WinAPI+RECT
+    [WinAPI]::GetWindowRect($hWnd, [ref]$windowRect)
+    $windowWidth = $windowRect.Right - $windowRect.Left
+    $windowHeight = $windowRect.Bottom - $windowRect.Top
+
+    # Set coordinates to the top left corner of the screen
+    $x = 0
+    $y = 0
+
+    [WinAPI]::MoveWindow($hWnd, $x, $y, $windowWidth, $windowHeight, $true)
+}
+# Move Procmon left
+Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class WinAPI {
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+    }
+"@
+
+
+
+############################################################################################################
+#                                             Start Baseline                                               #
+#                                                                                                          #
+############################################################################################################
+# Start baseline transcript log
+Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
+
+# Start Baseline
+[Console]::ForegroundColor = [System.ConsoleColor]::Yellow
+[Console]::Write("`n")
+[Console]::Write("`n")
+Write-Delayed "Starting workstation baseline..." -NewLine:$false
+[Console]::Write("`n")
+[Console]::ResetColor() 
+[Console]::WriteLine()
+Start-Sleep -Seconds 1
+
+# Start baseline log file
 Write-Log "Automated workstation baseline has started"
 
-# ConnectWise Automate Agent Installation
-$file = 'c:\temp\Warehouse-Agent_Install.MSI'
-$agentName = "LTService"
-$agentPath = "C:\Windows\LTSvc\"
-$installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
-#& $config.ClearPath
-# Check if the installer file exists
-if (-not (Test-Path $file)) {
-    #Write-Host "Downloading ConnectWise Automate Remote Agent..." -NoNewline
-    Invoke-WebRequest -Uri $installerUri -OutFile $file -ErrorAction SilentlyContinue
-}
-
-# Check if the installer download was successful
-if (Test-Path $file) {
-    #Write-Host " done." -ForegroundColor Green
+# Device Identification
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
+$computerSystem = Get-WmiObject Win32_ComputerSystem
+$manufacturer = $computerSystem.Manufacturer
+if ($computerSystem.PCSystemType -eq 2) {
+    Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
 } else {
-    Write-Host " failed!" -ForegroundColor Red
-    Write-Log "The file [$file] download failed."
-    exit
-}
+# Device Identification
+# PCSystemType values: 1 = Desktop, 2 = Mobile, 3 = Workstation, 4 = Enterprise Server, 5 = SOHO Server, 6 = Appliance PC, 7 = Performance Server, 8 = Maximum
+$flagFilePath = "C:\Temp\WakeLock.flag"
+# Get computer system information using CIM (more efficient and modern compared to WMI)
+try {
+    $computerSystem = Get-CimInstance -ClassName CIM_ComputerSystem
+    $pcSystemType = $computerSystem.PCSystemType
+    $manufacturer = $computerSystem.Manufacturer
 
-# Check if the LabTech agent is already installed
-if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Host "The LabTech agent is already installed." -ForegroundColor Cyan
-} elseif (Test-Path $agentPath) {
-    Write-Output "The LabTech agent files are present, but the service is not installed."
-} else {
-    Write-Host "Installing ConnectWise Automate Agent..." -NoNewline
-    Start-Process msiexec.exe -Wait -ArgumentList "/I $file /quiet"
-
-    # Wait for the installation to complete
-    Start-Sleep -Seconds 45
-
-    # Automate Agent Installation Check
-    if (Test-Path $agentPath) {
-        Write-Host " done." -ForegroundColor Green
-        Write-Log "ConnectWise Automate Agent Installation Completed Successfully!"
-        & $config.AutomateSuccess
+    # Check if the system is a mobile device
+    if ($pcSystemType -eq 2) {
+        # Mobile device detected, launching presentation settings
+        Start-Process -FilePath "C:\Windows\System32\PresentationSettings.exe" -ArgumentList "/start"
     } else {
-        Write-Host " failed!" -ForegroundColor Red
-        Write-Log "ConnectWise Automate Agent installation failed!"
-        & $config.AutomateFailure
-        Start-Sleep -Seconds 5
-        & $config.ClearPath
+        # Not a mobile device, proceed with wake lock logic
+        $flagFilePath = "C:\Temp\WakeLock.flag"
+        $wakeLockScriptPath = "C:\Temp\WakeLock.ps1"
+
+        # Write the wake lock logic to a separate PowerShell script file
+        @'
+        # Load the necessary assembly for accessing Windows Forms functionality
+Add-Type -AssemblyName System.Windows.Forms
+
+# Define the path to the flag file
+$flagFilePath = 'c:\temp\wakelock.flag'
+
+# Infinite loop to send keys and check for the flag file
+while ($true) {
+    # Check if the flag file exists
+    if (Test-Path $flagFilePath) {
+        # If the flag file is found, exit the loop and script
+        Write-Host "Flag file detected. Exiting script..."
+        break
+    } else {
+        # If the flag file is not found, send the 'Shift + F15' keys
+        [System.Windows.Forms.SendKeys]::SendWait('+{F15}')
+        # Wait for 60 seconds before sending the keys again
+        Start-Sleep -Seconds 60
     }
 }
 
+'@ | Out-File -FilePath $wakeLockScriptPath
+    }
+} catch {
+    Write-Error "Failed to retrieve computer system information. Error: $_"
+}
+}
 
-# Identify device manufacturer and type
-$computerSystem = Get-WmiObject Win32_ComputerSystem
-$manufacturer = $computerSystem.Manufacturer
-$deviceType = if ($computerSystem.PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
-Write-Host "Identifying device type: " -NoNewline
+
 Start-Sleep -Seconds 2
-Write-Host $deviceType -ForegroundColor "Yellow"
-Write-Log "Manufacturer: $manufacturer, Device Type: $deviceType."
-#New-BurntToastNotification -Text "Identified device type: $manufacturer $deviceType" -AppLogo C:\temp\PSNotice\smallA.png
-#& $clearPath
+Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
+Write-Delayed "Installing required powershell modules..." -NewLine:$false
+if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) { Install-Module -Name PSWindowsUpdate -Force }
+# Check if NuGet provider is installed
+$NugetBootStrapURL = "https://advancestuff.hostedrmm.com/labtech/Transfer/installers/nuget-bootstrap.zip"
+$TempDir = "c:\temp"
+$NugetFileName = "nuget-bootstrap.zip"
+$NugetPath = "C:\Program Files\PackageManagement\ProviderAssemblies\"
+$FullFilePath = Join-Path -Path $TempDir -ChildPath $NugetFileName
 
+Invoke-WebRequest -uri $NugetBootStrapURL -OutFile $TempDir
+
+if(Test-Path $FullFilePath){
+    try {
+        Expand-Archive -Path $FullFilePath -DestinationPath $NugetPath -ErrorAction Stop
+        Import-PackageProvider -Name NuGet
+    }
+    catch {
+        Write-Host "Failed to expand archive: $_"
+    }
+}
+Start-Sleep -Seconds 1
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+
+# Stage Procmon
+Write-Delayed "Staging Process Monitor..." -NewLine:$false
+$ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
+$ProcmonFile = "c:\temp\Procmon.exe"
+
+# Download Procmon from LabTech server
+Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
+
+if (Test-Path $ProcmonFile)
+{
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.") 
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+    Start-Sleep -Seconds 2
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    [Console]::Write(" failed.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+    Start-Sleep -Seconds 2
+}
+
+############################################################################################################
+#                                        Profile Customization                                             #
+#                                                                                                          #
+############################################################################################################
+
+# Check if the user 'mitsadmin' exists
+$user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
+
+if ($user) {
+    # Check if the password is set to 'Never Expire'
+    if ($user.PasswordNeverExpires) {
+        Start-Sleep -Milliseconds 700
+        Write-Host " done." -ForegroundColor Green
+    } else {
+        Write-Delayed "Setting mitsadmin password to 'Never Expire'..." -NewLine:$false
+        $user | Set-LocalUser -PasswordNeverExpires $true
+        Start-Sleep -Milliseconds 700
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.") 
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+    }
+} else {
+    Write-Host "Creating local mitsadmin & setting password to 'Never Expire'..." -NoNewline
+    $Password = ConvertTo-SecureString "@dvances10755" -AsPlainText -Force
+    New-LocalUser "mitsadmin" -Password $Password -FullName "MITS Admin" -Description "MITSADMIN Account" *> $null
+    $user | Set-LocalUser -PasswordNeverExpires $true
+    Add-LocalGroupMember -Group "Administrators" -Member "mitsadmin"
+    Start-Sleep -Milliseconds 700
+    Write-Host " done." -ForegroundColor Green
+}
+
+# Stop & disable the Windows Update service
+Write-Host "Suspending Windows Update..." -NoNewline
+
+try {
+    # Stop the Windows Update service
+    Stop-Service -Name wuauserv -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+
+    # Set the startup type of the Windows Update service to disabled
+    Set-Service -Name wuauserv -StartupType Disabled -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+
+    # Get the current status of the Windows Update service
+    $service = Get-Service -Name wuauserv
+
+    # Check if the service is stopped
+    if ($service.Status -eq 'Stopped') {
+        Write-Host " done." -ForegroundColor Green
+    } else {
+        Write-Host " failed." -ForegroundColor Red
+    }
+} catch {
+    Write-Host "An error occurred: $_" -ForegroundColor Red
+}
+
+# Disable Offline File Sync
+$registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
+
+# Check if the registry path exists, if not, create it
+if (-not (Test-Path -Path $registryPath)) {
+    New-Item -Path $registryPath -Force *> $null
+}
+Write-Delayed "Disabling Offline File Sync..." -NewLine:$false
+Set-ItemProperty -Path $registryPath -Name "Start" -Value 4 *> $null
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+Start-Sleep -Seconds 2
+Write-Log "Offline file sync disabled."
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Start-Sleep -Seconds 2
 
 # Set power profile to 'Balanced'
-Write-Host "Setting Power Profile..." -NoNewLine
-Start-Sleep -Seconds 3
-powercfg /S SCHEME_BALANCED
-#New-BurntToastNotification -Text "Power profile set to Balanced" -AppLogo "C:\temp\PSNotice\smallA.png"
-& $config.PowerProfile
-Write-Host " done." -ForegroundColor "Green"
+Write-Delayed "Setting 'Balanced' Power Profile..." -NewLine:$false
+Start-Sleep -Seconds 2
+powercfg /S SCHEME_BALANCED *> $null
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
 Write-Log "Power profile set to 'Balanced'."
 Start-Sleep -Seconds 5
-& $config.clearPath
 
 # Disable sleep and hibernation modes
 Start-Sleep -Seconds 1
-Write-Host "Disabling Sleep and Hibernation..." -NoNewline
-powercfg /change standby-timeout-ac 0
-powercfg /change hibernate-timeout-ac 0
-powercfg /h off
-#New-BurntToastNotification -Text "Sleep and hibernation settings disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
-& $config.HiberSleep
+Write-Delayed "Disabling Sleep & Hibernation..." -NewLine:$false
+powercfg /change standby-timeout-ac 0 *> $null
+powercfg /change hibernate-timeout-ac 0 *> $null
+powercfg /h off *> $null
 Start-Sleep -Seconds 2
-Write-Host " done." -ForegroundColor "Green"
-Write-Log "Disabled sleep and hibernation modes."
-Start-Sleep -Seconds 5
-& $config.clearPath
+Write-Log "Disabled sleep and hibernation mode."
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Start-Sleep -Seconds 2
 
 # Disable fast startup
-Start-Sleep -Seconds 1
-Write-Host "Disabling Fast Startup..." -NoNewline
+Start-Sleep -Seconds 2
+Write-Delayed "Disabling Fast Startup..." -NewLine:$false
 $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
-Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0
-Write-Log "Disabled fast startup."
-#New-BurntToastNotification -Text "Fast startup disabled" -AppLogo "c:\temp\PSNotice\smallA.png"
-& $config.FastStartup
+Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
+Write-Log "Fast startup disabled."
 Start-Sleep -Seconds 2
-Write-Host " done." -ForegroundColor "Green"
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
 Start-Sleep -Seconds 5
-& $config.clearPath
-
-# Set power profile
-Start-Sleep -Seconds 1
-Write-Host "Configuring power profile..." -NoNewline
-powercfg /SETACTIVE SCHEME_CURRENT
-#New-BurntToastNotification -Text "Power profile set to 'Balanced'" -AppLogo "c:\temp\PSNotice\smallA.png"
-& $config.PowerProfile
-Start-Sleep -Seconds 2
-Write-Host " done." -ForegroundColor "Green"
-Start-Sleep -Seconds 5
-& $config.clearPath
 
 # Set power button action to 'Shutdown'
 Start-Sleep -Seconds 2
-Write-Host "Configuring power button action to shutdown..." -NoNewline
+Write-Delayed "Configuring 'Shutdown' power button action..." -NewLine:$false
 powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /SETACTIVE SCHEME_CURRENT
-#New-BurntToastNotification -Text "Power button action set to 'Shutdown'" -AppLogo "c:\temp\PSNotice\smallA.png"
-& $config.PwrButton
-Start-Sleep -Seconds 3
-Write-Host " done." -ForegroundColor "Green"
-Write-Log "Set power button action to 'Shutdown'."
+Start-Sleep -Seconds 2
+Write-Log "Power button action set to 'Shutdown'."
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
 Start-Sleep -Seconds 5
-& $config.clearPath
 
 # Set 'lid close action' to do nothing on laptops
 Start-Sleep -Seconds 1
 if ($deviceType -eq "Laptop") {
-    Write-Host "Setting Lid Close Action..." -NoNewline
+    Write-Delayed "Setting 'Do Nothing' lid close action..." -NewLine:$false
     powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
     powercfg /SETACTIVE SCHEME_CURRENT
-    Write-Log "Set 'lid close action' to Do Nothing on laptop."
-    #New-BurntToastNotification -Text "Lid close action set to 'Do Nothing'" -AppLogo "c:\temp\PSNotice\smallA.png"
-    & $config.LidAction
+    Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
     Start-Sleep -Seconds 2
-    Write-Host " done." -ForegroundColor "Green"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
     Start-Sleep -Seconds 5
-    & $config.clearPath
 }
 
 # Set the time zone to 'Eastern Standard Time'
-Write-Host "Setting EST as default timezone..." -NoNewline
+Write-Delayed "Setting EST as default timezone..." -NewLine:$false
+Start-Sleep -Seconds 1
 Start-Service W32Time
-Set-TimeZone -Id "Eastern Standard Time"
+Set-TimeZone -Id "Eastern Standard Time" 
 Write-Log "Time zone set to Eastern Standard Time."
-Start-Sleep -Seconds 2
-Write-Host " done." -ForegroundColor "Green"
-Start-Sleep -Seconds 3
-Write-Host "Syncing clock..." -NoNewline
+Start-Sleep -Seconds 1
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Start-Sleep -Seconds 2y
+Write-Delayed "Syncing system clock..." -NewLine:$false
 w32tm /resync -ErrorAction SilentlyContinue | out-null
-#New-BurntToastNotification -Text "Default timezone set to 'EST'." -AppLogo "c:\temp\PSNotice\smallA.png"
 Start-Sleep -Seconds 2
-& $config.timezone
-Start-Sleep -Seconds 2
-Write-Host " done." -ForegroundColor "Green"    
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine()    
+Write-Log "Synced system clock"
 Start-Sleep -Seconds 5
-& $config.clearPath
+
 
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0 
 
 # Enable system restore
-Write-Host "Configuring System Restore..." -NoNewLine
+Write-Delayed "Enabling System Restore..." -NewLine:$false
 Enable-ComputerRestore -Drive "C:\" -Confirm:$false
-Write-Log "System restore enabled."
-Write-Host " done." -ForegroundColor "Green"
-& $config.SystemRestore
-Start-Sleep -Seconds 5
-& $config.ClearPath
-# Create restore point
-Write-Host "Creating System Restore Checkpoint..." -nonewline
-Checkpoint-Computer -Description 'Baseline Settings' -RestorePointType 'MODIFY_SETTINGS'
-$restorePoint = Get-ComputerRestorePoint | Sort-Object -Property "CreationTime" -Descending | Select-Object -First 1
-if ($restorePoint -ne $null) {
-    Write-Host " done." -ForegroundColor "Green"
-} else {
-    Write-Host "Failed to create restore point" -ForegroundColor "Red"
-}
-#New-BurntToastNotification -Text "System restore is now enabled" -AppLogo "c:\temp\PSNotice\smallA.png"
-& $config.Checkpoint
-#Write-Host " done." -ForegroundColor "Green"
-Start-Sleep -Seconds 5
-& $config.clearPath
-
-# Download Procmon
-$ProgressPreference = 'SilentlyContinue'
-$ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
-$ProcmonFile = "c:\temp\Procmon.exe"
-Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
-
-# Launch Procmon and enable auto-scroll
-$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
-$wshell = New-Object -ComObject wscript.shell
-Start-Sleep -Seconds 3
-$wshell.SendKeys("^a")
+Write-Log "System Restore Enabled."
 Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine()    
+Start-Sleep -Seconds 5
 
+# Offline Files Function to check if the OS is Windows 10
+function Test-Win10 {
+    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
+    $osVersion = $osInfo.Version
+    $osProduct = $osInfo.Caption
 
-# Check if the system is manufactured by Dell
-if ($manufacturer -eq "Dell Inc.") {
-    # Set the URL and file path variables
-    $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
-    $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
-    $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall.ps1"
-    $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
-    & $config.HardwareMFG
-    Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
-    Start-Sleep -seconds 1
-    # Download Dell Silent Uninstall
-    Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
-
-    if (Test-Path -Path $SpinnerFile) {
-    & $SpinnerFile
-        }
-    
-} else {
-    Write-Warning "This script can only be run on a Dell system."
-    #Write-Log "Only Dell systems are eligible for this bloatware removal script."
+    # Check for Windows 10
+    return $osVersion -lt "10.0.22000" -and $osProduct -like "*Windows 10*"
 }
 
-# Function to check if the OS is Windows 11
-function Is-Windows11 {
+# Disable Offline Files on Windows 10
+if (Test-Win10) {
+    try {
+        # Set the path of the Offline Files registry key
+        $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
+    # Check if the registry path exists, if not, create it
+    if (-not (Test-Path -Path $registryPath)) {
+        New-Item -Path $registryPath -Force
+    }
+    # Set the value to disable Offline Files
+    Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
+    # Output the result
+    Write-Delayed "Disabling Windows 10 Offline Files..." -NewLine:$false
+    Write-Log "Offline files disabled."
+    Start-Sleep -Seconds 1
+
+    # Write-Host -ForegroundColor yellow " A system restart is required for changes to take effect."
+    }
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    }
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+}
+
+
+function Test-Win11 {
     $osInfo = Get-WmiObject -Class Win32_OperatingSystem
     $osVersion = $osInfo.Version
     $osProduct = $osInfo.Caption
@@ -366,162 +614,1070 @@ function Is-Windows11 {
     return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
 }
 
-# Check if the OS is Windows 11
-if (Is-Windows11) {
+# Disable Offline Files on Windows 11
+if (Test-Win11) {
     try {
-        # Your Windows 11 specific code here
-        # Download Win11Debloat.ps1
-        $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat.zip"
-        $Win11DebloatFile = "c:\temp\Win11Debloat.zip"
-        $Win11DebloatSpinURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Win11Debloat_Spinner.ps1"
-        $Win11DebloatSpinFile = "c:\temp\Win11Debloat_spinner.ps1"
-        Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
-        Invoke-WebRequest -Uri $Win11DebloatSpinURL -OutFile $Win11DebloatSpinFile -UseBasicParsing -ErrorAction Stop
-        Start-Sleep -seconds 1
-       
-        Expand-Archive $Win11DebloatFile -DestinationPath c:\temp\Win11Debloat
-        & 'C:\temp\Win11Debloat\Win11Debloat\Win11Debloat.ps1' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent
+    # Set the path of the Offline Files registry key
+    $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
+
+    # Check if the registry path exists, if not, create it
+    if (-not (Test-Path -Path $registryPath)) {
+        New-Item -Path $registryPath -Force
+    }
+
+    # Set the value to disable Offline Files
+    Set-ItemProperty -Path $registryPath -Name "Start" -Value 4
+
+    # Output the result
+    Write-Delayed "Disabling Windows 11 Offline Files..." -NewLine:$false
+    Write-Log "Offline files disabled."
+    Start-Sleep -Seconds 1
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    Write-Log "Windows 11 Offline Files has been disabled"
+    #Write-Host -ForegroundColor Yellow " A system restart is required for changes to take effect."
     }
     catch {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
     }
 }
-else {
-    #rite-Log "This script is intended to run only on Windows 11."
+
+
+
+# Disable Windows Feedback Experience
+    Write-Delayed "Disabling Windows Feedback Experience program..." -newline:$false
+    $Advertising = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo"
+    If (!(Test-Path $Advertising)) {
+        New-Item $Advertising | Out-Null
+    }
+    If (Test-Path $Advertising) {
+        Set-ItemProperty $Advertising Enabled -Value 0
+        Start-Sleep -Milliseconds 500
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+    }
+            
+    # Stop Cortana from being used as part of your Windows Search Function
+    Write-Delayed "Preventing Cortana from being used in Windows Search..." -NewLine:$false
+    $Search = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+    If (!(Test-Path $Search)) {
+        New-Item $Search | Out-Null
+    }
+    If (Test-Path $Search) {
+        Set-ItemProperty $Search AllowCortana -Value 0
+        Start-Sleep -Milliseconds 500
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()     
+    }
+
+    # Disable Web Search in Start Menu
+    Write-Delayed "Disabling Bing Search in Start Menu..." -NewLine:$false
+    $WebSearch = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+    If (!(Test-Path $WebSearch)) {
+        New-Item $WebSearch | Out-Null
+    }
+    Set-ItemProperty $WebSearch DisableWebSearch -Value 1 
+
+    # Loop through all user SIDs in the registry and disable Bing Search
+    foreach ($sid in $UserSIDs) {
+        $WebSearch = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Search"
+        If (!(Test-Path $WebSearch)) {
+            New-Item $WebSearch
+        }
+        Set-ItemProperty $WebSearch BingSearchEnabled -Value 0
+    }
+    Set-ItemProperty "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" BingSearchEnabled -Value 0
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()     
+
+            
+    #Stop Windows Feedback Experience from sending anonymous data
+    Write-Delayed "Stopping the Windows Feedback Experience program..." -newline:$false
+    $Period = "HKCU:\Software\Microsoft\Siuf\Rules"
+    If (!(Test-Path $Period)) { 
+        New-Item $Period
+    }
+    Set-ItemProperty $Period PeriodInNanoSeconds -Value 0 
+    Start-Sleep -Milliseconds 500
+    ##Loop and do the same
+    foreach ($sid in $UserSIDs) {
+        $Period = "Registry::HKU\$sid\Software\Microsoft\Siuf\Rules"
+        If (!(Test-Path $Period)) { 
+            New-Item $Period | Out-Null
+        }
+        Set-ItemProperty $Period PeriodInNanoSeconds -Value 0 
+    }
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
+    # Prevent bloatware applications from returning and removes Start Menu suggestions               
+    #Write-Host "Adding Registry key to prevent bloatware apps from returning"
+    #$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
+    #$registryOEM = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    #If (!(Test-Path $registryPath)) { 
+    #    New-Item $registryPath
+    #}
+    #Set-ItemProperty $registryPath DisableWindowsConsumerFeatures -Value 1
+    #
+    #If (!(Test-Path $registryOEM)) {
+    #    New-Item $registryOEM
+    #}
+    #Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0 
+    #Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0 
+    #Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0 
+    #Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0 
+    #Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0 
+    #Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0  
+    
+    ##Loop through users and do the same
+    #foreach ($sid in $UserSIDs) {
+    #    $registryOEM = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    #    If (!(Test-Path $registryOEM)) {
+    #        New-Item $registryOEM
+    #    }
+    #    Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0 
+    #    Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0 
+    #    Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0 
+    #    Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0 
+    #    Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0 
+    #    Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0 
+    #}
+    
+    # Prep mixed Reality Portal for removal    
+    Write-Delayed "Disabling Mixed Reality Portal..." -NewLine:$false
+    $Holo = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Holographic"    
+    If (Test-Path $Holo) {
+        Set-ItemProperty $Holo  FirstRunSucceeded -Value 0 
+    }
+
+    ##Loop through users and do the same
+    foreach ($sid in $UserSIDs) {
+        $Holo = "Registry::HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Holographic"    
+        If (Test-Path $Holo) {
+            Set-ItemProperty $Holo  FirstRunSucceeded -Value 0    
+        }
+    }
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+
+    # Disable Wi-fi Sense
+    Write-Delayed "Disabling Wi-Fi Sense..." -NewLine:$false
+    $WifiSense1 = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting"
+    $WifiSense2 = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots"
+    $WifiSense3 = "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config"
+    If (!(Test-Path $WifiSense1)) {
+        New-Item $WifiSense1 | Out-Null
+    }
+    Set-ItemProperty $WifiSense1  Value -Value 0 
+    If (!(Test-Path $WifiSense2)) {
+        New-Item $WifiSense2 | Out-Null
+    }
+    Set-ItemProperty $WifiSense2  Value -Value 0 
+    Set-ItemProperty $WifiSense3  AutoConnectAllowedOEM -Value 0 
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
+        
+    # Disable live tiles
+    Write-Delayed "Disabling live tiles..." -NewLine:$false
+    $Live = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"    
+    If (!(Test-Path $Live)) {      
+        New-Item $Live | Out-Null
+    }
+    Set-ItemProperty $Live  NoTileApplicationNotification -Value 1 
+
+    # Loop through users and do the same
+    foreach ($sid in $UserSIDs) {
+        $Live = "Registry::HKU\$sid\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"    
+        If (!(Test-Path $Live)) {      
+            New-Item $Live | Out-Null
+        }
+        Set-ItemProperty $Live  NoTileApplicationNotification -Value 1    
+    }
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+
+# Disable People icon on Taskbar
+    Write-Delayed "Disabling People icon on Taskbar..." -NewLine:$false
+    $People = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
+    If (Test-Path $People) {
+        Set-ItemProperty $People -Name PeopleBand -Value 0  
+    }
+
+    # Loop through users and do the same
+    foreach ($sid in $UserSIDs) {
+        $People = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People"
+        If (Test-Path $People) {
+            Set-ItemProperty $People -Name PeopleBand -Value 0
+        }
+    }
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()  
+
+    Write-Delayed "Disabling Cortana..." -NewLine:$false
+    $Cortana1 = "HKCU:\SOFTWARE\Microsoft\Personalization\Settings"
+    $Cortana2 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization"
+    $Cortana3 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
+    If (!(Test-Path $Cortana1)) {
+        New-Item $Cortana1
+    }
+    Set-ItemProperty $Cortana1 AcceptedPrivacyPolicy -Value 0 
+    If (!(Test-Path $Cortana2)) {
+        New-Item $Cortana2
+    }
+    Set-ItemProperty $Cortana2 RestrictImplicitTextCollection -Value 1 
+    Set-ItemProperty $Cortana2 RestrictImplicitInkCollection -Value 1 
+    If (!(Test-Path $Cortana3)) {
+        New-Item $Cortana3
+    }
+    Set-ItemProperty $Cortana3 HarvestContacts -Value 0
+
+    ##Loop through users and do the same
+    foreach ($sid in $UserSIDs) {
+        $Cortana1 = "Registry::HKU\$sid\SOFTWARE\Microsoft\Personalization\Settings"
+        $Cortana2 = "Registry::HKU\$sid\SOFTWARE\Microsoft\InputPersonalization"
+        $Cortana3 = "Registry::HKU\$sid\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
+        If (!(Test-Path $Cortana1)) {
+            New-Item $Cortana1
+        }
+        Set-ItemProperty $Cortana1 AcceptedPrivacyPolicy -Value 0 
+        If (!(Test-Path $Cortana2)) {
+            New-Item $Cortana2
+        }
+        Set-ItemProperty $Cortana2 RestrictImplicitTextCollection -Value 1 
+        Set-ItemProperty $Cortana2 RestrictImplicitInkCollection -Value 1 
+        If (!(Test-Path $Cortana3)) {
+            New-Item $Cortana3
+        }
+        Set-ItemProperty $Cortana3 HarvestContacts -Value 0 
+    }
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+
+    #Removes 3D Objects from the 'My Computer' submenu in explorer
+    Write-Delayed "Removing 3D Objects from explorer 'My Computer' submenu..." -NewLine:$false
+    $Objects32 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}"
+    $Objects64 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}"
+    If (Test-Path $Objects32) {
+        Remove-Item $Objects32 -Recurse 
+    }
+    If (Test-Path $Objects64) {
+        Remove-Item $Objects64 -Recurse 
+    }
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
+   
+    # Remove Microsoft Feeds
+    Write-Delayed "Removing Microsoft Feeds..." -NewLine:$false
+    $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds"
+    $Name = "EnableFeeds"
+    $value = "0"
+
+    if (!(Test-Path $registryPath)) {
+        New-Item -Path $registryPath -Force | Out-Null
+        New-ItemProperty -Path $registryPath -Name $name -Value $value -PropertyType DWORD -Force | Out-Null
+    }
+
+    else {
+        New-ItemProperty -Path $registryPath -Name $name -Value $value -PropertyType DWORD -Force | Out-Null
+    }
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
+
+    # Kill Cortana again
+    Get-AppxPackage - allusers Microsoft.549981C3F5F10 | Remove AppxPackage | Out-Null
+
+    # Disable unnecessary scheduled tasks
+    Write-Delayed "Disabling scheduled tasks..." -NewLine:$false
+    $task1 = Get-ScheduledTask -TaskName XblGameSaveTaskLogon -ErrorAction SilentlyContinue 
+    if ($null -ne $task1) {
+    Get-ScheduledTask  XblGameSaveTaskLogon | Disable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null
+    }
+    $task2 = Get-ScheduledTask -TaskName XblGameSaveTask -ErrorAction SilentlyContinue 
+    if ($null -ne $task2) {
+    Get-ScheduledTask  XblGameSaveTask | Disable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null
+    }
+    $task3 = Get-ScheduledTask -TaskName Consolidator -ErrorAction SilentlyContinue
+    if ($null -ne $task3) {
+    Get-ScheduledTask  Consolidator | Disable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null
+    }
+    $task4 = Get-ScheduledTask -TaskName UsbCeip -ErrorAction SilentlyContinue
+    if ($null -ne $task4) {
+    Get-ScheduledTask  UsbCeip | Disable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null
+    }
+    $task5 = Get-ScheduledTask -TaskName DmClient -ErrorAction SilentlyContinue
+    if ($null -ne $task5) {
+    Get-ScheduledTask  DmClient | Disable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null
+    }
+    $task6 = Get-ScheduledTask -TaskName DmClientOnScenarioDownload -ErrorAction SilentlyContinue
+    if ($null -ne $task6) {
+    Get-ScheduledTask  DmClientOnScenarioDownload | Disable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null
+    }
+    Start-Sleep -Milliseconds 500
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
+
+############################################################################################################
+#                                            RMM Deployment                                                #
+#                                                                                                          #
+############################################################################################################
+# ConnectWise Automate Agent Installation
+$file = 'c:\temp\Warehouse-Agent_Install.MSI'
+$agentName = "LTService"
+$agentPath = "C:\Windows\LTSvc\"
+$installerUri = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Warehouse-Agent_Install.MSI"
+$agentIdKeyPath = "HKLM:\SOFTWARE\LabTech\Service"
+$agentIdValueName = "ID"
+
+# Check for existing LabTech agent
+if (Get-Service $agentName -ErrorAction SilentlyContinue) {
+    Write-Delayed "ConnectWise Automate agent detected." -NewLine:$true
+} elseif (Test-Path $agentPath) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "ConnectWise Automate agent files are present, but the service is not installed." -NewLine:$false
+    [Console]::ResetColor() 
+    [Console]::WriteLine()
+} else {
+    Write-Delayed "Downloading ConnectWise Automate Agent..." -NewLine:$false
+    try {
+        Invoke-WebRequest -Uri $installerUri -OutFile $file
+        Start-Sleep -Seconds 1
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "ConnectWise Automate agent download failed!" -NewLine:$true
+        [Console]::ResetColor() 
+        [Console]::WriteLine()
+        exit
+    }
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.`n")
+    [Console]::ResetColor()    
+    Write-Delayed "Installing ConnectWise Automate Agent..." -NewLine:$false
+    $process = Start-Process msiexec.exe -ArgumentList "/I $file /quiet" -PassThru
+    $process.WaitForExit()
+    if ($process.ExitCode -eq 0) {
+        # Wait for the installation to complete
+        Start-Sleep -Seconds 60
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        [Console]::Write(" done.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+    } else {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" failed.")
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+        exit
+    }
 }
 
+$agentServiceName = "LTService" # The name of the service installed by the ConnectWise Automate agent
+
+# Check for the service
+$service = Get-Service -Name $agentServiceName -ErrorAction SilentlyContinue
+if ($null -ne $service) {
+    if (Test-Path $agentIdKeyPath) {
+        # Get the agent ID
+        $agentId = Get-ItemProperty -Path $agentIdKeyPath -Name $agentIdValueName -ErrorAction SilentlyContinue
+        if ($null -ne $agentId) {
+            $LTAID = "Automate Agent ID:"
+            foreach ($Char in $LTAID.ToCharArray()) {
+                [Console]::Write("$Char")
+                Start-Sleep -Milliseconds 30
+            }
+            Start-Sleep -Seconds 1
+            [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+            [Console]::Write(" $($agentId.$agentIdValueName)")
+            [Console]::ResetColor()
+            [Console]::WriteLine()    
+        } else {
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "ConnectWise Automate agent ID not found." -NewLine:$true
+            [Console]::ResetColor()
+        }
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "ConnectWise Automate agent is not installed." -NewLine:$true
+            [Console]::ResetColor()
+}
+}
+#>
+############################################################################################################
+#                                        Remove Dell Bloatware                                             #
+#                                                                                                          #
+############################################################################################################
+#
+# Get the system manufacturer
+$manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
+
+# Check if the system is manufactured by Dell
+if ($manufacturer -eq "Dell Inc.") {
+# Check if any application with "Dell" in the name is installed
+$dellApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Dell*" }
+
+if ($dellApps) {
+    # Check if the system is manufactured by Dell
+    if ($manufacturer -eq "Dell Inc.") {
+        # Set the URL and file path variables
+        $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
+        $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
+        $DellSilentURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell_Silent_Uninstall-v2.ps1"
+        $DellSilentFile = "c:\temp\Dell_Silent_Uninstall.ps1"
+        Set-Location -Path "c:\temp"
+        Invoke-WebRequest -Uri $SpinnerURL -OutFile $SpinnerFile -UseBasicParsing -ErrorAction Stop 
+        Start-Sleep -seconds 2
+        Invoke-WebRequest -Uri $DellSilentURL -OutFile $DellSilentFile -UseBasicParsing -ErrorAction Stop
+        if (Test-Path -Path $SpinnerFile) {
+            & $SpinnerFile
+            Write-Log "Dell Bloatware Removed."
+        }
+    } else {
+        Write-Warning "`nSkipping Dell debloat module due to device not meeting manufacturer requirements.`n"
+        Write-Log "Skipping Dell debloat module due to device not meeting manufacturer requirements."
+        Start-Sleep -Seconds 1
+    }
+} else {
+    Write-Delayed "Skipping Dell bloatware cleanup as no Dell applications are installed." -NewLine:$true
+}
+}
+
+############################################################################################################
+#                                          Remove HP Bloatware                                             #
+#                                                                                                          #
+############################################################################################################
+# Remove HP Specific Bloatware
+if ($manufacturer -like "*HP*") {
+    Write-Host "HP sysem detected, Removing bloatware..."
+$UninstallPrograms = @(
+    "HP Client Security Manager"
+    "HP Notifications"
+    "HP Security Update Service"
+    "HP System Default Settings"
+    "HP Wolf Security"
+    "HP Wolf Security Application Support for Sure Sense"
+    "HP Wolf Security Application Support for Windows"
+    "AD2F1837.HPPCHardwareDiagnosticsWindows"
+    "AD2F1837.HPPowerManager"
+    "AD2F1837.HPPrivacySettings"
+    "AD2F1837.HPQuickDrop"
+    "AD2F1837.HPSupportAssistant"
+    "AD2F1837.HPSystemInformation"
+    "AD2F1837.myHP"
+    "RealtekSemiconductorCorp.HPAudioControl",
+    "HP Sure Recover",
+    "HP Sure Run Module"
+    "RealtekSemiconductorCorp.HPAudioControl_2.39.280.0_x64__dt26b99r8h8gj"
+    "HP Wolf Security - Console"
+    "HP Wolf Security Application Support for Chrome 122.0.6261.139"
+    "Windows Driver Package - HP Inc. sselam_4_4_2_453 AntiVirus  (11/01/2022 4.4.2.453)"
+
+)
+    $WhitelistedApps = @(
+)
+
+# Add custom whitelist apps
+    # If custom whitelist specified, remove from array
+    if ($customwhitelist) {
+        $customWhitelistApps = $customwhitelist -split ","
+    foreach ($customwhitelistapp in $customwhitelistapps) {
+        $WhitelistedApps += $customwhitelistapp
+    }        
+    }
+
+$HPidentifier = "AD2F1837"
+
+$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or ($_.Name -like "^$HPidentifier"))-and ($_.Name -notlike $WhitelistedApps)}
+
+$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or ($_.DisplayName -like "*$HPidentifier"))-and ($_.DisplayName -notlike $WhitelistedApps)}
+
+$InstalledPrograms = $allstring | Where-Object {$UninstallPrograms -contains $_.Name}
+
+# Remove provisioned packages first
+ForEach ($ProvPackage in $ProvisionedPackages) {
+
+    Write-Host -Object "Attempting to remove provisioned package: [$($ProvPackage.DisplayName)]..."
+
+    Try {
+        $Null = Remove-AppxProvisionedPackage -PackageName $ProvPackage.PackageName -Online -ErrorAction Stop
+        Write-Host -Object "Successfully removed provisioned package: [$($ProvPackage.DisplayName)]"
+    }
+    Catch {Write-Warning -Message "Failed to remove provisioned package: [$($ProvPackage.DisplayName)]"}
+}
+
+# Remove appx packages
+ForEach ($AppxPackage in $InstalledPackages) {
+                                            
+    Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
+
+    Try {
+        $Null = Remove-AppxPackage -Package $AppxPackage.PackageFullName -AllUsers -ErrorAction Stop
+        Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
+    }
+    Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
+}
+
+# Remove installed programs
+$InstalledPrograms | ForEach-Object {
+
+    Write-Host -Object "Attempting to uninstall: [$($_.Name)]..."
+    $uninstallcommand = $_.String
+
+    Try {
+        if ($uninstallcommand -match "^msiexec*") {
+            #Remove msiexec as we need to split for the uninstall
+            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+            #Uninstall with string2 params
+            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            }
+            else {
+            #Exe installer, run straight path
+            $string2 = $uninstallcommand
+            start-process $string2
+            }
+        Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+    }
+    Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
+}
+# Belt and braces, remove via CIM too
+foreach ($program in $UninstallPrograms) {
+Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | Invoke-CimMethod -MethodName UnInstall
+}
+#Remove HP Documentation if it exists
+if (test-path -Path "C:\Program Files\HP\Documentation\Doc_uninstall.cmd") {
+$A = Start-Process -FilePath "C:\Program Files\HP\Documentation\Doc_uninstall.cmd" -Wait -passthru -NoNewWindow
+}
+# Remove HP Connect Optimizer 
+if (test-path -Path 'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe') {
+invoke-webrequest -uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/HPConnOpt.iss" -outfile "C:\temp\HPConnOpt.iss"
+
+&'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe' @('-s', '-f1C:\temp\HPConnOpt.iss')
+}
+# Remove remaining items
+if (Test-Path -Path "C:\Program Files (x86)\HP\Shared" -PathType Container) {Remove-Item -Path "C:\Program Files (x86)\HP\Shared" -Recurse -Force}
+if (Test-Path -Path "C:\Program Files (x86)\Online Services" -PathType Container) {Remove-Item -Path "C:\Program Files (x86)\Online Services" -Recurse -Force}
+if (Test-Path -Path "C:\ProgramData\HP\TCO" -PathType Container) {Remove-Item -Path "C:\ProgramData\HP\TCO" -Recurse -Force}
+if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Amazon.com.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Amazon.com.lnk" -Force}
+if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Angebote.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Angebote.lnk" -Force}
+if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -Force}
+
+Write-Host "HP bloatware removal complete!"
+}
+
+############################################################################################################
+#                                          Remove Lenovo Bloatware                                         #
+#                                                                                                          #
+############################################################################################################
+# Remove Lenovo specific bloatware
+if ($manufacturer -like "Lenovo") {
+    Write-Host "Lenovo system detected, Removing bloatware..."
+    function UninstallApp {
+
+        param (
+            [string]$appName
+        )
+        # Get a list of installed applications from Programs and Features
+        $installedApps = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+        HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+        Where-Object { $_.DisplayName -like "*$appName*" }
+        # Loop through the list of installed applications and uninstall them
+        foreach ($app in $installedApps) {
+            $uninstallString = $app.UninstallString
+            $displayName = $app.DisplayName
+            Write-Host "Uninstalling: $displayName"
+            Start-Process $uninstallString -ArgumentList "/VERYSILENT" -Wait
+            Write-Host "Uninstalled: $displayName" -ForegroundColor Green
+        }
+    }
+    # Stop Running Processes
+    $processnames = @(
+    "SmartAppearanceSVC.exe"
+    "UDClientService.exe"
+    "ModuleCoreService.exe"
+    "ProtectedModuleHost.exe"
+    "*lenovo*"
+    "FaceBeautify.exe"
+    "McCSPServiceHost.exe"
+    "mcapexe.exe"
+    "MfeAVSvc.exe"
+    "mcshield.exe"
+    "Ammbkproc.exe"
+    "AIMeetingManager.exe"
+    "DADUpdater.exe"
+    "CommercialVantage.exe"
+    )
+    foreach ($process in $processnames) {
+        write-host "Stopping Process $process"
+        Get-Process -Name $process | Stop-Process -Force
+        write-host "Process $process Stopped"
+    }
+    $UninstallPrograms = @(
+        "E046963F.AIMeetingManager"
+        "E0469640.SmartAppearance"
+        "MirametrixInc.GlancebyMirametrix"
+        "E046963F.LenovoCompanion"
+        "E0469640.LenovoUtility"
+        "E0469640.LenovoSmartCommunication"
+        "E046963F.LenovoSettingsforEnterprise"
+        "E046963F.cameraSettings"
+        "4505Fortemedia.FMAPOControl2_2.1.37.0_x64__4pejv7q2gmsnr"
+        "ElevocTechnologyCo.Ltd.SmartMicrophoneSettings_1.1.49.0_x64__ttaqwwhyt5s6t"
+    )
+        # If custom whitelist specified, remove from array
+        if ($customwhitelist) {
+            $customWhitelistApps = $customwhitelist -split ","
+            $UninstallPrograms = $UninstallPrograms | Where-Object { $customWhitelistApps -notcontains $_ }
+        }
+    $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms))}
+    $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($_.Name -in $UninstallPrograms))}
+    $InstalledPrograms = $allstring | Where-Object {(($_.Name -in $UninstallPrograms))}
+    # Remove provisioned packages first
+    ForEach ($ProvPackage in $ProvisionedPackages) {
+        Write-Host -Object "Attempting to remove provisioned package: [$($ProvPackage.DisplayName)]..."
+        Try {
+            $Null = Remove-AppxProvisionedPackage -PackageName $ProvPackage.PackageName -Online -ErrorAction Stop
+            Write-Host -Object "Successfully removed provisioned package: [$($ProvPackage.DisplayName)]"
+        }
+        Catch {Write-Warning -Message "Failed to remove provisioned package: [$($ProvPackage.DisplayName)]"}
+    }
+    # Remove appx packages
+    ForEach ($AppxPackage in $InstalledPackages) {                               
+        Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
+        Try {
+            $Null = Remove-AppxPackage -Package $AppxPackage.PackageFullName -AllUsers -ErrorAction Stop
+            Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
+        }
+        Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
+    }
+    # Remove any bundled packages
+    ForEach ($AppxPackage in $InstalledPackages) {                                          
+        Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
+        Try {
+            $null = Get-AppxPackage -AllUsers -PackageTypeFilter Main, Bundle, Resource -Name $AppxPackage.Name | Remove-AppxPackage -AllUsers
+            Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
+        }
+        Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
+    }
+# Remove installed programs
+$InstalledPrograms | ForEach-Object {
+    Write-Host -Object "Attempting to uninstall: [$($_.Name)]..."
+    $uninstallcommand = $_.String
+    Try {
+        if ($uninstallcommand -match "^msiexec*") {
+            #Remove msiexec as we need to split for the uninstall
+            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+            #Uninstall with string2 params
+            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            }
+            else {
+            #Exe installer, run straight path
+            $string2 = $uninstallcommand
+            start-process $string2
+            }
+        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
+        #$Null = $_ | Uninstall-Package -AllVersions -Force -ErrorAction Stop
+        Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+    }
+    Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
+}
+# Remove via CIM
+foreach ($program in $UninstallPrograms) {
+    Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | Invoke-CimMethod -MethodName UnInstall
+    }
+    # Get Lenovo Vantage service uninstall string to uninstall service
+    $lvs = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object DisplayName -eq "Lenovo Vantage Service"
+    if (!([string]::IsNullOrEmpty($lvs.QuietUninstallString))) {
+        $uninstall = "cmd /c " + $lvs.QuietUninstallString
+        Write-Host $uninstall
+        Invoke-Expression $uninstall
+    }
+    # Uninstall Lenovo Smart
+    UninstallApp -appName "Lenovo Smart"
+    # Uninstall Ai Meeting Manager Service
+    UninstallApp -appName "Ai Meeting Manager"
+    # Uninstall ImController service
+    ##Check if exists
+    $path = "c:\windows\system32\ImController.InfInstaller.exe"
+    if (Test-Path $path) {
+        Write-Host "ImController.InfInstaller.exe exists"
+        $uninstall = "cmd /c " + $path + " -uninstall"
+        Write-Host $uninstall
+        Invoke-Expression $uninstall
+    }
+    # Invoke-Expression -Command 'cmd.exe /c "c:\windows\system32\ImController.InfInstaller.exe" -uninstall'
+
+    # Remove vantage associated registry keys
+    Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\E046963F.LenovoCompanion_k1h2ywk1493x8' -Recurse -ErrorAction SilentlyContinue
+    Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\ImController' -Recurse -ErrorAction SilentlyContinue
+    Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\Lenovo Vantage' -Recurse -ErrorAction SilentlyContinue
+    #Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\Commercial Vantage' -Recurse -ErrorAction SilentlyContinue
+     # Uninstall AI Meeting Manager Service
+     $path = 'C:\Program Files\Lenovo\Ai Meeting Manager Service\unins000.exe'
+     $params = "/SILENT"
+     if (test-path -Path $path) {
+     Start-Process -FilePath $path -ArgumentList $params -Wait
+     }
+    # Uninstall Lenovo Vantage
+    $pathname = (Get-ChildItem -Path "C:\Program Files (x86)\Lenovo\VantageService").name
+    $path = "C:\Program Files (x86)\Lenovo\VantageService\$pathname\Uninstall.exe"
+    $params = '/SILENT'
+    if (test-path -Path $path) {
+        Start-Process -FilePath $path -ArgumentList $params -Wait
+    }
+    ##Uninstall Smart Appearance
+    $path = 'C:\Program Files\Lenovo\Lenovo Smart Appearance Components\unins000.exe'
+    $params = '/SILENT'
+    if (test-path -Path $path) {
+        try {
+            Start-Process -FilePath $path -ArgumentList $params -Wait
+        }
+        catch {
+            Write-Warning "Failed to start the process"
+        }
+    }
+$lenovowelcome = "c:\program files (x86)\lenovo\lenovowelcome\x86"
+if (Test-Path $lenovowelcome) {
+    # Remove Lenovo Now
+    Set-Location "c:\program files (x86)\lenovo\lenovowelcome\x86"
+    # Update $PSScriptRoot with the new working directory
+    $PSScriptRoot = (Get-Item -Path ".\").FullName
+    invoke-expression -command .\uninstall.ps1
+    Write-Host "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+}
+$lenovonow = "c:\program files (x86)\lenovo\LenovoNow\x86"
+if (Test-Path $lenovonow) {
+    # Remove Lenovo Now
+    Set-Location "c:\program files (x86)\lenovo\LenovoNow\x86"
+    # Update $PSScriptRoot with the new working directory
+    $PSScriptRoot = (Get-Item -Path ".\").FullName
+    invoke-expression -command .\uninstall.ps1
+    Write-Host "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+}
+}
+############################################################################################################
+#                                        Remove Pre-installed Office                                       #
+#                                                                                                          #
+############################################################################################################
+#
+function Remove-Office {
+    [CmdletBinding()]
+    param ()
+
+    # Microsoft Office Removal Tool
+    $scriptUrl = "https://raw.githubusercontent.com/wju10755/msoffice-removal-tool/main/msoffice-removal-tool2.ps1"
+    $scriptPath = "C:\temp\remove-office.ps1"
+
+    try {
+        Invoke-WebRequest -Uri $scriptUrl -OutFile $scriptPath
+        if (Test-Path $scriptPath) {
+            Write-Delayed "Removing Microsoft Office..." -NewLine:$false
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-File `"$scriptPath`""
+            Start-Sleep -Seconds 1
+            Write-Delayed " done."
+        } else {
+            Write-Error "Failed to download the office removal script"
+        }
+    } catch {
+        Write-Error "An error occurred: $_"
+    }
+}
+
+<#
+# Remove Microsoft 365 - en-us
+try {
+    Remove-M365 "Microsoft 365 - en-us"                                                  
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+# Remove Microsoft 365 - fr-fr
+try {
+    Remove-M365 "Microsoft 365 - fr-fr"                                                        
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+# Remove-M365 Microsoft 365 - es-es
+try {
+    Remove-M365 "Microsoft 365 - es-es"                                                    
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }                                
+# Remove-M365 "Microsoft 365 - pt-br
+try {
+    Remove-M365 "Microsoft 365 - es-es"                                                    
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+
+############################################################################################################
+#                                       Remove Pre-installed OneNote                                       #
+#                                                                                                          #
+############################################################################################################
+# Remove-M365 Microsoft OneNote - en-us
+try {
+    Remove-M365 "Microsoft OneNote - en-us"                                                      
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }                                             
+# Remove-M365 Microsoft OneNote - fr-fr
+try {
+    Remove-M365 "Microsoft OneNote - fr-fr"                                                     
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }                                         
+# Remove-M365 Microsoft OneNote - es-es
+try {
+    Remove-M365 "Microsoft OneNote - es-es"                                                   
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }                                        
+# Remove-M365 Microsoft OneNote - pt-br
+try {
+    Remove-M365 "Microsoft OneNote - pt-br"                                                    
+    } catch {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        [Console]::Write(" An error occurred: $_")
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    } 
+#>
+
+############################################################################################################
+#                                       Configure BitLocker Encryption                                     #
+#                                                                                                          #
+############################################################################################################
+# Check Bitlocker Compatibility
+$WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
+$TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
+$BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
+
+if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
+    # Check if Bitlocker is already configured on C:
+    $BitLockerStatus = Get-BitLockerVolume -MountPoint $env:SystemDrive
+    # Ensure the output directory exists
+    $outputDirectory = "C:\temp"
+    if (-not (Test-Path -Path $outputDirectory)) {
+        New-Item -Path $outputDirectory -ItemType Directory | Out-Null
+    }
+    if ($BitLockerStatus.ProtectionStatus -eq 'On') {
+        # Bitlocker is already configured
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Bitlocker is already configured on $env:SystemDrive " -NewLine:$false
+        [Console]::ResetColor()
+        $userResponse = Read-Host " - Do you want to skip configuring Bitlocker? (yes/no)"
+        if ($userResponse -like 'n') {
+            # Disable BitLocker
+            manage-bde -off $env:SystemDrive | Out-Null
+
+            # Monitor decryption progress
+            do {
+                $status = manage-bde -status $env:SystemDrive
+                $percentageEncrypted = ($status | Select-String -Pattern "Percentage Encrypted:.*").ToString().Split(":")[1].Trim()
+                Write-Host "`rCurrent decryption progress: $percentageEncrypted" -NoNewline
+                Start-Sleep -Seconds 1
+            } until ($percentageEncrypted -eq "0.0%")
+            Write-Host "`nDecryption of $env:SystemDrive is complete."
+            # Reconfigure BitLocker
+            Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
+            Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
+            Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
+            Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait | Out-Null
+            # Verify volume key protector exists
+            $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
+            if ($BitLockerVolume.KeyProtector) {
+                Write-Host "Bitlocker disk encryption configured successfully."
+            } else {
+                Write-Host "Bitlocker disk encryption is not configured."
+            }
+        }
+    } else {
+        # Bitlocker is not configured
+        Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
+        # Create the recovery key
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
+        # Add TPM key
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
+        Start-Sleep -Seconds 15 # Wait for the protectors to take effect
+        # Enable Encryption
+        Start-Process 'manage-bde.exe' -ArgumentList "-on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait | Out-Null
+        # Backup the Recovery to AD
+        $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
+        manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID | Out-Null
+        # Write Recovery Key to a file
+        manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
+        # Verify volume key protector exists
+        $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
+        if ($BitLockerVolume.KeyProtector) {
+            Write-Delayed "Bitlocker disk encryption configured successfully." -NewLine:$true
+            Write-Delayed "Recovery ID:" -NewLine:$false
+            Write-Host -ForegroundColor Cyan " $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
+            Write-Delayed "Recovery Password:" -NewLine:$false
+            Write-Host -ForegroundColor Cyan " $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
+        } else {
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Bitlocker disk encryption is not configured." -NewLine:$true
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+        }
+    }
+} else {
+    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    Start-Sleep -Seconds 1
+}
+
+# Launch Procmon
+#$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal
+#$wshell = New-Object -ComObject wscript.shell
+#Start-Sleep -Seconds 3
+#$wshell.SendKeys("^a")
+#Start-Sleep -Seconds 2
+#Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
+#Start-Sleep -Seconds 2
+
+# Terminate any existing OfficeClickToRun processes
+Write-Delayed "Checking for active OfficeClickToRun processes..." -NewLine:$false
+while ($true) {
+    # Get the process
+    $process = Get-Process -Name "OfficeClickToRun" -ErrorAction SilentlyContinue
+    # Check if the process is running
+    if ($process) {
+        # Terminate the process
+        $process | Stop-Process -Force
+    }
+    Start-Sleep -Seconds 1
+    break 
+    # Wait for a short period before checking again
+}
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+Write-Delayed " done." -NewLine:$false
+[Console]::ResetColor()
+[Console]::WriteLine()
+
+Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
 # Remove Microsoft OneDrive
 try {
-    $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
-    if ($OneDriveProduct) {
-        Write-Host "Removing Microsoft OneDrive (Personal)" -NoNewline
-        $OneDriveProduct | ForEach-Object { $_.Uninstall() } *> $null
+    $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+    if ($OneDriveProduct) { 
+        $OneDriveProduct | ForEach-Object { 
+            try {
+                $_.Uninstall() *> $null
+            } catch {
+                Write-Host "An error occurred during uninstallation: $_"
+            }
+        }
         # Recheck if OneDrive is uninstalled
-        $OneDriveProduct = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+        $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
         if (-not $OneDriveProduct) {
-            Write-Host " done." -foregroundColor "Green"
             Write-Log "OneDrive has been successfully removed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
         } else {
-            Write-Host "Failed to remove OneDrive." -foregroundColor "Red"
             Write-Log "Failed to remove OneDrive."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed " failed." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
         }
     } else {
-        Write-Host "OneDrive installation not found." -foregroundColor "Red"
+        #Write-Host "Microsoft OneDrive (Personal) is not installed."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
 } catch {
-    Write-Host "An error occurred: $_" -foregroundColor "Red"
+    Write-Error "An error occurred: $_"
 }
 
+Write-Delayed "Removing Microsoft Teams Machine-Wide Installer..." -NewLine:$false
 # Remove Microsoft Teams Machine-Wide Installer
 try {
-    $TeamsMWI = Get-Package -Name 'Teams Machine*'
+    $TeamsMWI = Get-Package -Name 'Teams Machine*' -ErrorAction SilentlyContinue
     if ($TeamsMWI) {
-        Write-Host "Removing Microsoft Teams Machine-Wide Installer" -NoNewline
+        [Console]::ResetColor()
+        [Console]::WriteLine()
         Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
-        # Recheck if Teams Machine Wide Installer is uninstalled
         $MWICheck = Get-Package -Name 'Teams Machine*'
         if (-not $MWICheck) {
-            Write-Host " done." -foregroundColor "Green"
             Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()   
         } else {
-            Write-Host "Failed to uninstall Teams Machine Wide Installer." -foregroundColor "Red"
             Write-Log "Failed to uninstall Teams Machine Wide Installer."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Failed to uninstall Teams Machine Wide Installer." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
         }
     } else {
-        Write-Host "Teams Machine Wide Installer not found." -foregroundColor "Red"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
     }
 } catch {
-    Write-Host "An error occurred: $_" -foregroundColor "Red"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "An error occurred: $_" -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
 }
-
-# Install Google Chrome
-$Chrome = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Google Chrome*" }
-
-if ($Chrome) {
-    Write-Host "Existing Google Chrome installation found." -ForegroundColor "Cyan"
-} else {
-    $FilePath = "c:\temp\ChromeSetup.exe"
-    if (-not (Test-Path $FilePath)) {
-        # If not found, download it from the given URL
-        $ProgressPreference = 'Continue'
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe"
-        Write-Host "Downloading Google Chrome (1,373,744 bytes)..." -NoNewline
-        Invoke-WebRequest -OutFile c:\temp\ChromeSetup.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ChromeSetup.exe" -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
-    }
-    # Validate successful download by checking the file size
-    $FileSize = (Get-Item $FilePath).Length
-    $ExpectedSize = 1373744 # in bytes 
-    if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\ChromeSetup.exe to install Google Chrome silently
-        & $chromeNotification
-        Write-Host "Installing Google Chrome..." -NoNewline
-        Start-Process -FilePath "C:\temp\Chromesetup.exe" -ArgumentList "/silent /install" -Wait
-        & $clearPath
-        Write-Host " done." -ForegroundColor "Green"
-        Write-Log "Google Chrome installed successfully."
-        & $chromeComplete
-        Start-Sleep -Seconds 15
-        & $clearPath
-        
-    }
-    else {
-        # Report download error
-        & $chromeFailure
-        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
-        Write-Log "Google Chrome download failed!"
-        Start-Sleep -Seconds 10
-        & $clearPath
-        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
-    }
-}
-
-# Acrobat Installation
-$Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
-Start-Sleep -Seconds 1
-& $clearPath
-if ($Acrobat) {
-    Write-Host "Existing Acrobat Reader installation found." -ForegroundColor "Cyan"
-} else {
-    $FilePath = "c:\temp\AcroRdrDC2300620360_en_US.exe"
-    if (-not (Test-Path $FilePath)) {
-        # If not found, download it from the given URL
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRdrDC2300620360_en_US.exe"
-        Write-Host "Downloading Adobe Acrobat Reader ( 277,900,248 bytes)..." -NoNewline
-        & $acrobatDownload
-        Invoke-WebRequest -Uri $URL -OutFile $FilePath -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
-        & $clearPath
-    }
-    # Validate successful download by checking the file size
-    $FileSize = (Get-Item $FilePath).Length
-    $ExpectedSize = 277900248 # in bytes
-    if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
-        Write-Host "Installing Adobe Acrobat Reader..." -NoNewline
-        & $acrobatNotification
-        Start-Process -FilePath $FilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -Wait
-        & $acrobatComplete
-        Write-Host " done." -ForegroundColor "Green"
-        Write-Log "Adobe Acrobat installed successfully."
-        Start-Sleep -Seconds 2
-        & $clearPath
-    }
-    else {
-        # Report download error
-        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
-        Write-Log "Download failed. File size does not match."
-        & $acrobatFailure
-        Start-Sleep -Seconds 5
-        & $clearPath
-        Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue | Out-Null
-    }
-}
-
 
 # Install Office 2016
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
@@ -565,212 +1721,476 @@ if ($O365) {
     }
 }
 
+
+# Terminate any existing OfficeClickToRun processes
+Write-Delayed "Checking for active OfficeClickToRun processes..." -NewLine:$false
+while ($true) {
+    # Get the process
+    $process = Get-Process -Name "OfficeClickToRun" -ErrorAction SilentlyContinue
+    # Check if the process is running
+    if ($process) {
+        # Terminate the process
+        $process | Stop-Process -Force
+    }
+    Start-Sleep -Seconds 1
+    break 
+    # Wait for a short period before checking again
+}
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+Write-Delayed " done." -NewLine:$false
+[Console]::ResetColor()
+[Console]::WriteLine()
+
+Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
+# Remove Microsoft OneDrive
+try {
+    $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+    if ($OneDriveProduct) { 
+        $OneDriveProduct | ForEach-Object { 
+            try {
+                $_.Uninstall() *> $null
+            } catch {
+                Write-Host "An error occurred during uninstallation: $_"
+            }
+        }
+        # Recheck if OneDrive is uninstalled
+        $OneDriveProduct = Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE (Name LIKE 'Microsoft OneDrive%')"
+        if (-not $OneDriveProduct) {
+            Write-Log "OneDrive has been successfully removed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        } else {
+            Write-Log "Failed to remove OneDrive."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed " failed." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        }
+    } else {
+        #Write-Host "Microsoft OneDrive (Personal) is not installed."
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+} catch {
+    Write-Error "An error occurred: $_"
+}
+
+Write-Delayed "Removing Microsoft Teams Machine-Wide Installer..." -NewLine:$false
+# Remove Microsoft Teams Machine-Wide Installer
+try {
+    $TeamsMWI = Get-Package -Name 'Teams Machine*' -ErrorAction SilentlyContinue
+    if ($TeamsMWI) {
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+        Get-Package -Name 'Teams Machine*' | Uninstall-Package *> $null
+        $MWICheck = Get-Package -Name 'Teams Machine*'
+        if (-not $MWICheck) {
+            Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()   
+        } else {
+            Write-Log "Failed to uninstall Teams Machine Wide Installer."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Failed to uninstall Teams Machine Wide Installer." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+        }
+    } else {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+    }
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "An error occurred: $_" -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+}
+
+############################################################################################################
+#                                          Office 365 Installation                                         #
+#                                                                                                          #
+############################################################################################################
+#
+# Install Office 365
+$O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                             HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
+
+if ($O365) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    Write-Delayed "Existing Microsoft Office installation found." -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine()   
+} else {
+    $OfficePath = "c:\temp\OfficeSetup.exe"
+    if (-not (Test-Path $OfficePath)) {
+        $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
+        Write-Delayed "Downloading Microsoft Office 365..." -NewLine:$false
+        Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+    # Validate successful download by checking the file size
+    $FileSize = (Get-Item $OfficePath).Length
+    $ExpectedSize = 7733536 # in bytes
+    if ($FileSize -eq $ExpectedSize) {
+        Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
+            taskkill /f /im OfficeClickToRun.exe *> $null
+            taskkill /f /im OfficeC2RClient.exe *> $null
+            Start-Sleep -Seconds 10
+            Start-Process -FilePath $OfficePath -Wait
+            Start-Sleep -Seconds 15
+        if (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"}) {
+            Write-Log "Office 365 Installation Completed Successfully."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+            Start-Sleep -Seconds 10
+            taskkill /f /im OfficeClickToRun.exe *> $null
+            taskkill /f /im OfficeC2RClient.exe *> $null
+            Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
+            } else {
+            Write-Log "Office 365 installation failed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "`nMicrosoft Office 365 installation failed." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+            }   
+    }
+    else {
+        # Report download error
+        Write-Log "Office download failed!"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Download failed or file size does not match." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+        Start-Sleep -Seconds 10
+        Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
+    }
+}
+
+############################################################################################################
+#                                        Adobe Acrobat Installation                                        #
+#                                                                                                          #
+############################################################################################################
+#
+# Acrobat Installation
+$AcroFilePath = "c:\temp\AcroRead.exe"
+$Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                            HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
+Start-Sleep -Seconds 1
+if ($Acrobat) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    Write-Delayed "Existing Acrobat Reader installation found." -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+} else {
+    if (-not (Test-Path $AcroFilePath)) {
+        # If not found, download it
+        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRead.exe"
+        $ProgressPreference = 'SilentlyContinue'
+        $response = Invoke-WebRequest -Uri $URL -Method Head
+        $fileSize = $response.Headers["Content-Length"]
+        $ProgressPreference = 'Continue'
+        Write-Delayed "Downloading Adobe Acrobat Reader ($fileSize bytes)..." -NewLine:$false
+        Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine() 
+    }
+    # Validate successful download by checking the file size
+    $FileSize = (Get-Item $AcroFilePath).Length
+    $ExpectedSize = 1452648 # in bytes
+    if ($FileSize -eq $ExpectedSize) {
+        Write-Delayed "Installing Adobe Acrobat Reader..." -NewLine:$false
+        Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -PassThru | Out-Null
+        Start-Sleep -Seconds 150
+        # Create a FileSystemWatcher to monitor the specified file
+        $watcher = New-Object System.IO.FileSystemWatcher
+        $watcher.Path = "C:\Program Files (x86)\Common Files\adobe\Reader\Temp\*"
+        $watcher.Filter = "installer.bin"
+        $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName
+        $watcher.EnableRaisingEvents = $true
+        # When installer.bin is deleted, kill the acroread.exe process
+        Register-ObjectEvent $watcher "Deleted" -Action {
+            Start-Sleep -Seconds 15
+            #& taskkill /f /im acroread.exe
+            #Write-Host "acroread.exe process killed" -ForegroundColor "Green"
+        } | Out-Null
+        function Check-MsiexecSession {
+            $msiexecProcesses = Get-Process msiexec -ErrorAction SilentlyContinue
+            $hasSessionOne = $msiexecProcesses | Where-Object { $_.SessionId -eq 1 }
+        
+            return $hasSessionOne
+        }
+        # Loop to continually check the msiexec process
+        do {
+        Start-Sleep -Seconds 10  # Wait for 10 seconds before checking again
+        $msiexecSessionOne = Check-MsiexecSession
+        } while ($msiexecSessionOne)
+        # Once there are no msiexec processes with Session ID 1, kill acroread.exe
+        Start-Sleep 15
+        taskkill /f /im acroread.exe *> $null
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine() 
+        Write-Log "Adobe Acrobat installation complete." -ForegroundColor Green
+        } else {
+        # Report download error
+        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
+        Start-Sleep -Seconds 5
+        Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
+    }
+}
+
+############################################################################################################
+#                                   SonicWall NetExtender Installation                                     #
+#                                                                                                          #
+############################################################################################################
+#
 # Install NetExtender
 $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                                  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
 Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
-
 if ($SWNE) {
-    Write-Host "Existing NetExtender installation found." -ForegroundColor "Cyan"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    Write-Delayed "Existing Sonicwall NetExtender installation found." -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine()   
 } else {
     $NEFilePath = "c:\temp\NXSetupU-x64-10.2.337.exe"
     if (-not (Test-Path $NEFilePath)) {
-        # If not found, download it from the given URL
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
-        Write-Host "Downloading Sonicwall NetExtender..." -NoNewline
-        Invoke-WebRequest -OutFile c:\temp\NXSetupU-x64-10.2.337.exe -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe" -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
+        $NEURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/NXSetupU-x64-10.2.337.exe"
+        Invoke-WebRequest -OutFile $NEFilePath -Uri $NEURL -UseBasicParsing
     }
     # Validate successful download by checking the file size
+    $NEGUI = "C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NEGui.exe"
     $FileSize = (Get-Item $NEFilePath).Length
     $ExpectedSize = 4788816 # in bytes 
     if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\NXSetupU-x64-10.2.337.exe /S to install NetExtender silently
-        Write-Host "Installing Sonicwall NetExtender..." -NoNewline
-        start-process -filepath "C:\temp\NXSetupU-x64-10.2.337.exe" /S -Wait
-        Write-Host " done." -ForegroundColor "Green"
-        Write-Log "Sonicwall NetExtender installed successfully."
-    }
-    else {
+        Write-Delayed "Installing Sonicwall NetExtender..." -NewLine:$false
+        start-process -filepath $NEFilePath /S -Wait
+        if (Test-Path $NEGui) {
+            Write-Log "Sonicwall NetExtender installation completed successfully."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            Write-Delayed " done." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()
+            Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue | Out-Null
+        }
+    } else {
         # Report download error
-        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
         Write-Log "Sonicwall NetExtender download failed!"
-        Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Download failed! File does not exist or size does not match." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()    
+        Remove-Item -Path $NEFilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
 
-# Stop Procmon
-taskkill /f /im procmon64.exe *> $null
 
-Write-Output " "
-Write-Host "Starting Bitlocker Configuration..."
-Write-Output " "
-# Check if TPM module is enabled
-$TPM = Get-WmiObject win32_tpm -Namespace root\cimv2\security\microsofttpm | Where-Object {$_.IsEnabled().Isenabled -eq 'True'} -ErrorAction SilentlyContinue
 
-# Check if Windows version and BitLocker-ready drive are present
-$WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
-$BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
-
-if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
-
-    # Ensure the output directory exists
-    $outputDirectory = "C:\temp"
-    if (-not (Test-Path -Path $outputDirectory)) {
-        New-Item -Path $outputDirectory -ItemType Directory | Out-Null
+# Function to check if the OS is Windows 11
+function Is-Windows11 {
+    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
+    $osVersion = $osInfo.Version
+    $osProduct = $osInfo.Caption
+    # Check for Windows 11
+    return $osVersion -ge "10.0.22000" -and $osProduct -like "*Windows 11*"
+}
+# Check if the OS is Windows 11
+if (Is-Windows11) {
+    try {
+        $Win11DebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
+        $Win11DebloatFile = "c:\temp\MITS-Debloat.zip"
+        Invoke-WebRequest -Uri $Win11DebloatURL -OutFile $Win11DebloatFile -UseBasicParsing -ErrorAction Stop 
+        Start-Sleep -seconds 2
+        Expand-Archive $Win11DebloatFile -DestinationPath 'c:\temp\MITS-Debloat'
+        Start-Sleep -Seconds 2
+        Start-Process powershell -ArgumentList "-noexit","-Command Invoke-Expression -Command '& ''C:\temp\MITS-Debloat\MITS-Debloat.ps1'' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -DisableLockscreenTips -DisableSuggestions -ShowKnownFileExt -TaskbarAlignLeft -HideSearchTb -DisableWidgets -Silent'"
+        Start-Sleep -Seconds 2
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait('%{TAB}') 
+        Write-Log "Windows 11 Debloat completed successfully."
     }
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    }
+}
+else {
+    #Write-Log "This script is intended to run only on Windows 11."
+}
 
-    # Create the recovery key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector | Out-Null
 
-    # Add TPM key
-    Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector | Out-Null
-    Start-Sleep -Seconds 15 # Wait for the protectors to take effect
+# Function to check if the OS is Windows 10
+function Is-Windows10 {
+    $osInfo = Get-WmiObject -Class Win32_OperatingSystem
+    $osVersion = $osInfo.Version
+    $osProduct = $osInfo.Caption
+    # Check for Windows 10
+    return $osVersion -lt "10.0.22000" -and $osProduct -like "*Windows 10*"
+}
+# Trigger MITS Debloat for Windows 10
+if (Is-Windows10) {
+    try {
+        $MITSDebloatURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/MITS-Debloat.zip"
+        $MITSDebloatFile = "c:\temp\MITS-Debloat.zip"
+        Invoke-WebRequest -Uri $MITSDebloatURL -OutFile $MITSDebloatFile -UseBasicParsing -ErrorAction Stop 
+        Start-Sleep -seconds 2
+        Expand-Archive $MITSDebloatFile -DestinationPath c:\temp\MITS-Debloat -Force
+        Start-Sleep -Seconds 2
+        Start-Process powershell -ArgumentList "-noexit","-Command Invoke-Expression -Command '& ''C:\temp\MITS-Debloat\MITS-Debloat.ps1'' -RemoveApps -DisableBing -RemoveGamingApps -ClearStart -ShowKnownFileExt -Silent'"
+        Start-Sleep -Seconds 2
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait('%{TAB}') 
+        Write-Log "Windows 10 Debloat completed successfully."
+    }
+    catch {
+        Write-Error "An error occurred: $($Error[0].Exception.Message)"
+    }
+}
 
-    # Enable Encryption
-    Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -em aes256" -Verb runas -Wait *> $null
-
-    # Get Recovery Key GUID
-    $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
-
-    # Backup the Recovery to AD
-    manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID *> $null
-    manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
-
-    # Retrieve and Output the Recovery Key Password
-    $RecoveryKeyPW = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty RecoveryPassword
-    #Write-Output "Recovery Key Password: $RecoveryKeyPW"
+# Enable and start Windows Update Service
+Write-Delayed "Enabling Windows Update Service..." -NewLine:$false
+Set-Service -Name wuauserv -StartupType Manual
+Start-Sleep -seconds 3
+Start-Service -Name wuauserv
+Start-Sleep -Seconds 5
+$service = Get-Service -Name wuauserv
+if ($service.Status -eq 'Running') {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    Write-Delayed " done." -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+} else {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed " failed." -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine()    
 }
 
 # Installing Windows Updates
-& $config.UpdateNotice
-Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/update_windows.ps1" -OutFile "c:\temp\update_windows.ps1"
+Write-Delayed "Checking for Windows Updates..." -NewLine:$false
+$ProgressPreference = 'SilentlyContinue'
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/wju10755/Baseline/main/Update_Windows-v2.ps1" -OutFile "c:\temp\update_windows.ps1"
+$ProgressPreference = 'Continue'
 if (Test-Path "c:\temp\update_windows.ps1") {
     $updatePath = "C:\temp\Update_Windows.ps1"
-    Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath
-    & $config.ClearPath
-
+    $null = Start-Process PowerShell -ArgumentList "-NoExit", "-File", $updatePath *> $null
+    Start-Sleep -seconds 3
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
+    Move-ProcessWindowToTopRight -processName "Windows PowerShell" | Out-Null
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    Write-Log "All available Windows updates are installed."  
 } else {
-    Write-host "Windows update module download failed" -ForegroundColor Red
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "Windows Update execution failed!" -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()  
 }
-& $config.UpdateComplete
 
-# Check for and install all available Windows update
-#Start-Sleep -Seconds 4
-#Write-Output "Windows Update in progress..."
-#& $updateNotice
-#Install-Module -Name PSWindowsUpdate -Force -ErrorAction SilentlyContinue
-#Import-Module PSWindowsUpdate
-#$updates = Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -ErrorAction SilentlyContinue
-#$TotalUpdates = $updates.Count
-#& $clearPath
-#Write-Output "$totalUpdates Windows updates are available."
-#if ($updates) {
-#    & $updateComplete
-#    Write-Log "Installed $($updates.Count) Windows updates"
-#    Start-Sleep -Seconds 30
-#    & $clearPath
-#} else {
-#    Write-Log "No additional Windows updates are available."
-#}
-
-
-# Notify device is ready for Domain Join Operation
-$NTFY1 = "& cmd.exe /c curl -d '%ComputerName% is ready to join the domain.' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
-Invoke-Expression -command $NTFY1 *> $null
-
-Start-Sleep -Seconds 3
-Write-Output " "
-Write-Output "Starting Domain/Azure AD Join Function..."
-Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
-Write-Output " "
-# Prompt the user to connect to SSL VPN
-$choice = Read-Host -Prompt "Do you want to connect to SSL VPN? Enter Y or N"
-
-if ($choice -eq "Y" -or $choice -eq "N") {
-    if ($choice -eq "Y") {
-                
-        if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
-            Write-Output 'NetExtender detected successfully, starting connection...'
-            start C:\temp\ssl-vpn.bat
-            Start-Sleep -Seconds 3
-            Read-Host -Prompt "Press Enter once connected to SSL VPN to continue."
+function Connect-VPN {
+    if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
+        Write-Delayed "NetExtender detected successfully, starting connection..." -NewLine:$false
+        Start-Process C:\temp\ssl-vpn.bat
+        Start-Sleep -Seconds 6
+        $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
+        if ($connectionProfile) {
+            Write-Delayed "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN." -NewLine:$true
         } else {
-            Write-Output " "
-            Write-Output 'NetExtender not found! Exiting Script...'
-            break
+            Write-Delayed "The 'Sonicwall NetExtender' adapter is not connected to the SSLVPN." -NewLine:$true
         }
     } else {
-        # Skip the VPN connection setup
-        Write-Output " "
-        Write-Output "Skipping VPN Connection Setup..."
-        Write-Output " "
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "SonicWall NetExtender not found"
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
-} else {
-    # Display an error message if the user input is invalid
-    Write-Error "Invalid choice. Please enter Y or N."
-    break
 }
 
-# Prompt the user to choose between standard domain join or Azure AD join
-$choice = Read-Host -Prompt "Do you want to perform a standard domain join (S) or join Azure AD (A)? Enter S or A"
+############################################################################################################
+#                                            LocalAD/AzureAD Join                                          #
+#                                                                                                          #
+############################################################################################################
+#
+Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$true
 
-# Validate the user input
-if ($choice -eq "A" -or $choice -eq "S") {
+$ProgressPreference = 'SilentlyContinue'
+try {
+    Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "Failed to download SSL VPN installer: $_"
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    exit
+}
+$ProgressPreference = 'Continue'
 
-    # Perform the join operation based on the user choice
-    if ($choice -eq "S") {
-        # Get the domain name from the user
-        $cred = Get-Credential -Message "Enter the credentials for the domain join operation"
-        $domain = Read-Host -Prompt "Enter the domain name to join"
-
-        # Join the system to the domain using the credentials
-        Add-Computer -DomainName $domain -Credential $cred 
-        $domainJoinSuccessful = Test-ComputerSecureChannel
-            if ($domainJoinSuccessful) {
-                Write-Host "Domain join completed successfully."
-                Write-Log "$env:COMPUTERNAME joined to $domain successfully"
-            } else {
-                Write-Host "Domain join failed." -ForegroundColor "Red"
+$choice = Read-Host "Do you want to connect to SSL VPN? (Y/N)"
+switch ($choice) {
+    "Y" { Connect-VPN }
+    "N" { Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true }
+    default { Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true }
+}
+$choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
+switch ($choice) {
+    "S" {
+        $username = Read-Host "Enter the username for the domain join operation"
+        $password = Read-Host "Enter the password for the domain join operation" -AsSecureString
+        $cred = New-Object System.Management.Automation.PSCredential($username, $password)
+        $domain = Read-Host "Enter the domain name for the domain join operation"
+        try {
+            Add-Computer -DomainName $domain -Credential $cred 
+            Write-Delayed "Domain join operation completed successfully." -NewLine:$true
+        } catch {
+            Write-Delayed "Failed to join the domain." -NewLine:$true
         }
-    } else {
-        # Join the system to Azure AD using Work or school account
-        Write-Output "Starting Azure AD Join using Work or school account..."
-        Start-Sleep -Seconds 2
+    }
+    "A" {
+        Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
         Start-Process "ms-settings:workplace"
-        # Run dsregcmd /status and capture its output
+        Start-Sleep -Seconds 3
         $output = dsregcmd /status | Out-String
-
-        # Extract the AzureAdJoined value
         $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
         $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
-
-        # Display the extracted value
-        Write-Host "AzureAdJoined: $azureAdJoinedValue"
-        Write-Log "$env:COMPUTERNAME joined to Azure AD."
+        Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
     }
-} else {
-    # Display an error message if the user input is invalid
-    Write-Error "Invalid choice. Please enter A or S."
-    break
+    default { Write-Delayed "Invalid choice. Please enter A or S." -NewLine:$true }
 }
 
-# Notify device Baseline is complete
-$NTFY2 = "& cmd.exe /c curl -d '%ComputerName% Baseline is complete!' 172-233-196-225.ip.linodeusercontent.com/sslvpn"
-Invoke-Expression -command $NTFY2 *> $null
+# Aquire Wake Lock (Prevents idle session & screen lock)
+New-Item -ItemType File -Path "c:\temp\WakeLock.flag" -Force *> $null
 
 # Final log entry
-& $baselineComplete
 Write-Log "Baseline configuration completed successfully."
-Stop-Transcript
-
-# Baseline temp file cleanup
-Write-Host "Cleaning up temp files..." -NoNewline
-Remove-Item -path c:\BRU -Recurse -Force
-#Get-ChildItem -Path "C:\temp" -File | Where-Object { $_.Name -notlike "*bitlocker*" -and $_.Name -notlike "*baseline*" } | Remove-Item -Force
-Write-Log "Baseline temp file cleanup completed successfully"
-Start-Sleep -Seconds 1
-Write-Host " done." -ForegroundColor "Green"    
+Write-Delayed "Baseline configuration completed successfully." -NewLine:$true
+Write-Host " "
+Stop-Transcript  
 Start-Sleep -seconds 1
-Start-Process "appwiz.cpl"
-Read-Host -Prompt "Press Enter to exit."
+Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1"
+$scriptPath = "c:\temp\BaselineComplete.ps1"
+Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
+Write-Host " "
+Write-Host " "
+Read-Host -Prompt "Press enter to exit"
+Stop-Process -Id $PID -Force
