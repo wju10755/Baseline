@@ -11,7 +11,7 @@ $TempFolder = "C:\temp"
 $LogFile = "c:\temp\baseline.log"
 
 # Clear console window
-Clear-Host
+Clear-Host 
  
 # Set console formatting
 function Print-Middle($Message, $Color = "White") {
