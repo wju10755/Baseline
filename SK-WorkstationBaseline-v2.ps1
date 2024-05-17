@@ -1049,7 +1049,7 @@ if ($manufacturer -eq "Dell Inc.") {
 $dellApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Dell*" }
 
 if ($dellApps) {
-    # Check if the system is manufactured by Dell
+    # Check if the system is manufactured by Dell 
     if ($manufacturer -eq "Dell Inc.") {
         # Set the URL and file path variables
         $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
