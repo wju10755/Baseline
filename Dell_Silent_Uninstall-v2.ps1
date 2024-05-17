@@ -20,7 +20,7 @@ public class Keyboard {
 
 # Check if the system manufacturer is Dell
 $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
-if ($manufacturer -notlike "*Dell*") {
+if ($manufacturer -notlike "*Dell*" -or $manufacturer -match "QEMU") {
     $DellOnly = "This module is only eligible for genuine Dell systems."
     foreach ($Char in $DellOnly.ToCharArray()) {
         [Console]::Write("$Char")

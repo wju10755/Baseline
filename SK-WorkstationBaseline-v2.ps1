@@ -1,3 +1,10 @@
+# Check if the script is running as an administrator
+if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Host "This script must be run as an Administrator!"
+    Start-Sleep -Seconds 8
+    return
+}
+
 Set-Executionpolicy RemoteSigned -Force *> $null
 $ErrorActionPreference = 'SilentlyContinue'
 $TempFolder = "C:\temp"

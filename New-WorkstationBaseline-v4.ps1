@@ -1,3 +1,10 @@
+# Check if the script is running as an administrator
+if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Host "This script must be run as an Administrator!"
+    Start-Sleep -Seconds 8
+    return
+}
+
 Set-Executionpolicy RemoteSigned -Force *> $null
 $ErrorActionPreference = 'SilentlyContinue'
 $TempFolder = "C:\temp"
@@ -17,7 +24,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.9.0";
+Write-Host -ForegroundColor Cyan "                                                   version 10.9.2";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
  
