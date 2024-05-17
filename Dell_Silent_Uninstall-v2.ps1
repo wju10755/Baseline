@@ -119,10 +119,14 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
 
 # Remove Dell Display Manager 2.1
+
 $DDM2url = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-DDM2.zip"
+$DDM2url = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Start-DDM2.ps1"
+
 $DDM2zip = "C:\temp\Uninstall-DDM2.zip"
 $DDM2dir = "C:\temp\Uninstall-DDM2"
 Invoke-WebRequest -OutFile c:\temp\Uninstall-DDM2.zip https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-DDM2.zip
+Invoke-WebRequest -OutFile c:\temp\Start-DDM2.ps1 https://advancestuff.hostedrmm.com/labtech/transfer/installers/Start-DDM2.ps1
 
 if (Test-Path $DDM2zip) {
     if(!(Test-Path -Path "c:\temp\Uninstall-DDM2")) { New-Item -ItemType Directory -Path "c:\temp\Uninstall-DDM2" }
@@ -131,7 +135,8 @@ if (Test-Path $DDM2zip) {
 set-location "c:\temp\Uninstall-DDM2"
 $null = ". .\appdeploytoolkit\AppDeployToolkitMain.ps1 | Out-Null"
 
-Start-Process PowerShell.exe -ArgumentList "-NoExit","-File .\Uninstall-DellDisplayManager.ps1 -DeploymentType Uninstall -DeployMode Interactive"; exit 0
+#Start-Process PowerShell.exe -ArgumentList "-NoExit","-File .\Uninstall-DellDisplayManager.ps1 -DeploymentType Uninstall -DeployMode Interactive"; exit 0
+Start-Process Powershell.exe -ArgumentList "-File .\Start-DDM2.ps1" -WindowStyle Minimized
 
 # Start Dell Software Uninstall
 $applicationList = "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services"
