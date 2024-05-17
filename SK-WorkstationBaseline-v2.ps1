@@ -1034,7 +1034,7 @@ if ($null -ne $service) {
             [Console]::ResetColor()
 }
 }
-#>
+
 ############################################################################################################
 #                                        Remove Dell Bloatware                                             #
 #                                                                                                          #
@@ -1050,7 +1050,7 @@ $dellApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*
 
 if ($dellApps) {
     # Check if the system is manufactured by Dell 
-    if ($manufacturer -eq "Dell Inc.") {
+    if ($manufacturer -eq "Dell Inc." -or $manufacturer -match "QEMU") {
         # Set the URL and file path variables
         $SpinnerURL = "https://raw.githubusercontent.com/wju10755/Baseline/main/Dell-Spinner.ps1"
         $SpinnerFile = "c:\temp\Dell-Spinner.ps1"
