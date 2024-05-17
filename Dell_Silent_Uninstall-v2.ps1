@@ -128,7 +128,7 @@ if (Test-Path $DDM2zip) {
     if(!(Test-Path -Path "c:\temp\Uninstall-DDM2")) { New-Item -ItemType Directory -Path "c:\temp\Uninstall-DDM2" }
     Expand-Archive -Path $DDM2zip -DestinationPath $DDM2dir -Force
 }
-
+set-location "c:\temp\Uninstall-DDM2"
 $null = ". .\appdeploytoolkit\AppDeployToolkitMain.ps1 | Out-Null"
 
 Start-Process PowerShell.exe -ArgumentList "-File .\Uninstall-DellDisplayManager.ps1 -DeploymentType Uninstall -DeployMode Interactive"; exit 0
