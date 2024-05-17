@@ -131,7 +131,7 @@ if (Test-Path $DDM2zip) {
 set-location "c:\temp\Uninstall-DDM2"
 $null = ". .\appdeploytoolkit\AppDeployToolkitMain.ps1 | Out-Null"
 
-Start-Process PowerShell.exe -ArgumentList "-File .\Uninstall-DellDisplayManager.ps1 -DeploymentType Uninstall -DeployMode Interactive"; exit 0
+Start-Process PowerShell.exe -ArgumentList "-NoExit","-File .\Uninstall-DellDisplayManager.ps1 -DeploymentType Uninstall -DeployMode Interactive"; exit 0
 
 <#
 $DDMurl = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-DDM.zip"
