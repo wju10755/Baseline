@@ -2,7 +2,7 @@ Set-Executionpolicy RemoteSigned -Force *> $null
 Install-PackageProvider -Name NuGet -force -Confirm:$false | Out-Null
 # Start script transcription
 Start-Transcript -path c:\temp\$env:ComputerName-Dell_Uninstall.log
-
+<#
 # Load System.Windows.Forms assembly
 Add-Type -TypeDefinition @"
 using System;
@@ -30,7 +30,7 @@ if ($manufacturer -notlike "*Dell*" -or $manufacturer -match "QEMU") {
     break
 }
 
-<#
+
 # Install Common Stuff 
 $moduleName = "CommonStuff"
 
