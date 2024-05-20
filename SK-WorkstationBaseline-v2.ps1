@@ -1410,7 +1410,7 @@ function Remove-Office {
         Invoke-WebRequest -Uri $scriptUrl -OutFile $scriptPath
         if (Test-Path $scriptPath) {
             Write-Delayed "Removing Microsoft Office..." -NewLine:$false
-            Start-Process -FilePath "powershell.exe" -ArgumentList "-File `"$scriptPath`""
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-File `"$scriptPath`"" -Wait
             Start-Sleep -Seconds 1
             Write-Delayed " done."
         } else {
