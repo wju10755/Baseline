@@ -1420,7 +1420,7 @@ function Remove-Office {
         Write-Error "An error occurred: $_"
     }
 }
-
+Remove-Office
 <#
 # Remove Microsoft 365 - en-us
 try {
@@ -1584,6 +1584,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
 }
+
 
 # Launch Procmon
 #$ps = Start-Process -FilePath "C:\temp\procmon.exe" -ArgumentList "/AcceptEula" -WindowStyle Normal

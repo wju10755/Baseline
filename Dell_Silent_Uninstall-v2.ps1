@@ -2,7 +2,7 @@ Set-Executionpolicy RemoteSigned -Force *> $null
 Install-PackageProvider -Name NuGet -force -Confirm:$false | Out-Null
 # Start script transcription
 Start-Transcript -path c:\temp\$env:ComputerName-Dell_Uninstall.log
-<#
+
 # Load System.Windows.Forms assembly
 Add-Type -TypeDefinition @"
 using System;
@@ -117,7 +117,7 @@ function Move-ProcessWindowToTopLeft([string]$processName) {
 }
 
 Move-ProcessWindowToTopLeft -processName "procmon64" *> $null
-#>
+
 # Remove Dell Display Manager 2.1
 
 $DDM2url = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Uninstall-DDM2.zip"
