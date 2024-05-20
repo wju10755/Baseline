@@ -9,9 +9,9 @@ Set-Executionpolicy RemoteSigned -Force *> $null
 $ErrorActionPreference = 'SilentlyContinue'
 $TempFolder = "C:\temp"
 $LogFile = "c:\temp\baseline.log"
-$null = ". .\appdeploytoolkit\AppDeployToolkitMain.ps1 | Out-Null"
+
 # Clear console window
-Clear-Host 
+Clear-Host
  
 # Set console formatting
 function Print-Middle($Message, $Color = "White") {
@@ -63,6 +63,7 @@ function Write-Log {
     )
     Add-Content -Path $LogFile -Value "$(Get-Date) - $Message"
 }
+
 ############################################################################################################
 #                                             Start Baseline                                               #
 #                                                                                                          #
@@ -138,7 +139,6 @@ while ($true) {
 }
 }
 
-
 Start-Sleep -Seconds 2
 Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
 Write-Delayed "Installing required powershell modules..." -NewLine:$false
@@ -167,28 +167,6 @@ Start-Sleep -Seconds 1
 [Console]::ResetColor()
 [Console]::WriteLine() 
 
-# Stage Procmon
-Write-Delayed "Staging Process Monitor..." -NewLine:$false
-$ProcmonURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Procmon.exe"
-$ProcmonFile = "c:\temp\Procmon.exe"
-
-# Download Procmon from LabTech server
-Invoke-WebRequest -Uri $ProcmonURL -OutFile $ProcmonFile *> $null
-
-if (Test-Path $ProcmonFile)
-{
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.") 
-    [Console]::ResetColor()
-    [Console]::WriteLine() 
-    Start-Sleep -Seconds 2
-} else {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    [Console]::Write(" failed.")
-    [Console]::ResetColor()
-    [Console]::WriteLine() 
-    Start-Sleep -Seconds 2
-}
 
 ############################################################################################################
 #                                        Profile Customization                                             #
@@ -519,38 +497,6 @@ if (Test-Win11) {
     [Console]::Write(" done.")
     [Console]::ResetColor()
     [Console]::WriteLine()    
-    # Prevent bloatware applications from returning and removes Start Menu suggestions               
-    #Write-Host "Adding Registry key to prevent bloatware apps from returning"
-    #$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
-    #$registryOEM = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
-    #If (!(Test-Path $registryPath)) { 
-    #    New-Item $registryPath
-    #}
-    #Set-ItemProperty $registryPath DisableWindowsConsumerFeatures -Value 1
-    #
-    #If (!(Test-Path $registryOEM)) {
-    #    New-Item $registryOEM
-    #}
-    #Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0 
-    #Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0 
-    #Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0 
-    #Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0 
-    #Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0 
-    #Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0  
-    
-    ##Loop through users and do the same
-    #foreach ($sid in $UserSIDs) {
-    #    $registryOEM = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
-    #    If (!(Test-Path $registryOEM)) {
-    #        New-Item $registryOEM
-    #    }
-    #    Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0 
-    #    Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0 
-    #    Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0 
-    #    Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0 
-    #    Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0 
-    #    Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0 
-    #}
     
     # Prep mixed Reality Portal for removal    
     Write-Delayed "Disabling Mixed Reality Portal..." -NewLine:$false
@@ -991,46 +937,68 @@ try {
 }
 
 ############################################################################################################
-#                                          Office 2016 Installation                                         #
+#                                          Office 365 Installation                                         #
 #                                                                                                          #
 ############################################################################################################
 #
+# Install Office 365
 $O365 = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                 HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Microsoft Office Professional Plus 2016*" }
+                             HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*" }
 
 if ($O365) {
-    Write-Host "Existing Microsoft Office 2016 installation found." -ForegroundColor "Cyan"
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    Write-Delayed "Existing Microsoft Office installation found." -NewLine:$false
+    [Console]::ResetColor()
+    [Console]::WriteLine()   
 } else {
-    $FilePath = "C:\temp\O2k16pp.zip"
-    if (-not (Test-Path $FilePath)) {
-        # If not found, download it from the given URL
-        Write-Host "Downloading Microsoft Office 2016 (757,921,585 bytes)..." -NoNewline
-        Invoke-WebRequest -OutFile c:\temp\O2k16pp.zip -Uri "https://skgeneralstorage.blob.core.windows.net/o2k16pp/O2k16pp.zip" -UseBasicParsing
-        Write-Host " done." -ForegroundColor "Green"
+    $OfficePath = "c:\temp\OfficeSetup.exe"
+    if (-not (Test-Path $OfficePath)) {
+        $OfficeURL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/OfficeSetup.exe"
+        Write-Delayed "Downloading Microsoft Office 365..." -NewLine:$false
+        Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Delayed " done." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()
     }
     # Validate successful download by checking the file size
-    $FileSize = (Get-Item $FilePath).Length
-    $ExpectedSize = 757921585 # in bytes
+    $FileSize = (Get-Item $OfficePath).Length
+    $ExpectedSize = 7733536 # in bytes
     if ($FileSize -eq $ExpectedSize) {
-        # Run c:\temp\AcroRdrDC2300620360_en_US.exe to install Adobe Acrobat silently
-        
-        Expand-Archive -path c:\temp\O2k16pp.zip -DestinationPath 'c:\temp\' -Force
-        Write-Host "Installing Microsoft Office 2016..." -NoNewline
-        $OfficeInstaller = "C:\temp\Office2016_ProPlus\setup.exe"
-        $OfficeArguments = "/adminfile .\SLaddInstallOffice.msp"
-        Set-Location -path 'C:\temp\Office2016_ProPlus\'
-        Start-Process -FilePath $OfficeInstaller -ArgumentList $OfficeArguments -Wait    
-        Write-Host " done." -ForegroundColor "Green"
-        Write-Log "Office 365 Installation Completed Successfully."
-       
+        Write-Delayed "Installing Microsoft Office 365..." -NewLine:$false
+            taskkill /f /im OfficeClickToRun.exe *> $null
+            taskkill /f /im OfficeC2RClient.exe *> $null
+            Start-Sleep -Seconds 10
+            Start-Process -FilePath $OfficePath -Wait
+            Start-Sleep -Seconds 15
+        if (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "Microsoft 365 Apps for enterprise - en-us"}) {
+            Write-Log "Office 365 Installation Completed Successfully."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Green
+            [Console]::Write(" done.")
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+            Start-Sleep -Seconds 10
+            taskkill /f /im OfficeClickToRun.exe *> $null
+            taskkill /f /im OfficeC2RClient.exe *> $null
+            Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
+            } else {
+            Write-Log "Office 365 installation failed."
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "`nMicrosoft Office 365 installation failed." -NewLine:$false
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+            }   
     }
     else {
         # Report download error
-        Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
-        Write-Log "Office 2016 download failed!"
+        Write-Log "Office download failed!"
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Download failed or file size does not match." -NewLine:$false
+        [Console]::ResetColor()
+        [Console]::WriteLine()
         Start-Sleep -Seconds 10
-        #Remove-Item -Path $FilePath -force -ErrorAction SilentlyContinue
+        Remove-Item -Path $OfficePath -force -ErrorAction SilentlyContinue
     }
 }
 
