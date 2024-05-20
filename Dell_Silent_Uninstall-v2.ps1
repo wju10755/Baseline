@@ -135,8 +135,8 @@ if (Test-Path $DDM2zip) {
 set-location "c:\temp\Uninstall-DDM2"
 $null = ". .\appdeploytoolkit\AppDeployToolkitMain.ps1 | Out-Null"
 
-Start-Process PowerShell.exe -ArgumentList "-NoExit","-File .\Uninstall-DellDisplayManager.ps1 -DeploymentType Uninstall -DeployMode Interactive"; exit 0
-#Start-Process Powershell.exe -ArgumentList "-File .\Start-DDM2.ps1" -WindowStyle Minimized
+#Start-Process PowerShell.exe -ArgumentList "-NoExit","-File .\Uninstall-DellDisplayManager.ps1 -DeploymentType Uninstall -DeployMode Interactive"; exit 0
+Start-Process Powershell.exe -ArgumentList "-File .\Start-DDM2.ps1" -WindowStyle Minimized
 
 # Start Dell Software Uninstall
 $applicationList = "Dell", "Microsoft Update Health Tools", "ExpressConnect Drivers & Services"

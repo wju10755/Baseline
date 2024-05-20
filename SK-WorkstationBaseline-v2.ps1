@@ -9,7 +9,7 @@ Set-Executionpolicy RemoteSigned -Force *> $null
 $ErrorActionPreference = 'SilentlyContinue'
 $TempFolder = "C:\temp"
 $LogFile = "c:\temp\baseline.log"
-
+$null = ". .\appdeploytoolkit\AppDeployToolkitMain.ps1 | Out-Null"
 # Clear console window
 Clear-Host 
  
@@ -1041,7 +1041,7 @@ if ($null -ne $service) {
             [Console]::ResetColor()
 }
 }
-
+#>
 ############################################################################################################
 #                                        Remove Dell Bloatware                                             #
 #                                                                                                          #
