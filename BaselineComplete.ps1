@@ -48,7 +48,6 @@ if ($antivirusProducts.Count -gt 1) {
 Write-Host "Detected Antivirus: " -NoNewline
 # Output the name of the active antivirus product
 $antivirusProduct.displayName
-#Invoke-WebRequest "https://raw.githubusercontent.com/wju10755/msoffice-removal-tool/main/msoffice-removal-tool.ps1" | Invoke-Expression
 Write-Output " "
 
 
