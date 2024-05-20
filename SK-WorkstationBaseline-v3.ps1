@@ -917,6 +917,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Start-Sleep -Seconds 1
 }
 
+
 Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
 # Remove Microsoft OneDrive
 try {
