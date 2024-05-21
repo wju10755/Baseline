@@ -1344,7 +1344,7 @@ Stop-Transcript
 Start-Sleep -seconds 1
 Invoke-WebRequest -uri "https://raw.githubusercontent.com/wju10755/Baseline/main/BaselineComplete.ps1" -OutFile "c:\temp\BaselineComplete.ps1"
 $scriptPath = "c:\temp\BaselineComplete.ps1"
-Invoke-Expression "start powershell -ArgumentList '-noexit','-File $scriptPath'"
+Start-Process powershell -ArgumentList "-noexit","-File $scriptPath" -Verb RunAs
 Write-Host " "
 Write-Host " "
 Read-Host -Prompt "Press enter to exit"
