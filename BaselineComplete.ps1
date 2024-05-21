@@ -1,9 +1,10 @@
 Clear-Host
+
 Write-Host "MITS - Workstation Baseline Complete Verification"
 Write-Output " "
 # Instal Common Stuff 
 $moduleName = "CommonStuff"
-
+$WarningPreference = "SilentlyContinue"
 # Check if the module is installed
 if (-not (Get-Module -ListAvailable -Name $moduleName)) {
     #Write-Host "Module '$moduleName' is not installed. Attempting to install..."
@@ -31,6 +32,20 @@ Import-Module CommonStuff
 Write-Host "Installed Software Report:"
 $Software = Get-InstalledSoftware | select DisplayName, DisplayVersion
 $Software | ft -HideTableHeaders
+Write-Host "Bitlocker Encryption Configuration:"
+$BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
+        if ($BitLockerVolume.KeyProtector) {
+            Write-Host "Recovery ID:" -NoNewLine 
+            Write-Host " $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
+            Write-Host "Recovery Password:" -NoNewLine
+            Write-Host " $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
+        } else {
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Bitlocker disk encryption is not configured." -NewLine:$true
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+        }
+Write-Host " "
 $AzureADJoined = ((dsregcmd /status | select-string -Pattern "AzureAdJoined").Line).Trim()
 $AzureADJoined
 $DomainJoined = ((dsregcmd /status | select-string -Pattern "DomainJoined").Line).Trim()
@@ -49,5 +64,5 @@ Write-Host "Detected Antivirus: " -NoNewline
 # Output the name of the active antivirus product
 $antivirusProduct.displayName
 Write-Output " "
-
+Read-Host -Prompt "Press Enter to exit..."
 
