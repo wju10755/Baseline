@@ -24,7 +24,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 10.9.2";
+Write-Host -ForegroundColor Cyan "                                                   version 11.0.0";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
  
