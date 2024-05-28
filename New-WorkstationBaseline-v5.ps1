@@ -142,6 +142,33 @@ while ($true) {
 Start-Sleep -Seconds 2
 Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
 Write-Delayed "Installing required powershell modules..." -NewLine:$false
+
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.SendKeys]::SendWait('~');
+Write-Host
+Write-Host
+Write-Host 'Validating Availability of NuGet Package Provider, Please Wait..' 
+if ((Get-Packageprovider -Name NuGet) -eq $null) {
+    Write-Host -ForegroundColor Yellow 'NuGet package provider not found!'
+    Write-Host 'Installing NuGet 2.8.5.201 Provider, Please Wait..'
+    Install-Packageprovider -name nuget -requiredVersion 2.8.5.201 -force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+    }
+Write-Host -ForegroundColor Green 'Done.'
+
+
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.SendKeys]::SendWait('~');
+Write-Host
+Write-Host
+Write-Host 'Validating Availability of PSWindows Update Module, Please Wait...' 
+if ((Get-Module -Name PSWindowsUpdate) -eq $null) {
+    Write-Host -ForegroundColor Yellow 'PSWindowsUpdate module not found!'
+    Write-Host 'Installing PSWindowsUpdate Module, Please Wait...'
+    Install-Module -name PSWindowsUpdate -force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+    }
+Write-Host -ForegroundColor Green 'Done.'
+
+<#
 if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) { Install-Module -Name PSWindowsUpdate -Force }
 # Check if NuGet provider is installed
 $NugetBootStrapURL = "https://advancestuff.hostedrmm.com/labtech/Transfer/installers/nuget-bootstrap.zip"
@@ -166,7 +193,7 @@ Start-Sleep -Seconds 1
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-
+#>
 
 ############################################################################################################
 #                                        Profile Customization                                             #
