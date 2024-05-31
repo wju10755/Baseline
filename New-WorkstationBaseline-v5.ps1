@@ -35,7 +35,13 @@ Write-Host "  "
 #
 # Function to write text with delay
 function Write-Delayed {
-    param([string]$Text, [switch]$NewLine = $true)
+    param(
+        [string]$Text, 
+        [switch]$NewLine = $true,
+        [System.ConsoleColor]$Color = [System.ConsoleColor]::White
+    )
+    $currentColor = [Console]::ForegroundColor
+    [Console]::ForegroundColor = $Color
     foreach ($Char in $Text.ToCharArray()) {
         [Console]::Write("$Char")
         Start-Sleep -Milliseconds 25
@@ -43,7 +49,9 @@ function Write-Delayed {
     if ($NewLine) {
         [Console]::WriteLine()
     }
+    [Console]::ForegroundColor = $currentColor
 }
+
 # Create temp directory and baseline log
 function Initialize-Environment {
     if (-not (Test-Path $TempFolder)) {
