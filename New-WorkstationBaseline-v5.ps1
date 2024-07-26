@@ -1142,9 +1142,7 @@ $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\Current
 Where-Object { $_.DisplayName -like "*Adobe Acrobat*" }
 Start-Sleep -Seconds 1
 if ($Acrobat) {
-    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    Write-Host "Existing Acrobat Reader installation found."
-    [Console]::ResetColor()
+    Write-Delayed "Existing Acrobat Reader installation found." -NewLine $true
 } else {
     if (-not (Test-Path $AcroFilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Reader_en_install.exe"
@@ -1396,7 +1394,7 @@ try {
 }
 $ProgressPreference = 'Continue'
 do {
-    $choice = Read-Host "Do you want to connect to SSL VPN? (Y/N)"
+    $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? (Y/N)"
     switch ($choice) {
         "Y" {
             Connect-VPN
@@ -1417,10 +1415,10 @@ do {
     $choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
     switch ($choice) {
         "S" {
-            $username = Read-Host "Enter the username for the domain join operation"
-            $password = Read-Host "Enter the password for the domain join operation" -AsSecureString
+            $username = Read-Host -Prompt "Enter the username for the domain join operation"
+            $password = Read-Host -Prompt "Enter the password for the domain join operation" -AsSecureString
             $cred = New-Object System.Management.Automation.PSCredential($username, $password)
-            $domain = Read-Host "Enter the domain name for the domain join operation"
+            $domain = Read-Host -Prompt "Enter the domain name for the domain join operation"
             try {
                 Add-Computer -DomainName $domain -Credential $cred 
                 Write-Delayed "Domain join operation completed successfully." -NewLine:$true
