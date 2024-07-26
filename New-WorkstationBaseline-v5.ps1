@@ -841,20 +841,17 @@ $TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tp
 $BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
 
 if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
-    # Check if Bitlocker is already configured on C:
     $BitLockerStatus = Get-BitLockerVolume -MountPoint $env:SystemDrive
-    # Ensure the output directory exists
     $outputDirectory = "C:\temp"
     if (-not (Test-Path -Path $outputDirectory)) {
         New-Item -Path $outputDirectory -ItemType Directory | Out-Null
     }
     if ($BitLockerStatus.ProtectionStatus -eq 'On') {
-        # Bitlocker is already configured
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         Write-Delayed "Bitlocker is already configured on $env:SystemDrive " -NewLine:$false
         [Console]::ResetColor()
-        $userResponse = Read-Host -Prompt "Do you want to skip configuring Bitlocker? (yes/no)"
-        $userResponse = $userResponse.ToLower() # Normalize the input to lowercase
+        Write-Host "Do you want to skip configuring Bitlocker? (yes/no)"
+        $userResponse = [Console]::ReadLine().ToLower() # Use Console ReadLine for compatibility
 
         if ($userResponse -eq 'no') {
             # Disable BitLocker
@@ -1354,7 +1351,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
         [Console]::ResetColor()
         [Console]::WriteLine()  
 }
-
+Start-Sleep -Seconds 3
 function Connect-VPN {
     if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
         Write-Delayed "NetExtender detected successfully, starting connection..." -NewLine:$false
