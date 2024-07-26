@@ -742,6 +742,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         }
     }
 } else {
+    [Console]::ResetColor()
     Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
