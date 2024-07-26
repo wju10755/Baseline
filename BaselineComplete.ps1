@@ -28,7 +28,7 @@ try {
     Write-Error "Failed to import module '$moduleName': $_"
 }
 
-Import-Module CommonStuff
+Import-Module -Name CommonStuff
 Write-Host "Installed Software Report:"
 $Software = Get-InstalledSoftware | select DisplayName, DisplayVersion
 $Software | ft -HideTableHeaders

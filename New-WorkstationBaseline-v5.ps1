@@ -10,6 +10,8 @@ $ErrorActionPreference = 'SilentlyContinue'
 $TempFolder = "C:\temp"
 $LogFile = "c:\temp\baseline.log"
 
+#irm "https://raw.githubusercontent.com/wju10755/o365AuditParser/master/Check-Modules.ps1" | Invoke-Expression
+
 # Clear console window
 Clear-Host
  
@@ -19,6 +21,7 @@ function Print-Middle($Message, $Color = "White") {
     Write-Host -ForegroundColor $Color $Message;
 }
 
+
 # Print Script Title
 #################################
 $Padding = ("=" * [System.Console]::BufferWidth);
@@ -27,12 +30,13 @@ Print-Middle "MITS - New Workstation Baseline Script";
 Write-Host -ForegroundColor Cyan "                                                   version 11.0.2";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
- 
+
+
 ############################################################################################################
 #                                                 Functions                                                #
 #                                                                                                          #
 ############################################################################################################
-#
+#region Functions
 # Function to write text with delay
 function Write-Delayed {
     param(
@@ -76,6 +80,7 @@ function Write-Log {
 #                                             Start Baseline                                               #
 #                                                                                                          #
 ############################################################################################################
+#region Start Baseline
 # Start baseline transcript log
 Start-Transcript -path c:\temp\$env:COMPUTERNAME-baseline_transcript.txt
 
@@ -180,38 +185,35 @@ if ((Get-Module -Name PSWindowsUpdate) -eq $null) {
     }
 Write-Host -ForegroundColor Green 'Done.'
 
-<#
-if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) { Install-Module -Name PSWindowsUpdate -Force }
-# Check if NuGet provider is installed
-$NugetBootStrapURL = "https://advancestuff.hostedrmm.com/labtech/Transfer/installers/nuget-bootstrap.zip"
-$TempDir = "c:\temp"
-$NugetFileName = "nuget-bootstrap.zip"
-$NugetPath = "C:\Program Files\PackageManagement\ProviderAssemblies\"
-$FullFilePath = Join-Path -Path $TempDir -ChildPath $NugetFileName
+# Stop & disable the Windows Update service
+Write-Host "Suspending Windows Update..." -NoNewline
 
-Invoke-WebRequest -uri $NugetBootStrapURL -OutFile $TempDir
+try {
+    # Stop the Windows Update service
+    Stop-Service -Name wuauserv -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
 
-if(Test-Path $FullFilePath){
-    try {
-        Expand-Archive -Path $FullFilePath -DestinationPath $NugetPath -ErrorAction Stop
-        Import-PackageProvider -Name NuGet
+    # Set the startup type of the Windows Update service to disabled
+    Set-Service -Name wuauserv -StartupType Disabled -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+
+    # Get the current status of the Windows Update service
+    $service = Get-Service -Name wuauserv
+
+    # Check if the service is stopped
+    if ($service.Status -eq 'Stopped') {
+        Write-Host " done." -ForegroundColor Green
+    } else {
+        Write-Host " failed." -ForegroundColor Red
     }
-    catch {
-        Write-Host "Failed to expand archive: $_"
-    }
+} catch {
+    Write-Host "An error occurred: $_" -ForegroundColor Red
 }
-Start-Sleep -Seconds 1
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor()
-[Console]::WriteLine() 
-#>
+
 
 ############################################################################################################
 #                                        Profile Customization                                             #
 #                                                                                                          #
 ############################################################################################################
-
+#region Profile Settings
 # Check if the user 'mitsadmin' exists
 $user = Get-LocalUser -Name 'mitsadmin' -ErrorAction SilentlyContinue
 
@@ -239,29 +241,6 @@ if ($user) {
     Write-Host " done." -ForegroundColor Green
 }
 
-# Stop & disable the Windows Update service
-Write-Host "Suspending Windows Update..." -NoNewline
-
-try {
-    # Stop the Windows Update service
-    Stop-Service -Name wuauserv -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-
-    # Set the startup type of the Windows Update service to disabled
-    Set-Service -Name wuauserv -StartupType Disabled -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-
-    # Get the current status of the Windows Update service
-    $service = Get-Service -Name wuauserv
-
-    # Check if the service is stopped
-    if ($service.Status -eq 'Stopped') {
-        Write-Host " done." -ForegroundColor Green
-    } else {
-        Write-Host " failed." -ForegroundColor Red
-    }
-} catch {
-    Write-Host "An error occurred: $_" -ForegroundColor Red
-}
-
 # Disable Offline File Sync
 $registryPath = "HKLM:\System\CurrentControlSet\Services\CSC\Parameters"
 
@@ -279,70 +258,77 @@ Write-Log "Offline file sync disabled."
 [Console]::WriteLine() 
 Start-Sleep -Seconds 2
 
-# Set power profile to 'Balanced'
-Write-Delayed "Setting 'Balanced' Power Profile..." -NewLine:$false
-Start-Sleep -Seconds 2
-powercfg /S SCHEME_BALANCED *> $null
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor()
-[Console]::WriteLine() 
-Write-Log "Power profile set to 'Balanced'."
-Start-Sleep -Seconds 5
+# Power Configuration
+$pcSystemType = (Get-WmiObject -Class Win32_ComputerSystem).PCSystemType
+$activeScheme = (powercfg -getactivescheme).Split()[3]
 
-# Disable sleep and hibernation modes
-Start-Sleep -Seconds 1
-Write-Delayed "Disabling Sleep & Hibernation..." -NewLine:$false
-powercfg /change standby-timeout-ac 0 *> $null
-powercfg /change hibernate-timeout-ac 0 *> $null
-powercfg /h off *> $null
-Start-Sleep -Seconds 2
-Write-Log "Disabled sleep and hibernation mode."
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor()
-[Console]::WriteLine() 
-Start-Sleep -Seconds 2
+if ($pcSystemType -eq 2) {
+    Write-Delayed "Configuring Mobile Device Power Profile..." -NewLine:$false
+    Start-Sleep -Seconds 2  
+    powercfg /change standby-timeout-ac 0 *> $null
+    powercfg /change hibernate-timeout-ac 0 *> $null
+    powercfg /h off *> $null
+    Start-Sleep -Seconds 2
+    Write-Log "Disabled sleep and hibernation mode."
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+    Start-Sleep -Seconds 2
+    Write-Delayed "Disabling Fast Startup..." -NewLine:$false
+    $regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
+    Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
+    Write-Log "Fast startup disabled."
+    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+    [Console]::Write(" done.")
+    [Console]::ResetColor()
+    [Console]::WriteLine() 
+    Start-Sleep -Seconds 5
+}
 
-# Disable fast startup
-Start-Sleep -Seconds 2
-Write-Delayed "Disabling Fast Startup..." -NewLine:$false
-$regKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
-Set-ItemProperty -Path $regKeyPath -Name HiberbootEnabled -Value 0 *> $null
-Write-Log "Fast startup disabled."
-Start-Sleep -Seconds 2
-[Console]::ForegroundColor = [System.ConsoleColor]::Green
-[Console]::Write(" done.")
-[Console]::ResetColor()
-[Console]::WriteLine() 
-Start-Sleep -Seconds 5
-
-# Set power button action to 'Shutdown'
-Start-Sleep -Seconds 2
+# Common configuration for both Mobile and Desktop/Workstation Devices
 Write-Delayed "Configuring 'Shutdown' power button action..." -NewLine:$false
-powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
-powercfg /SETACTIVE SCHEME_CURRENT
+powercfg -setacvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION 3
+powercfg -setdcvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION 3
 Start-Sleep -Seconds 2
 Write-Log "Power button action set to 'Shutdown'."
 [Console]::ForegroundColor = [System.ConsoleColor]::Green
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine() 
-Start-Sleep -Seconds 5
-
-# Set 'lid close action' to do nothing on laptops
+Write-Delayed "Setting 'Do Nothing' lid close action..." -NewLine:$false
+Start-Sleep -Seconds 2
+powercfg -setacvalueindex SCHEME_CURRENT SUB_BUTTONS LIDACTION 00000000
+powercfg -setdcvalueindex SCHEME_CURRENT SUB_BUTTONS LIDACTION 00000000
+Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine()
+Write-Delayed "Setting Standby Idle time to 2 hours on battery..." -NewLine:$false
+powercfg -setdcvalueindex SCHEME_CURRENT SUB_SLEEP STANDBYIDLE 7200
+Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine() 
+Write-Delayed "Setting Standby Idle time to never on AC power..." -NewLine:$false
+powercfg -setacvalueindex SCHEME_CURRENT SUB_SLEEP STANDBYIDLE 0
+Start-Sleep -Seconds 2
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine()
+Write-Delayed "Activating 'Balanced' Power Profile..." -NewLine:$false
+powercfg /S $activeScheme
 Start-Sleep -Seconds 1
-if ($deviceType -eq "Laptop") {
-    Write-Delayed "Setting 'Do Nothing' lid close action..." -NewLine:$false
-    powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
-    powercfg /SETACTIVE SCHEME_CURRENT
-    Write-Log "'Lid close action' set to Do Nothing. (Laptop)"
-    Start-Sleep -Seconds 2
-    [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    [Console]::Write(" done.")
-    [Console]::ResetColor()
-    [Console]::WriteLine() 
-    Start-Sleep -Seconds 5
+[Console]::ForegroundColor = [System.ConsoleColor]::Green
+[Console]::Write(" done.")
+[Console]::ResetColor()
+[Console]::WriteLine()
+
+if ($pcSystemType -ne 1 -and $pcSystemType -ne 2 -and $pcSystemType -ne 3) {
+    Write-Output "No action needed for system type $pcSystemType."
 }
 
 # Set the time zone to 'Eastern Standard Time'
@@ -458,8 +444,6 @@ if (Test-Win11) {
         Write-Error "An error occurred: $($Error[0].Exception.Message)"
     }
 }
-
-
 
 # Disable Windows Feedback Experience
     Write-Delayed "Disabling Windows Feedback Experience program..." -newline:$false
@@ -1046,11 +1030,12 @@ if ($O365) {
 #                                                                                                          #
 ############################################################################################################
 #
-# Acrobat Installation
-$AcroFilePath = "c:\temp\AcroRead.exe"
+<#
+# Acrobat Installation -v1
+$AcroFilePath = "c:\temp\Reader_en_install.exe"
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
                             HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-Where-Object { $_.DisplayName -like "*Adobe Acrobat Reader*" }
+Where-Object { $_.DisplayName -like "*Adobe Acrobat*" }
 Start-Sleep -Seconds 1
 if ($Acrobat) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
@@ -1060,7 +1045,7 @@ if ($Acrobat) {
 } else {
     if (-not (Test-Path $AcroFilePath)) {
         # If not found, download it
-        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/AcroRead.exe"
+        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Reader_en_install.exe"
         $ProgressPreference = 'SilentlyContinue'
         $response = Invoke-WebRequest -Uri $URL -Method Head
         $fileSize = $response.Headers["Content-Length"]
@@ -1074,10 +1059,10 @@ if ($Acrobat) {
     }
     # Validate successful download by checking the file size
     $FileSize = (Get-Item $AcroFilePath).Length
-    $ExpectedSize = 1452648 # in bytes
+    $ExpectedSize = 1628608 # in bytes
     if ($FileSize -eq $ExpectedSize) {
         Write-Delayed "Installing Adobe Acrobat Reader..." -NewLine:$false
-        Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /msi /norestart /quiet EULA_ACCEPT=YES" -PassThru | Out-Null
+        Start-Process -FilePath $installerPath -Args "/sAll /msi /norestart /quiet" -Wait
         Start-Sleep -Seconds 150
         # Create a FileSystemWatcher to monitor the specified file
         $watcher = New-Object System.IO.FileSystemWatcher
@@ -1104,7 +1089,7 @@ if ($Acrobat) {
         } while ($msiexecSessionOne)
         # Once there are no msiexec processes with Session ID 1, kill acroread.exe
         Start-Sleep 15
-        taskkill /f /im acroread.exe *> $null
+        taskkill /f /im Reader_en_install.exe *> $null
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
         Write-Delayed " done." -NewLine:$false
         [Console]::ResetColor()
@@ -1117,6 +1102,78 @@ if ($Acrobat) {
         Remove-Item -Path $AcroFilePath -force -ErrorAction SilentlyContinue | Out-Null
     }
 }
+#>
+
+# Acrobat Installation -v2
+$AcroFilePath = "c:\temp\Reader_en_install.exe"
+$Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                            HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -like "*Adobe Acrobat*" }
+Start-Sleep -Seconds 1
+if ($Acrobat) {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    Write-Host "Existing Acrobat Reader installation found."
+    [Console]::ResetColor()
+} else {
+    if (-not (Test-Path $AcroFilePath)) {
+        $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Reader_en_install.exe"
+        $ProgressPreference = 'SilentlyContinue'
+        $response = Invoke-WebRequest -Uri $URL -Method Head
+        $fileSize = $response.Headers["Content-Length"]
+        $ProgressPreference = 'Continue'
+        Write-Host "Downloading Adobe Acrobat Reader ($fileSize bytes)..."
+        Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
+        [Console]::ForegroundColor = [System.ConsoleColor]::Green
+        Write-Host " done."
+        [Console]::ResetColor()
+    }
+    
+    $FileSize = (Get-Item $AcroFilePath).Length
+    $ExpectedSize = 1628608 # in bytes
+    if ($FileSize -eq $ExpectedSize) {
+        $installJob = Start-Job -ScriptBlock {
+                Start-Process -FilePath $using:AcroFilePath -Args "/sAll /msi /norestart /quiet"
+                Start-Sleep -Seconds 150
+                # Create a FileSystemWatcher to monitor the specified file
+                $watcher = New-Object System.IO.FileSystemWatcher
+                $watcher.Path = "C:\Program Files (x86)\Common Files\adobe\Reader\Temp\*"
+                $watcher.Filter = "installer.bin"
+                $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName
+                $watcher.EnableRaisingEvents = $true
+                # When installer.bin is deleted, kill the acroread.exe process
+                Register-ObjectEvent $watcher "Deleted" -Action {
+                    Start-Sleep -Seconds 15
+                    function Check-MsiexecSession {
+                        $msiexecProcesses = Get-Process msiexec -ErrorAction SilentlyContinue
+                        $hasSessionOne = $msiexecProcesses | Where-Object { $_.SessionId -eq 1 }
+                        return $hasSessionOne
+                    }
+                    do {
+                        Start-Sleep -Seconds 10
+                        $msiexecSessionOne = Check-MsiexecSession
+                    } while ($msiexecSessionOne)
+                    [Console]::ForegroundColor = [System.ConsoleColor]::Green
+                    Write-Delayed "Installation complete." -NewLine:$true # Changed message and added new line
+                    [Console]::ResetColor()
+                    Write-Log "Adobe Acrobat installation complete." -ForegroundColor Green
+                    Start-Sleep -Seconds 30
+                    Taskkill /f /im Reader_en_install.exe *> $null
+                    Start-Sleep -Seconds 30
+                    Taskkill /f /im msedge.exe *> $null
+                } | Out-Null
+        
+            }
+        }
+
+        do {
+            $message = "Installing Adobe Acrobat"
+            Write-Host "`r$message" -NoNewline
+            Start-Sleep -Seconds 1
+        } while ((Get-Job -Id $installJob.Id).State -eq "Running")
+
+        Remove-Job -Id $installJob.Id
+    }
+
 
 ############################################################################################################
 #                                   SonicWall NetExtender Installation                                     #
@@ -1288,11 +1345,16 @@ function Connect-VPN {
     }
 }
 
+
 ############################################################################################################
 #                                            LocalAD/AzureAD Join                                          #
 #                                                                                                          #
 ############################################################################################################
 #
+
+#
+Connect-VPN
+
 Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$true
 
 $ProgressPreference = 'SilentlyContinue'
@@ -1306,38 +1368,57 @@ try {
     exit
 }
 $ProgressPreference = 'Continue'
-
-$choice = Read-Host "Do you want to connect to SSL VPN? (Y/N)"
-switch ($choice) {
-    "Y" { Connect-VPN }
-    "N" { Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true }
-    default { Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true }
-}
-$choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
-switch ($choice) {
-    "S" {
-        $username = Read-Host "Enter the username for the domain join operation"
-        $password = Read-Host "Enter the password for the domain join operation" -AsSecureString
-        $cred = New-Object System.Management.Automation.PSCredential($username, $password)
-        $domain = Read-Host "Enter the domain name for the domain join operation"
-        try {
-            Add-Computer -DomainName $domain -Credential $cred 
-            Write-Delayed "Domain join operation completed successfully." -NewLine:$true
-        } catch {
-            Write-Delayed "Failed to join the domain." -NewLine:$true
+do {
+    $choice = Read-Host "Do you want to connect to SSL VPN? (Y/N)"
+    switch ($choice) {
+        "Y" {
+            Connect-VPN
+            $validChoice = $true
+        }
+        "N" {
+            Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true
+            $validChoice = $true
+        }
+        default {
+            Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true
+            $validChoice = $false
         }
     }
-    "A" {
-        Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
-        Start-Process "ms-settings:workplace"
-        Start-Sleep -Seconds 3
-        $output = dsregcmd /status | Out-String
-        $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
-        $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
-        Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
+} while (-not $validChoice)
+
+do {
+    $choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
+    switch ($choice) {
+        "S" {
+            $username = Read-Host "Enter the username for the domain join operation"
+            $password = Read-Host "Enter the password for the domain join operation" -AsSecureString
+            $cred = New-Object System.Management.Automation.PSCredential($username, $password)
+            $domain = Read-Host "Enter the domain name for the domain join operation"
+            try {
+                Add-Computer -DomainName $domain -Credential $cred 
+                Write-Delayed "Domain join operation completed successfully." -NewLine:$true
+                $validChoice = $true
+            } catch {
+                Write-Delayed "Failed to join the domain." -NewLine:$true
+                $validChoice = $true
+            }
+        }
+        "A" {
+            Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
+            Start-Process "ms-settings:workplace"
+            Start-Sleep -Seconds 3
+            $output = dsregcmd /status | Out-String
+            $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
+            $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
+            Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
+            $validChoice = $true
+        }
+        default {
+            Write-Delayed "Invalid choice. Please enter A or S." -NewLine:$true
+            $validChoice = $false
+        }
     }
-    default { Write-Delayed "Invalid choice. Please enter A or S." -NewLine:$true }
-}
+} while (-not $validChoice)
 
 # Aquire Wake Lock (Prevents idle session & screen lock)
 New-Item -ItemType File -Path "c:\temp\WakeLock.flag" -Force *> $null
