@@ -27,7 +27,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 11.0.5";
+Write-Host -ForegroundColor Cyan "                                                   version 11.0.7";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 
@@ -184,6 +184,35 @@ if ((Get-Module -Name PSWindowsUpdate) -eq $null) {
     Install-Module -name PSWindowsUpdate -force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
     }
 Write-Host -ForegroundColor Green 'Done.'
+
+
+# New Module Loader
+<#
+# List of required modules
+$requiredModules = @('MSOnline', 'AzureAD', 'ExchangeOnlineManagement')
+
+foreach ($module in $requiredModules) {
+    # Check if the module is installed
+    $moduleInstalled = Get-Module -ListAvailable -Name $module
+    if (!$moduleInstalled) {
+        Write-Host "Module $module is not installed. Installing now..."
+        Install-Module -Name $module -Force -AllowClobber -Scope CurrentUser -Confirm:$false
+        Write-Host -ForegroundColor Green "$module installed."
+    } else {
+        Write-Host -ForegroundColor Green "Module $module is installed."
+    }
+    # Import the module
+    Import-Module -Name $module -ErrorAction SilentlyContinue
+    #Write-Host -ForegroundColor Green "$module imported successfully."
+}
+#>
+
+
+
+
+
+
+
 
 # Stop & disable the Windows Update service
 Write-Host "Suspending Windows Update..." -NoNewline
@@ -824,7 +853,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         Write-Delayed "Bitlocker is already configured on $env:SystemDrive " -NewLine:$false
         [Console]::ResetColor()
-        $userResponse = Read-Host " - Do you want to skip configuring Bitlocker? (yes/no)"
+        $userResponse = Read-Host -Prompt "Do you want to skip configuring Bitlocker? (yes/no)"
         $userResponse = $userResponse.ToLower() # Normalize the input to lowercase
 
         if ($userResponse -eq 'no') {
