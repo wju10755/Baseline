@@ -1353,10 +1353,6 @@ function Connect-VPN {
 #                                                                                                          #
 ############################################################################################################
 #
-
-#
-Connect-VPN
-
 Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$true
 
 $ProgressPreference = 'SilentlyContinue'
