@@ -27,7 +27,7 @@ function Print-Middle($Message, $Color = "White") {
 $Padding = ("=" * [System.Console]::BufferWidth);
 Write-Host -ForegroundColor "Red" $Padding -NoNewline;
 Print-Middle "MITS - New Workstation Baseline Script";
-Write-Host -ForegroundColor Cyan "                                                   version 11.1.3";
+Write-Host -ForegroundColor Cyan "                                                   version 11.1.4";
 Write-Host -ForegroundColor "Red" -NoNewline $Padding; 
 Write-Host "  "
 Start-Sleep -Seconds 2
@@ -944,7 +944,8 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
                     break
                 }
             } elseif ((Get-Date) -ge $endTime) {
-                Write-Host "`nNo response received within $timeoutSeconds seconds, skipping Bitlocker configuration."
+                Write-Host "`nNo response received, skipping Bitlocker configuration..." -NoNewline
+                Write-Host -ForegroundColor Green " done."
                 $userResponse = 'y' # Assume 'yes' to skip if no response
                 break
             }
