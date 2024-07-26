@@ -1412,7 +1412,7 @@ do {
 } while (-not $validChoice)
 
 do {
-    $choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
+    $choice = Read-Host -Prompt "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
     switch ($choice) {
         "S" {
             $username = Read-Host -Prompt "Enter the username for the domain join operation"
