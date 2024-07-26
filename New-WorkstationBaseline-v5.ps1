@@ -1438,7 +1438,7 @@ function Connect-VPN {
     if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
         Write-Delayed "NetExtender detected successfully, starting connection..." -NewLine:$false
         Start-Process C:\temp\ssl-vpn.bat
-        Start-Sleep -Seconds 8
+        Start-Sleep -Seconds 6
         $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
         if ($connectionProfile) {
             Write-Delayed "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN." -NewLine:$true
@@ -1452,7 +1452,6 @@ function Connect-VPN {
         [Console]::WriteLine()
     }
 }
-
 
 ############################################################################################################
 #                                            LocalAD/AzureAD Join                                          #
@@ -1472,57 +1471,32 @@ try {
     exit
 }
 $ProgressPreference = 'Continue'
-do {
-    $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? (Y/N)"
-    switch ($choice) {
-        "Y" {
-            Connect-VPN
-            $validChoice = $true
-        }
-        "N" {
-            Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true
-            $validChoice = $true
-        }
-        default {
-            Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true
-            $validChoice = $false
-        }
-    }
-} while (-not $validChoice)
 
-do {
-    $choice = Read-Host -Prompt "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
-    switch ($choice) {
-        "S" {
-            $username = Read-Host -Prompt "Enter the username for the domain join operation"
-            $password = Read-Host -Prompt "Enter the password for the domain join operation" -AsSecureString
-            $cred = New-Object System.Management.Automation.PSCredential($username, $password)
-            $domain = Read-Host -Prompt "Enter the domain name for the domain join operation"
-            try {
-                Add-Computer -DomainName $domain -Credential $cred 
-                Write-Delayed "Domain join operation completed successfully." -NewLine:$true
-                $validChoice = $true
-            } catch {
-                Write-Delayed "Failed to join the domain." -NewLine:$true
-                $validChoice = $true
-            }
-        }
-        "A" {
-            Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
-            Start-Process "ms-settings:workplace"
-            Start-Sleep -Seconds 3
-            $output = dsregcmd /status | Out-String
-            $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
-            $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
-            Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
-            $validChoice = $true
-        }
-        default {
-            Write-Delayed "Invalid choice. Please enter A or S." -NewLine:$true
-            $validChoice = $false
+$choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
+switch ($choice) {
+    "S" {
+        $username = Read-Host "Enter the username for the domain join operation"
+        $password = Read-Host "Enter the password for the domain join operation" -AsSecureString
+        $cred = New-Object System.Management.Automation.PSCredential($username, $password)
+        $domain = Read-Host "Enter the domain name for the domain join operation"
+        try {
+            Add-Computer -DomainName $domain -Credential $cred 
+            Write-Delayed "Domain join operation completed successfully." -NewLine:$true
+        } catch {
+            Write-Delayed "Failed to join the domain." -NewLine:$true
         }
     }
-} while (-not $validChoice)
+    "A" {
+        Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
+        Start-Process "ms-settings:workplace"
+        Start-Sleep -Seconds 3
+        $output = dsregcmd /status | Out-String
+        $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
+        $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
+        Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
+    }
+    default { Write-Delayed "Invalid choice. Please enter A or S." -NewLine:$true }
+}
 
 # Aquire Wake Lock (Prevents idle session & screen lock)
 New-Item -ItemType File -Path "c:\temp\WakeLock.flag" -Force *> $null
