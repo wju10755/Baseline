@@ -924,10 +924,34 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         # Bitlocker is already configured
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Host "Bitlocker is already configured on $env:SystemDrive "
+        Write-Delayed "Bitlocker is already configured on $env:SystemDrive " -NewLine:$false
         [Console]::ResetColor()
-        $userResponse = Read-Host -Prompt "Do you want to skip configuring Bitlocker? (yes/no)"
-        if ($userResponse -like 'n') {
+
+        # Setup for non-blocking read with timeout
+        $timeoutSeconds = 10
+        $endTime = (Get-Date).AddSeconds($timeoutSeconds)
+        $userResponse = $null
+
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Host "Do you want to skip configuring Bitlocker? (yes/no)" -NoNewline
+        [Console]::ResetColor()
+
+        while ($true) {
+            if ([Console]::KeyAvailable) {
+                $key = [Console]::ReadKey($true)
+                if ($key.KeyChar -match '^[ynYN]$') {
+                    $userResponse = $key.KeyChar
+                    break
+                }
+            } elseif ((Get-Date) -ge $endTime) {
+                Write-Host "`nNo response received within $timeoutSeconds seconds, skipping Bitlocker configuration."
+                $userResponse = 'y' # Assume 'yes' to skip if no response
+                break
+            }
+            Start-Sleep -Milliseconds 500
+        }
+
+        if ($userResponse -ine 'y') {
             # Disable BitLocker
             manage-bde -off $env:SystemDrive | Out-Null
 
@@ -983,7 +1007,6 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         }
     }
 } else {
-    [Console]::ResetColor()
     Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
