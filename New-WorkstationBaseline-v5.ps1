@@ -92,7 +92,7 @@ Write-Delayed "Starting workstation baseline..." -NewLine:$false
 [Console]::Write("`n")
 [Console]::ResetColor() 
 [Console]::WriteLine()
-Start-Sleep -Seconds 1
+Start-Sleep -Seconds 2
 
 # Start baseline log file
 Write-Log "Automated workstation baseline has started"
@@ -209,7 +209,7 @@ foreach ($module in $requiredModules) {
 
 # Stop & disable the Windows Update service
 Write-Host "Suspending Windows Update..." -NoNewline
-
+Start-Sleep -Seconds 2
 try {
     # Stop the Windows Update service
     Stop-Service -Name wuauserv -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
@@ -924,7 +924,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         # Bitlocker is already configured
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "Bitlocker is already configured on $env:SystemDrive " -NewLine:$false
+        Write-Delayed "Bitlocker is already configured on $env:SystemDrive -" -NewLine:$false
         [Console]::ResetColor()
 
         # Setup for non-blocking read with timeout
@@ -1002,7 +1002,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
             Write-Host -ForegroundColor Cyan " $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
         } else {
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "Bitlocker disk encryption is not configured." -NewLine:$true
+            [Console]::Write("Bitlocker disk encryption is not configured.")
             [Console]::ResetColor()
             [Console]::WriteLine()  
         }
@@ -1030,20 +1030,20 @@ try {
         if (-not $OneDriveProduct) {
             Write-Log "OneDrive has been successfully removed."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            Write-Delayed " done." -NewLine:$false
+            [Console]::Write(" done.")
             [Console]::ResetColor()
             [Console]::WriteLine()
         } else {
             Write-Log "Failed to remove OneDrive."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed " failed." -NewLine:$false
+            [Console]::Write(" failed.")
             [Console]::ResetColor()
             [Console]::WriteLine()
         }
     } else {
         #Write-Host "Microsoft OneDrive (Personal) is not installed."
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
+        [Console]::Write(" done.")
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
@@ -1063,19 +1063,19 @@ try {
         if (-not $MWICheck) {
             Write-Log "Teams Machine Wide Installer has been successfully uninstalled."
             [Console]::ForegroundColor = [System.ConsoleColor]::Green
-            Write-Delayed " done." -NewLine:$false
+            [Console]::Write(" done.")
             [Console]::ResetColor()
             [Console]::WriteLine()   
         } else {
             Write-Log "Failed to uninstall Teams Machine Wide Installer."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "Failed to uninstall Teams Machine Wide Installer." -NewLine:$false
+            [Console]::Write("Failed to uninstall Teams Machine Wide Installer.")
             [Console]::ResetColor()
             [Console]::WriteLine()
         }
     } else {
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
+        [Console]::Write(" done.")
         [Console]::ResetColor()
         [Console]::WriteLine()    
     }
@@ -1098,7 +1098,7 @@ Where-Object { $_.DisplayName -like "*Microsoft 365 Apps for enterprise - en-us*
 
 if ($O365) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    Write-Delayed "Existing Microsoft Office installation found." -NewLine:$false
+    [Console]::Write("Existing Microsoft Office installation found.")
     [Console]::ResetColor()
     [Console]::WriteLine()   
 } else {
@@ -1108,7 +1108,7 @@ if ($O365) {
         Write-Delayed "Downloading Microsoft Office 365..." -NewLine:$false
         Invoke-WebRequest -OutFile $OfficePath -Uri $OfficeURL -UseBasicParsing
         [Console]::ForegroundColor = [System.ConsoleColor]::Green
-        Write-Delayed " done." -NewLine:$false
+        [Console]::Write(" done.")
         [Console]::ResetColor()
         [Console]::WriteLine()
     }
@@ -1135,7 +1135,7 @@ if ($O365) {
             } else {
             Write-Log "Office 365 installation failed."
             [Console]::ForegroundColor = [System.ConsoleColor]::Red
-            Write-Delayed "`nMicrosoft Office 365 installation failed." -NewLine:$false
+            [Console]::Write("`nMicrosoft Office 365 installation failed.")
             [Console]::ResetColor()
             [Console]::WriteLine()  
             }   
@@ -1144,7 +1144,7 @@ if ($O365) {
         # Report download error
         Write-Log "Office download failed!"
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "Download failed or file size does not match." -NewLine:$false
+        [Console]::Write("Download failed or file size does not match.")
         [Console]::ResetColor()
         [Console]::WriteLine()
         Start-Sleep -Seconds 10
@@ -1417,12 +1417,12 @@ Start-Sleep -Seconds 5
 $service = Get-Service -Name wuauserv
 if ($service.Status -eq 'Running') {
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
-    Write-Delayed " done." -NewLine:$false
+    [Console]::Write(" done.")
     [Console]::ResetColor()
     [Console]::WriteLine() 
 } else {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
-    Write-Delayed " failed." -NewLine:$false
+    [Console]::Write(" failed.")
     [Console]::ResetColor()
     [Console]::WriteLine()    
 }
@@ -1439,6 +1439,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.SendKeys]::SendWait('%{TAB}')
     Move-ProcessWindowToTopRight -processName "Windows PowerShell" | Out-Null
+    Start-Sleep -Seconds 1
     [Console]::ForegroundColor = [System.ConsoleColor]::Green
     [Console]::Write(" done.")
     [Console]::ResetColor()
