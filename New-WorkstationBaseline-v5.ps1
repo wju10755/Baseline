@@ -714,7 +714,7 @@ if (Test-Win11) {
     # Kill Cortana again
     Get-AppxPackage - allusers Microsoft.549981C3F5F10 | Remove AppxPackage | Out-Null
 
-    # Disable unnecessary scheduled tasks
+    # Disable unnecessarytasks
     Write-Delayed "Disabling scheduled tasks..." -NewLine:$false
     $task1 = Get-ScheduledTask -TaskName XblGameSaveTaskLogon -ErrorAction SilentlyContinue 
     if ($null -ne $task1) {
@@ -931,9 +931,9 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         # Bitlocker is already configured
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "Bitlocker is already configured on $env:SystemDrive " -NewLine:$false
+        Write-Host "Bitlocker is already configured on $env:SystemDrive "
         [Console]::ResetColor()
-        $userResponse = Read-Host " - Do you want to skip configuring Bitlocker? (yes/no)"
+        $userResponse = Read-Host -Prompt "Do you want to skip configuring Bitlocker? (yes/no)"
         if ($userResponse -like 'n') {
             # Disable BitLocker
             manage-bde -off $env:SystemDrive | Out-Null
