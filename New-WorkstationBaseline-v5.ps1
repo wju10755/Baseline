@@ -207,13 +207,6 @@ foreach ($module in $requiredModules) {
 }
 #>
 
-
-
-
-
-
-
-
 # Stop & disable the Windows Update service
 Write-Host "Suspending Windows Update..." -NoNewline
 
