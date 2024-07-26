@@ -753,7 +753,8 @@ $agentIdValueName = "ID"
 
 # Check for existing LabTech agent
 if (Get-Service $agentName -ErrorAction SilentlyContinue) {
-    Write-Delayed "ConnectWise Automate agent detected." -NewLine:$true
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    [Console]::Write("ConnectWise Automate agent detected.")
 } elseif (Test-Path $agentPath) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     Write-Delayed "ConnectWise Automate agent files are present, but the service is not installed." -NewLine:$false
@@ -1238,7 +1239,8 @@ $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\Current
 Where-Object { $_.DisplayName -like "*Adobe Acrobat*" }
 Start-Sleep -Seconds 1
 if ($Acrobat) {
-    Write-Delayed "Existing Acrobat Reader installation found." -NewLine $true
+    [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
+    [Console]::Write("Existing Acrobat Reader installation found.")
 } else {
     if (-not (Test-Path $AcroFilePath)) {
         $URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Reader_en_install.exe"
@@ -1311,7 +1313,7 @@ $SWNE = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVer
 Where-Object { $_.DisplayName -like "*Sonicwall NetExtender*" }
 if ($SWNE) {
     [Console]::ForegroundColor = [System.ConsoleColor]::Cyan
-    Write-Delayed "Existing Sonicwall NetExtender installation found." -NewLine:$false
+    [Console]::Write("Existing Sonicwall NetExtender installation found.")
     [Console]::ResetColor()
     [Console]::WriteLine()   
 } else {
