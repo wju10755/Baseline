@@ -924,7 +924,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     if ($BitLockerStatus.ProtectionStatus -eq 'On') {
         # Bitlocker is already configured
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "Bitlocker is already configured on $env:SystemDrive -" -NewLine:$false
+        Write-Delayed "Bitlocker is already configured on $env:SystemDrive - " -NewLine:$false
         [Console]::ResetColor()
 
         # Setup for non-blocking read with timeout
