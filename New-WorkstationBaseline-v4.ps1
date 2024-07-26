@@ -2018,12 +2018,6 @@ try {
 }
 $ProgressPreference = 'Continue'
 
-$choice = Read-Host "Do you want to connect to SSL VPN? (Y/N)"
-switch ($choice) {
-    "Y" { Connect-VPN }
-    "N" { Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true }
-    default { Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true }
-}
 $choice = Read-Host "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
 switch ($choice) {
     "S" {

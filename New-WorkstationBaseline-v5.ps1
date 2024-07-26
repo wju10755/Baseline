@@ -850,8 +850,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         [Console]::ForegroundColor = [System.ConsoleColor]::Red
         Write-Delayed "Bitlocker is already configured on $env:SystemDrive " -NewLine:$false
         [Console]::ResetColor()
-        Write-Host "Do you want to skip configuring Bitlocker? (yes/no)"
-        $userResponse = [Console]::ReadLine().ToLower() # Use Console ReadLine for compatibility
+        $userResponse = Read-Host -Prompt "Do you want to skip configuring Bitlocker? (yes/no)"
 
         if ($userResponse -eq 'no') {
             # Disable BitLocker
@@ -1356,7 +1355,7 @@ function Connect-VPN {
     if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
         Write-Delayed "NetExtender detected successfully, starting connection..." -NewLine:$false
         Start-Process C:\temp\ssl-vpn.bat
-        Start-Sleep -Seconds 6
+        Start-Sleep -Seconds 8
         $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
         if ($connectionProfile) {
             Write-Delayed "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN." -NewLine:$true
