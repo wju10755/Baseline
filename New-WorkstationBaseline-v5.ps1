@@ -351,7 +351,7 @@ Start-Sleep -Seconds 2
 [Console]::ResetColor()
 [Console]::WriteLine()    
 Write-Log "Synced system clock"
-Start-Sleep -Seconds 5
+Start-Sleep -Seconds 2
 
 
 # Set RestorePoint Creation Frequency to 0 (allow multiple restore points)
@@ -366,7 +366,7 @@ Start-Sleep -Seconds 2
 [Console]::Write(" done.")
 [Console]::ResetColor()
 [Console]::WriteLine()    
-Start-Sleep -Seconds 5
+Start-Sleep -Seconds 3
 
 # Offline Files Function to check if the OS is Windows 10
 function Test-Win10 {
@@ -825,7 +825,9 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
         Write-Delayed "Bitlocker is already configured on $env:SystemDrive " -NewLine:$false
         [Console]::ResetColor()
         $userResponse = Read-Host " - Do you want to skip configuring Bitlocker? (yes/no)"
-        if ($userResponse -like 'n') {
+        $userResponse = $userResponse.ToLower() # Normalize the input to lowercase
+
+        if ($userResponse -eq 'no') {
             # Disable BitLocker
             manage-bde -off $env:SystemDrive | Out-Null
 
