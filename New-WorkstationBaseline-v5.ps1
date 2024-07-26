@@ -183,7 +183,7 @@ if ((Get-Module -Name PSWindowsUpdate) -eq $null) {
     #Write-Host 'Installing PSWindowsUpdate Module, Please Wait...'
     Install-Module -name PSWindowsUpdate -force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
     }
-Write-Host -ForegroundColor Green 'Done.'
+Write-Host -ForegroundColor Green 'done.'
 
 
 # New Module Loader
