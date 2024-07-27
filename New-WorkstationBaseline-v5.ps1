@@ -67,7 +67,7 @@ function Initialize-Environment {
 }
 
 # Set working directory
-Set-Location
+Set-Location -Path $TempFolder
 # Baseline Operations Log
 function Write-Log {
     param (
