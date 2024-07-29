@@ -193,7 +193,7 @@ Write-Host -ForegroundColor Green 'done.'
 #>
 
 # New Module Loader
-Write-Delayed "Installing required powershell modules..." -NewLine:$false
+#Write-Delayed "Installing required powershell modules..." -NewLine:$false
 # List of required modules
 $requiredModules = @('PSWindowsUpdate')
 
