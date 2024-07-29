@@ -35,7 +35,7 @@ Start-Sleep -Seconds 60
 
 # Log back in as the previous user
 $previousUser = "mitsadmin"
-$password = "@dvance10755" -AsSecureString
+$password = "@dvance10755" | ConvertTo-SecureString -AsPlainText -Force
 
 # Convert the secure string password to plain text
 $plainPassword = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))
