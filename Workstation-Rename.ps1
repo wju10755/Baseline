@@ -31,7 +31,7 @@ $computerName = Read-Host "Enter the new computer name"
 Rename-Computer -NewName $computerName -Force -Restart
 
 # Wait for the computer to restart
-Start-Sleep -Seconds 60
+Start-Sleep -Seconds 60 
 
 # Log back in as the previous user
 $previousUser = "mitsadmin"
