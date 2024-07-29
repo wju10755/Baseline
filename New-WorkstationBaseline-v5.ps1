@@ -79,6 +79,25 @@ function Write-Log {
     Add-Content -Path $LogFile -Value "$(Get-Date) - $Message"
 }
 
+function Connect-VPN {
+    if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
+        Write-Delayed "NetExtender detected successfully, starting connection..." -NewLine:$false
+        Start-Process C:\temp\ssl-vpn.bat
+        Start-Sleep -Seconds 8
+        $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
+        if ($connectionProfile) {
+            Write-Delayed "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN." -NewLine:$true
+        } else {
+            Write-Delayed "The 'Sonicwall NetExtender' adapter is not connected to the SSLVPN." -NewLine:$true
+        }
+    } else {
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "SonicWall NetExtender not found"
+        [Console]::ResetColor()
+        [Console]::WriteLine()
+    }
+}
+
 ############################################################################################################
 #                                             Start Baseline                                               #
 #                                                                                                          #
@@ -1460,24 +1479,7 @@ if (Test-Path "c:\temp\update_windows.ps1") {
         [Console]::WriteLine()  
 }
 Start-Sleep -Seconds 3
-function Connect-VPN {
-    if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
-        Write-Delayed "NetExtender detected successfully, starting connection..." -NewLine:$false
-        Start-Process C:\temp\ssl-vpn.bat
-        Start-Sleep -Seconds 8
-        $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
-        if ($connectionProfile) {
-            Write-Delayed "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN." -NewLine:$true
-        } else {
-            Write-Delayed "The 'Sonicwall NetExtender' adapter is not connected to the SSLVPN." -NewLine:$true
-        }
-    } else {
-        [Console]::ForegroundColor = [System.ConsoleColor]::Red
-        Write-Delayed "SonicWall NetExtender not found"
-        [Console]::ResetColor()
-        [Console]::WriteLine()
-    }
-}
+
 
 
 ############################################################################################################
