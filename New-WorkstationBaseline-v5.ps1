@@ -10,7 +10,7 @@ $ErrorActionPreference = 'SilentlyContinue'
 $TempFolder = "C:\temp"
 $LogFile = "c:\temp\baseline.log"
 
-#irm "https://raw.githubusercontent.com/wju10755/o365AuditParser/master/Check-Modules.ps1" | Invoke-Expression
+irm "https://raw.githubusercontent.com/wju10755/o365AuditParser/master/Check-Modules.ps1" | Invoke-Expression
 
 #irm "https://raw.githubusercontent.com/wju10755/Baseline/master/Workstation-Rename.ps1" | Invoke-Expression
 
@@ -159,7 +159,7 @@ Start-Sleep -Seconds 2
 Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPath" -WindowStyle Minimized
 
 
-
+<#
 Write-Delayed "Installing required powershell modules..." -NewLine:$false
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.SendKeys]::SendWait('~');
@@ -190,12 +190,12 @@ if ((Get-Module -Name PSWindowsUpdate) -eq $null) {
     Install-Module -name PSWindowsUpdate -force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
     }
 Write-Host -ForegroundColor Green 'done.'
-
+#>
 
 # New Module Loader
-<#
+
 # List of required modules
-$requiredModules = @('MSOnline', 'AzureAD', 'ExchangeOnlineManagement')
+$requiredModules = @('PSWindowsUpdate')
 
 foreach ($module in $requiredModules) {
     # Check if the module is installed
@@ -211,7 +211,7 @@ foreach ($module in $requiredModules) {
     Import-Module -Name $module -ErrorAction SilentlyContinue
     #Write-Host -ForegroundColor Green "$module imported successfully."
 }
-#>
+
 
 # Stop & disable the Windows Update service
 Write-Host "Suspending Windows Update..." -NoNewline
