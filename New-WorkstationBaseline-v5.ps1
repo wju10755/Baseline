@@ -83,7 +83,7 @@ function Connect-VPN {
     if (Test-Path 'C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NECLI.exe') {
         Write-Delayed "NetExtender detected successfully, starting connection..." -NewLine:$false
         Start-Process C:\temp\ssl-vpn.bat
-        Start-Sleep -Seconds 8
+        Start-Sleep -Seconds 10
         $connectionProfile = Get-NetConnectionProfile -InterfaceAlias "Sonicwall NetExtender"
         if ($connectionProfile) {
             Write-Delayed "The 'Sonicwall NetExtender' adapter is connected to the SSLVPN." -NewLine:$true
