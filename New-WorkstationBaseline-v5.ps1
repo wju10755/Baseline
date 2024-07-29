@@ -160,7 +160,7 @@ Start-Process -FilePath "powershell.exe" -ArgumentList "-file $wakeLockScriptPat
 
 
 <#
-Write-Delayed "Installing required powershell modules..." -NewLine:$false
+
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.SendKeys]::SendWait('~');
 if ((Get-Packageprovider -Name NuGet) -eq $null) {
@@ -193,7 +193,7 @@ Write-Host -ForegroundColor Green 'done.'
 #>
 
 # New Module Loader
-
+Write-Delayed "Installing required powershell modules..." -NewLine:$false
 # List of required modules
 $requiredModules = @('PSWindowsUpdate')
 
@@ -201,11 +201,11 @@ foreach ($module in $requiredModules) {
     # Check if the module is installed
     $moduleInstalled = Get-Module -ListAvailable -Name $module
     if (!$moduleInstalled) {
-        Write-Host "Module $module is not installed. Installing now..."
+        #Write-Host "Module $module is not installed. Installing now..."
         Install-Module -Name $module -Force -AllowClobber -Scope CurrentUser -Confirm:$false
-        Write-Host -ForegroundColor Green "$module installed."
+        #Write-Host -ForegroundColor Green "$module installed."
     } else {
-        Write-Host -ForegroundColor Green "Module $module is installed."
+        #Write-Host -ForegroundColor Green "Module $module is installed."
     }
     # Import the module
     Import-Module -Name $module -ErrorAction SilentlyContinue
