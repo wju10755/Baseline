@@ -1,3 +1,4 @@
+powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope Process -Force"
 @echo off
 setlocal
 
@@ -8,17 +9,11 @@ set LTBAT=C:\temp\install.bat
 
 echo Starting LTAgent Setup....
 
-for /L %%i in (30,-1,0) do (
-	<nul set /p =%%i seconds remaining...
-	timeout /t 1 >nul
-	<nul set /p =`r
-)
-
 if not exist "%tmp%" (
-	mkdir "%tmp%"
+    mkdir "%tmp%"
 )
 
-powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope Process -Force"
+timeout /t 10 /nobreak >nul
 
 powershell -Command "Invoke-WebRequest -Uri '%LTURL%' -OutFile '%LTPKG%'"
 

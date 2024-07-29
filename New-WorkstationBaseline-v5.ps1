@@ -12,7 +12,7 @@ $LogFile = "c:\temp\baseline.log"
 
 #irm "https://raw.githubusercontent.com/wju10755/o365AuditParser/master/Check-Modules.ps1" | Invoke-Expression
 
-irm "https://raw.githubusercontent.com/wju10755/Baseline/master/Workstation-Rename.ps1" | Invoke-Expression
+#irm "https://raw.githubusercontent.com/wju10755/Baseline/master/Workstation-Rename.ps1" | Invoke-Expression
 
 
 # Clear console window
