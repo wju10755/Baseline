@@ -1257,6 +1257,7 @@ if ($Acrobat) {
 }
 #>
 
+<#
 # Acrobat Installation -v2
 $AcroFilePath = "c:\temp\Reader_en_install.exe"
 $Acrobat = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
@@ -1325,7 +1326,56 @@ if ($Acrobat) {
 
         Remove-Job -Id $installJob.Id
     }
+#>
 
+# Acrobat Installation -v3
+# Define the URL and file path for the Acrobat Reader installer
+$URL = "https://advancestuff.hostedrmm.com/labtech/transfer/installers/Reader_en_install.exe"
+$AcroFilePath = "$env:TEMP\Reader_en_install.exe"
+
+# Download the Acrobat Reader installer
+$ProgressPreference = 'SilentlyContinue'
+$response = Invoke-WebRequest -Uri $URL -Method Head
+$fileSize = $response.Headers["Content-Length"]
+$ProgressPreference = 'Continue'
+Write-Host "Downloading Adobe Acrobat Reader ($fileSize bytes)..."
+
+#$downloadStartTime = Get-Date
+Invoke-WebRequest -Uri $URL -OutFile $AcroFilePath -UseBasicParsing
+#$downloadEndTime = Get-Date
+
+#$downloadDuration = $downloadEndTime - $downloadStartTime
+#Write-Host "Download completed in $($downloadDuration.TotalSeconds) seconds."
+
+$FileSize = (Get-Item $AcroFilePath).Length
+$ExpectedSize = 1628608 # in bytes
+if ($FileSize -eq $ExpectedSize) {
+    # Start the silent installation of Acrobat Reader
+    Write-Host "Starting silent installation of Adobe Acrobat Reader..."
+    $installStartTime = Get-Date
+    Start-Process -FilePath $AcroFilePath -ArgumentList "/sAll /rs /rps /msi /norestart /quiet" -NoNewWindow
+
+    # Monitor the system for the active msiexec.exe process
+    Write-Host "Monitoring for msiexec.exe process..."
+    do {
+        Start-Sleep -Seconds 5
+        $msiexecProcess = Get-Process -Name msiexec -ErrorAction SilentlyContinue
+    } while ($msiexecProcess)
+
+    #$installEndTime = Get-Date
+    #$installDuration = $installEndTime - $installStartTime
+    #Write-Host "Installation completed in $($installDuration.TotalSeconds) seconds."
+
+    # Once msiexec.exe process exits, kill the Reader_en_install.exe process
+    Write-Host "msiexec.exe process has exited. Terminating Reader_en_install.exe..."
+    Stop-Process -Name Reader_en_install -Force -ErrorAction SilentlyContinue
+
+    Write-Host "Adobe Acrobat Reader installation complete."
+} else {
+    Write-Host "Download failed. File size does not match." -ForegroundColor "Red"
+    Start-Sleep -Seconds 5
+    Remove-Item -Path $AcroFilePath -Force -ErrorAction SilentlyContinue | Out-Null
+}
 
 ############################################################################################################
 #                                   SonicWall NetExtender Installation                                     #
@@ -1489,6 +1539,8 @@ Start-Sleep -Seconds 3
 #
 Write-Delayed "Starting Domain/AzureAD Join Task..." -NewLine:$true
 
+# Function to connect to SSLVPN - v1 
+<# 
 $ProgressPreference = 'SilentlyContinue'
 try {
     Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
@@ -1542,6 +1594,76 @@ do {
             $output = dsregcmd /status | Out-String
             $azureAdJoined = $output -match 'AzureAdJoined\s+:\s+(YES|NO)' | Out-Null
             $azureAdJoinedValue = if($matches) { $matches[1] } else { "Not Found" }
+            Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
+            $validChoice = $true
+        }
+        default {
+            Write-Delayed "Invalid choice. Please enter A or S." -NewLine:$true
+            $validChoice = $false
+        }
+    }
+} while (-not $validChoice)
+#>
+
+$ProgressPreference = 'SilentlyContinue'
+try {
+    Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
+} catch {
+    [Console]::ForegroundColor = [System.ConsoleColor]::Red
+    Write-Delayed "Failed to download SSL VPN installer: $_"
+    [Console]::ResetColor()
+    [Console]::WriteLine()
+    exit 1
+}
+$ProgressPreference = 'Continue'
+
+$validChoice = $false
+do {
+    $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? (Y/N)"
+    switch ($choice) {
+        "Y" {
+            Connect-VPN
+            $validChoice = $true
+        }
+        "N" {
+            Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true
+            $validChoice = $true
+        }
+        default {
+            Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true
+            $validChoice = $false
+        }
+    }
+} while (-not $validChoice)
+
+$validChoice = $false
+do {
+    $choice = Read-Host -Prompt "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
+    switch ($choice) {
+        "S" {
+            $username = Read-Host -Prompt "Enter the username for the domain join operation"
+            $password = Read-Host -Prompt "Enter the password for the domain join operation" -AsSecureString
+            $cred = New-Object System.Management.Automation.PSCredential($username, $password)
+            $domain = Read-Host -Prompt "Enter the domain name for the domain join operation"
+            try {
+                Add-Computer -DomainName $domain -Credential $cred 
+                Write-Delayed "Domain join operation completed successfully." -NewLine:$true
+                $validChoice = $true
+            } catch {
+                Write-Delayed "Failed to join the domain." -NewLine:$true
+                $validChoice = $true
+            }
+        }
+        "A" {
+            Write-Delayed "Starting Azure AD Join operation using Work or School account..." -NewLine:$true
+            Start-Process "ms-settings:workplace"
+            Start-Sleep -Seconds 3
+            $output = dsregcmd /status | Out-String
+            if ($output -match 'AzureAdJoined\s+:\s+(YES|NO)') {
+                $azureAdJoinedValue = $matches[1]
+            } else {
+                $azureAdJoinedValue = "Not Found"
+            }
             Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
             $validChoice = $true
         }
