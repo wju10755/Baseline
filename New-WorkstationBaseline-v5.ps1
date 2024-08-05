@@ -1617,6 +1617,7 @@ do {
 $ProgressPreference = 'SilentlyContinue'
 try {
     Invoke-WebRequest -Uri "https://advancestuff.hostedrmm.com/labtech/transfer/installers/ssl-vpn.bat" -OutFile "c:\temp\ssl-vpn.bat"
+    Start-Sleep -Seconds 3
 } catch {
     [Console]::ForegroundColor = [System.ConsoleColor]::Red
     Write-Delayed "Failed to download SSL VPN installer: $_"
@@ -1626,26 +1627,28 @@ try {
 }
 $ProgressPreference = 'Continue'
 
-$validChoice = $false
+$sslVpnValidChoice = $false
 do {
     $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? (Y/N)"
     switch ($choice) {
         "Y" {
+            Start-Sleep -Seconds 1
             Connect-VPN
-            $validChoice = $true
+            $sslVpnValidChoice = $true
         }
         "N" {
             Write-Delayed "Skipping VPN Connection Setup..." -NewLine:$true
-            $validChoice = $true
+            $sslVpnValidChoice = $true
         }
         default {
             Write-Delayed "Invalid choice. Please enter Y or N." -NewLine:$true
-            $validChoice = $false
+            $sslVpnValidChoice = $false
         }
     }
-} while (-not $validChoice)
+} while (-not $sslVpnValidChoice)
 
-$validChoice = $false
+
+$domainJoinValidChoice = $false
 do {
     $choice = Read-Host -Prompt "Do you want to join a domain or Azure AD? (A for Azure AD, S for domain)"
     switch ($choice) {
@@ -1657,10 +1660,10 @@ do {
             try {
                 Add-Computer -DomainName $domain -Credential $cred 
                 Write-Delayed "Domain join operation completed successfully." -NewLine:$true
-                $validChoice = $true
+                $domainJoinValidChoice = $true
             } catch {
                 Write-Delayed "Failed to join the domain." -NewLine:$true
-                $validChoice = $true
+                $domainJoinValidChoice = $true
             }
         }
         "A" {
@@ -1674,14 +1677,14 @@ do {
                 $azureAdJoinedValue = "Not Found"
             }
             Write-Delayed "AzureADJoined: $azureAdJoinedValue" -NewLine:$true
-            $validChoice = $true
+            $domainJoinValidChoice = $true
         }
         default {
             Write-Delayed "Invalid choice. Please enter A or S." -NewLine:$true
-            $validChoice = $false
+            $domainJoinValidChoice = $false
         }
     }
-} while (-not $validChoice)
+} while (-not $domainJoinValidChoice)
 
 # Aquire Wake Lock (Prevents idle session & screen lock)
 New-Item -ItemType File -Path "c:\temp\WakeLock.flag" -Force *> $null
