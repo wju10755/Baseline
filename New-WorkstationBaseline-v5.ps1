@@ -935,6 +935,7 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
 }
 #>
 
+<#
 # Check Bitlocker Compatibility -v2
 $WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
 $TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
@@ -1039,6 +1040,86 @@ if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
     Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
     Start-Sleep -Seconds 1
 }
+#>
+# Check Bitlocker Compatibility
+$WindowsVer = Get-WmiObject -Query 'select * from Win32_OperatingSystem where (Version like "6.2%" or Version like "6.3%" or Version like "10.0%") and ProductType = "1"' -ErrorAction SilentlyContinue
+$TPM = Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -ErrorAction SilentlyContinue
+$BitLockerReadyDrive = Get-BitLockerVolume -MountPoint $env:SystemDrive -ErrorAction SilentlyContinue
+
+if ($WindowsVer -and $TPM -and $BitLockerReadyDrive) {
+    # Check if Bitlocker is already configured on C:
+    $BitLockerStatus = Get-BitLockerVolume -MountPoint $env:SystemDrive
+    # Ensure the output directory exists
+    $outputDirectory = "C:\temp"
+    if (-not (Test-Path -Path $outputDirectory)) {
+        New-Item -Path $outputDirectory -ItemType Directory | Out-Null
+    }
+    if ($BitLockerStatus.ProtectionStatus -eq 'On') {
+        # Bitlocker is already configured
+        [Console]::ForegroundColor = [System.ConsoleColor]::Red
+        Write-Delayed "Bitlocker is already configured on $env:SystemDrive " -NewLine:$false
+        [Console]::ResetColor()
+        $userResponse = Read-Host " - Do you want to skip configuring Bitlocker? (yes/no)"
+        if ($userResponse -like 'n') {
+            # Disable BitLocker
+            manage-bde -off $env:SystemDrive | Out-Null
+
+            # Monitor decryption progress
+            do {
+                $status = manage-bde -status $env:SystemDrive
+                $percentageEncrypted = ($status | Select-String -Pattern "Percentage Encrypted:.*").ToString().Split(":")[1].Trim()
+                Write-Host "`rCurrent decryption progress: $percentageEncrypted" -NoNewline
+                Start-Sleep -Seconds 1
+            } until ($percentageEncrypted -eq "0.0%")
+            Write-Host "`nDecryption of $env:SystemDrive is complete."
+            # Reconfigure BitLocker
+            Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
+            Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
+            Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
+            Start-Process 'manage-bde.exe' -ArgumentList " -on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait | Out-Null
+            # Verify volume key protector exists
+            $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
+            if ($BitLockerVolume.KeyProtector) {
+                Write-Host "Bitlocker disk encryption configured successfully."
+            } else {
+                Write-Host "Bitlocker disk encryption is not configured."
+            }
+        }
+    } else {
+        # Bitlocker is not configured
+        Write-Delayed "Configuring Bitlocker Disk Encryption..." -NewLine:$true
+        # Create the recovery key
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -RecoveryPasswordProtector -WarningAction SilentlyContinue | Out-Null
+        # Add TPM key
+        Add-BitLockerKeyProtector -MountPoint $env:SystemDrive -TpmProtector -WarningAction SilentlyContinue | Out-Null
+        Start-Sleep -Seconds 15 # Wait for the protectors to take effect
+        # Enable Encryption
+        Start-Process 'manage-bde.exe' -ArgumentList "-on $env:SystemDrive -UsedSpaceOnly" -Verb runas -Wait | Out-Null
+        # Backup the Recovery to AD
+        $RecoveryKeyGUID = (Get-BitLockerVolume -MountPoint $env:SystemDrive).KeyProtector | Where-Object {$_.KeyProtectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
+        manage-bde.exe -protectors $env:SystemDrive -adbackup -id $RecoveryKeyGUID | Out-Null
+        # Write Recovery Key to a file
+        manage-bde -protectors C: -get | Out-File "$outputDirectory\$env:computername-BitLocker.txt"
+        # Verify volume key protector exists
+        $BitLockerVolume = Get-BitLockerVolume -MountPoint $env:SystemDrive
+        if ($BitLockerVolume.KeyProtector) {
+            Write-Delayed "Bitlocker disk encryption configured successfully." -NewLine:$true
+            Write-Delayed "Recovery ID:" -NewLine:$false
+            Write-Host -ForegroundColor Cyan " $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | ForEach-Object { $_.KeyProtectorId.Trim('{', '}') })"
+            Write-Delayed "Recovery Password:" -NewLine:$false
+            Write-Host -ForegroundColor Cyan " $($BitLockerVolume.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword' -and $_.KeyProtectorId -like "*"} | Select-Object -ExpandProperty RecoveryPassword)"
+        } else {
+            [Console]::ForegroundColor = [System.ConsoleColor]::Red
+            Write-Delayed "Bitlocker disk encryption is not configured." -NewLine:$true
+            [Console]::ResetColor()
+            [Console]::WriteLine()  
+        }
+    }
+} else {
+    Write-Warning "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    Write-Log "Skipping Bitlocker Drive Encryption due to device not meeting hardware requirements."
+    Start-Sleep -Seconds 1
+}
 
 Write-Delayed "Removing Microsoft OneDrive (Personal)..." -NewLine:$false
 # Remove Microsoft OneDrive
@@ -1077,6 +1158,8 @@ try {
 } catch {
     Write-Error "An error occurred: $_"
 }
+#>
+
 
 Write-Delayed "Removing Microsoft Teams Machine-Wide Installer..." -NewLine:$false
 # Remove Microsoft Teams Machine-Wide Installer
