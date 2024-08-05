@@ -1626,13 +1626,13 @@ try {
     exit 1
 }
 $ProgressPreference = 'Continue'
-
+Start-Sleep -Seconds 2
 $sslVpnValidChoice = $false
 do {
     $choice = Read-Host -Prompt "Do you want to connect to SSL VPN? (Y/N)"
     switch ($choice) {
         "Y" {
-            Start-Sleep -Seconds 1
+            Start-Sleep -Seconds 2
             Connect-VPN
             $sslVpnValidChoice = $true
         }
